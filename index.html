@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>Math Learning Center</title>
+
+<link rel="stylesheet" href="css/style.css">
+
+</head>
+
+<body>
+
+<header>
+
+<h1>📚 Math Learning Center</h1>
+
+<button id="themeButton">
+🌙 Dark Mode
+</button>
+
+</header>
+
+<div class="container">
+
+<section id="homePage">
+
+<h2>Select Grade</h2>
+
+<div id="gradeGrid"></div>
+
+</section>
+
+<section
+id="topicPage"
+class="hidden">
+
+<button class="backButton">
+⬅ Back
+</button>
+
+<h2 id="gradeTitle"></h2>
+
+<div id="topicGrid"></div>
+
+</section>
+
+<section
+id="settingsPage"
+class="hidden">
+
+<button class="backButton">
+⬅ Back
+</button>
+
+<h2>Quiz Settings</h2>
+
+<div class="settings">
+
+<label>
+
+Difficulty
+
+<select id="difficulty">
+
+<option>Easy</option>
+
+<option>Medium</option>
+
+<option>Hard</option>
+
+</select>
+
+</label>
+
+<label>
+
+Questions
+
+<select id="questionCount">
+
+<option>10</option>
+
+<option>20</option>
+
+<option>50</option>
+
+<option>100</option>
+
+</select>
+
+</label>
+
+<label>
+
+Timer
+
+<select id="timer">
+
+<option value="0">
+No Timer
+</option>
+
+<option value="30">
+30 Seconds
+</option>
+
+<option value="60">
+1 Minute
+</option>
+
+<option value="120">
+2 Minutes
+</option>
+
+<option value="300">
+5 Minutes
+</option>
+
+</select>
+
+</label>
+
+<div class="buttons">
+
+<button id="practiceButton">
+Practice Mode
+</button>
+
+<button id="quizButton">
+Quiz Mode
+</button>
+
+</div>
+
+</div>
+
+</section>
+
+<section
+id="quizPage"
+class="hidden">
+
+<div class="quizHeader">
+
+<div id="progressText">
+
+Question
+
+</div>
+
+<div id="timerDisplay">
+
+00:00
+
+</div>
+
+</div>
+
+<div
+id="questionContainer">
+
+</div>
+
+<div
+id="answerContainer">
+
+</div>
+
+<button
+id="nextButton">
+
+Next →
+
+</button>
+
+</section>
+
+<section
+id="resultsPage"
+class="hidden">
+
+<h2>
+
+Quiz Complete
+
+</h2>
+
+<div id="scoreBox"></div>
+
+<button
+id="restartButton">
+
+Play Again
+
+</button>
+
+<button
+id="homeButton">
+
+Home
+
+</button>
+
+</section>
+
+<section
+id="statsPage">
+
+<h2>
+
+Progress
+
+</h2>
+
+<div id="statsContainer">
+
+</div>
+
+</section>
+
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/generator.js"></script>
+<script src="js/quiz.js"></script>
+<script src="js/progress.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
