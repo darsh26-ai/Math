@@ -126,12 +126,21 @@ No Timer
 
 <div class="buttons">
 
-<button id="practiceButton">
+<button 
+id="practiceButton"
+onclick="startQuiz('practice')">
+
 Practice Mode
+
 </button>
 
-<button id="quizButton">
+
+<button 
+id="quizButton"
+onclick="startQuiz('quiz')">
+
 Quiz Mode
+
 </button>
 
 </div>
@@ -170,8 +179,9 @@ id="answerContainer">
 
 </div>
 
-<button
-id="nextButton">
+<button 
+id="nextButton"
+onclick="nextQuestion()">
 
 Next →
 
@@ -191,8 +201,9 @@ Quiz Complete
 
 <div id="scoreBox"></div>
 
-<button
-id="restartButton">
+<button 
+id="restartButton"
+onclick="restartQuiz()">
 
 Play Again
 
