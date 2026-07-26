@@ -13,7 +13,9 @@ Contains:
 */
 
 
-const mathData = {
+let selectedGrade = null;
+
+let selectedTopic = "";
 
 
 /* ============================
