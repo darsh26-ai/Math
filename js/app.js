@@ -1,3 +1,7 @@
+let selectedGrade = null;
+
+let selectedTopic = "";
+
 /*
 =================================================
 Math Learning Center
@@ -12,10 +16,6 @@ Contains:
 =================================================
 */
 
-
-let selectedGrade = null;
-
-let selectedTopic = "";
 
 
 /* ============================
