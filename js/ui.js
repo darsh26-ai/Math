@@ -1,1 +1,2 @@
 
+console.log("ui.js loaded");
