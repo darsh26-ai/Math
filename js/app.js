@@ -571,6 +571,7 @@ setupButtons();
 
 loadTheme();
 
+updateStatistics();
 
 });
 
