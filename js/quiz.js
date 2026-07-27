@@ -353,26 +353,37 @@ btn.classList.add(
 // SAVE PROGRESS
 // ===============================
 
+console.log("Before saving progress");
+
+
 recordAnswer(
-
 currentQuiz.selectedTopic,
-
 isCorrect
+);
 
+
+console.log("After saving progress");
+
+
+let next =
+document.getElementById(
+"nextButton"
+);
+
+
+console.log(
+"Next button:",
+next
 );
 
 
 
-
-// show next button
-
-document.getElementById(
-"nextButton"
-)
-.style.display="block";
+next.style.display="block";
 
 
-}
+console.log(
+"Next button should be visible"
+);
 
 /*
 =====================================
