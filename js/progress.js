@@ -93,73 +93,91 @@ Update Dashboard
 */
 
 function updateStatistics() {
-  let container =
 
-      document.getElementById("statsContainer");
+    let container =
+        document.getElementById("statsContainer");
 
-  if (!container) {
-    return;
-  }
 
-  let progress = loadProgress();
+    if (!container) {
+        return;
+    }
 
-  let accuracy = getAccuracy();
 
-  container.innerHTML =
+    let progress = loadProgress();
+
+    let accuracy = getAccuracy();
+
+
+
+    container.innerHTML =
 
 `
+<div class="statCard">
 
-      < div class
-  = "statCard" >
+    <div class="statTitle">
+        Questions Completed
+    </div>
 
-      < div class
-  = "statTitle" > Questions Completed</ div>
+    <h2>
+        ${progress.totalQuestions}
+    </h2>
 
-      <h2> ${progress.totalQuestions} < / h2 >
+</div>
 
-      </ div>
 
-      < div class
-  = "statCard" >
 
-      < div class
-  = "statTitle" > Correct Answers</ div>
+<div class="statCard">
 
-      <h2> ${progress.correctAnswers} < / h2 >
+    <div class="statTitle">
+        Correct Answers
+    </div>
 
-      </ div>
+    <h2>
+        ${progress.correctAnswers}
+    </h2>
 
-      < div class
-  = "statCard" >
+</div>
 
-      < div class
-  = "statTitle" > Accuracy</ div>
 
-          <h2> ${accuracy} % </ h2>
 
-      < div class
-  = "progress" >
+<div class="statCard">
 
-      < div class
-  = "progressFill" style = "width:${accuracy}%" >
+    <div class="statTitle">
+        Accuracy
+    </div>
 
-      </ div>
+    <h2>
+        ${accuracy}%
+    </h2>
 
-      </ div>
 
-      </ div>
+    <div class="progress">
 
-      < div class
-  = "statCard" >
+        <div 
+        class="progressFill"
+        style="width:${accuracy}%">
+        </div>
 
-      < div class
-  = "statTitle" > Quizzes Completed</ div>
+    </div>
 
-      <h2> ${progress.quizzesCompleted} < / h2 >
+</div>
 
-      </ div>
+
+
+<div class="statCard">
+
+    <div class="statTitle">
+        Quizzes Completed
+    </div>
+
+    <h2>
+        ${progress.quizzesCompleted}
+    </h2>
+
+</div>
 
 `;
+
 }
 
 /*
