@@ -95,7 +95,6 @@ i<count;
 i++
 ){
 
-
 let question =
 generateQuestion(
 topic,
@@ -107,18 +106,18 @@ currentQuiz.questions.push(
 question
 );
 
-console.log(
-currentQuiz.questions
-);
-
 }
 
+
+console.log(
+"Generated questions:",
+currentQuiz.questions
+);
 
 
 showPage(
 "quizPage"
 );
-
 
 
 loadQuestion();
@@ -356,10 +355,10 @@ btn.classList.add(
 console.log("Before saving progress");
 
 
-// recordAnswer(
-// currentQuiz.selectedTopic,
-// isCorrect
-// );
+recordAnswer(
+currentQuiz.selectedTopic,
+isCorrect
+);
 
 
 console.log("After saving progress");
