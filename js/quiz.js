@@ -493,7 +493,57 @@ currentQuiz.totalQuestions
 
 }
 
+function saveQuizResult(
+topic,
+score,
+total
+){
 
+
+let result = {
+
+
+topic:topic,
+
+score:score,
+
+total:total,
+
+percentage:
+Math.round(
+(score/total)*100
+),
+
+date:
+new Date().toISOString()
+
+
+};
+
+
+
+let history =
+JSON.parse(
+localStorage.getItem(
+"quizHistory"
+)
+)
+||
+[];
+
+
+
+history.push(result);
+
+
+
+localStorage.setItem(
+"quizHistory",
+JSON.stringify(history)
+);
+
+
+}
 
 
 
