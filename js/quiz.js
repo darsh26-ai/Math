@@ -651,3 +651,4 @@ currentQuiz.mode
 
 
 console.log("quiz.js loaded");
+console.log("END OF QUIZ FILE");
