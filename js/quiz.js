@@ -383,7 +383,7 @@ next.style.display="block";
 console.log(
 "Next button should be visible"
 );
-
+}
 /*
 =====================================
 Next Question
