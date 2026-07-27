@@ -248,6 +248,13 @@ Check Answer
 */
 
 
+/*
+=====================================
+Check Answer
+=====================================
+*/
+
+
 function checkAnswer(
 selected,
 button
@@ -279,6 +286,10 @@ btn.disabled=true;
 
 
 
+let isCorrect = false;
+
+
+
 if(
 String(selected)
 ===
@@ -291,9 +302,10 @@ button.classList.add(
 );
 
 
-
 currentQuiz.score++;
 
+
+isCorrect = true;
 
 
 }
@@ -333,6 +345,24 @@ btn.classList.add(
 
 
 
+
+// ===============================
+// SAVE PROGRESS
+// ===============================
+
+recordAnswer(
+
+currentQuiz.selectedTopic,
+
+isCorrect
+
+);
+
+
+
+
+// show next button
+
 document.getElementById(
 "nextButton"
 )
@@ -340,13 +370,6 @@ document.getElementById(
 
 
 }
-
-
-
-
-
-
-
 
 /*
 =====================================
