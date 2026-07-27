@@ -71,7 +71,7 @@ Calculate Accuracy
 function getAccuracy() {
   let progress = loadProgress();
 
-  if (progress.totalQuestions == = 0) {
+  if (progress.totalQuestions === 0) {
     return 0;
   }
 
@@ -255,7 +255,7 @@ function recordAnswer(topic, isCorrect) {
 function updateStreak(student) {
   let today = new Date().toDateString();
 
-  if (student.streak.lastPractice != = today) {
+  if (student.streak.lastPractice !== today) {
     student.streak.current++;
 
     student.streak.lastPractice = today;
