@@ -481,8 +481,13 @@ ${getRating(percentage)}
 
 
 saveQuizResult(
+
+currentQuiz.selectedTopic,
+
 currentQuiz.score,
+
 currentQuiz.totalQuestions
+
 );
 
 
