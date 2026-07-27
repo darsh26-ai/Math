@@ -377,8 +377,25 @@ Next Question
 =====================================
 */
 
-
 function nextQuestion(){
+
+
+console.log(
+"Next clicked"
+);
+
+
+console.log(
+"Current Index:",
+currentQuiz.currentIndex
+);
+
+
+console.log(
+"Total Questions:",
+currentQuiz.totalQuestions
+);
+
 
 
 currentQuiz.currentIndex++;
@@ -386,10 +403,13 @@ currentQuiz.currentIndex++;
 
 
 if(
-currentQuiz.currentIndex
->=
-currentQuiz.totalQuestions
+currentQuiz.currentIndex >= currentQuiz.totalQuestions
 ){
+
+
+console.log(
+"Quiz Finished"
+);
 
 
 finishQuiz();
@@ -400,6 +420,12 @@ finishQuiz();
 else{
 
 
+console.log(
+"Loading Question:",
+currentQuiz.currentIndex + 1
+);
+
+
 loadQuestion();
 
 
@@ -407,12 +433,6 @@ loadQuestion();
 
 
 }
-
-
-
-
-
-
 
 
 /*
