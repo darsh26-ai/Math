@@ -356,10 +356,10 @@ btn.classList.add(
 console.log("Before saving progress");
 
 
-recordAnswer(
-currentQuiz.selectedTopic,
-isCorrect
-);
+// recordAnswer(
+// currentQuiz.selectedTopic,
+// isCorrect
+// );
 
 
 console.log("After saving progress");
