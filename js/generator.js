@@ -22,6 +22,12 @@ Supports:
 =================================================
 */
 
+let count =
+Number(
+document.getElementById(
+"questionCount"
+).value
+);
 
 /*
 =====================================
