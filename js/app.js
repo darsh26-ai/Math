@@ -263,7 +263,11 @@ document
 }
 
 
+function chooseTopic(topic){
 
+selectedTopic = topic;
+
+}
 
 
 function loadTheme(){
