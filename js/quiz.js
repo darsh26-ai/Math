@@ -648,3 +648,6 @@ currentQuiz.mode
 
 
 }
+
+
+console.log("quiz.js loaded");
