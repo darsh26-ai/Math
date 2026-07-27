@@ -36,7 +36,35 @@ updateStatistics();
 });
 
 
+function setupButtons() {
 
+    const homeButton = document.getElementById("homeButton");
+
+    if (homeButton) {
+        homeButton.onclick = function () {
+            showPage("homePage");
+        };
+    }
+
+    const themeButton = document.getElementById("themeButton");
+
+    if (themeButton) {
+        themeButton.onclick = function () {
+            document.body.classList.toggle("dark");
+        };
+    }
+
+    document.querySelectorAll(".backButton").forEach(button => {
+
+        button.onclick = function () {
+
+            showPage("homePage");
+
+        };
+
+    });
+
+}
 
 
 function loadGrades(){
