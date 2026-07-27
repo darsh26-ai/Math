@@ -107,6 +107,9 @@ currentQuiz.questions.push(
 question
 );
 
+console.log(
+currentQuiz.questions
+);
 
 }
 
