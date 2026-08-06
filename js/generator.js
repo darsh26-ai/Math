@@ -1,801 +1,284 @@
 /*
 =================================================
 Math Learning Center
-
-generator.js
-
-Creates random math questions
-
-Supports:
-- Addition
-- Subtraction
-- Multiplication
-- Division
-- Fractions
-- Decimals
-- Percent
-- Ratio
-- Algebra
-- Integers
-- Exponents
-
+generator.js (Improved Version)
 =================================================
 */
 
-let count =
-Number(
-document.getElementById(
-"questionCount"
-).value
-);
-
-/*
-=====================================
-Random Number Helper
-=====================================
-*/
-
-function randomNumber(min,max){
-
-return Math.floor(
-Math.random()*(max-min+1)
-)+min;
-
+/* ---------------------------------------------
+   Random Number Helper
+--------------------------------------------- */
+function randomNumber(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-
-/*
-=====================================
-Shuffle Array
-=====================================
-*/
-
-function shuffle(array){
-
-return array.sort(
-()=>Math.random()-0.5
-);
-
+/* ---------------------------------------------
+   Shuffle Array
+--------------------------------------------- */
+function shuffle(array) {
+    return array.sort(() => Math.random() - 0.5);
 }
 
+/* ---------------------------------------------
+   Generate Wrong Options
+--------------------------------------------- */
+function generateOptions(answer) {
+    const options = [answer];
 
+    while (options.length < 4) {
+        const variation = randomNumber(-10, 10);
+        const wrong = answer + variation;
 
-/*
-=====================================
-Generate Wrong Answers
-=====================================
-*/
+        if (wrong !== answer && !options.includes(wrong)) {
+            options.push(wrong);
+        }
+    }
 
-function generateOptions(answer){
-
-
-let options=[answer];
-
-
-while(options.length<4){
-
-
-let wrong;
-
-
-let variation=randomNumber(
--10,
-10
-);
-
-
-wrong=answer+variation;
-
-
-if(
-wrong!==answer &&
-!options.includes(wrong)
-){
-
-options.push(wrong);
-
+    return shuffle(options);
 }
 
+/* ---------------------------------------------
+   MAIN QUESTION GENERATOR (fixed)
+--------------------------------------------- */
+function generateQuestion(topic, difficulty, grade) {
+    if (!topic) {
+        console.warn("No topic provided. Defaulting to addition.");
+        topic = "addition";
+    }
 
+    switch (topic) {
+        case "addition":
+            return generateAddition(difficulty);
+
+        case "subtraction":
+            return generateSubtraction(difficulty);
+
+        case "multiplication":
+            return generateMultiplication(difficulty);
+
+        case "division":
+            return generateDivision(difficulty);
+
+        case "fractions":
+            return generateFraction();
+
+        case "decimals":
+            return generateDecimal();
+
+        case "percent":
+            return generatePercent();
+
+        case "ratio":
+            return generateRatio();
+
+        case "algebra":
+            return generateAlgebra();
+
+        case "integers":
+            return generateInteger();
+
+        case "exponents":
+            return generateExponent();
+
+        case "wordProblems":
+            return generateWordProblem(grade);
+
+        default:
+            console.warn("Unknown topic:", topic);
+            return generateAddition(difficulty);
+    }
 }
 
+/* ---------------------------------------------
+   Addition
+--------------------------------------------- */
+function generateAddition(level) {
+    const range = difficultyLevels[level] || difficultyLevels.Easy;
 
-return shuffle(options);
+    const a = randomNumber(range.min, range.max);
+    const b = randomNumber(range.min, range.max);
+    const answer = a + b;
 
-
+    return {
+        question: `${a} + ${b} = ?`,
+        answer,
+        options: generateOptions(answer)
+    };
 }
 
+/* ---------------------------------------------
+   Subtraction
+--------------------------------------------- */
+function generateSubtraction(level) {
+    const range = difficultyLevels[level] || difficultyLevels.Easy;
 
+    const a = randomNumber(range.min, range.max);
+    const b = randomNumber(1, a);
+    const answer = a - b;
 
-/*
-=====================================
-MAIN QUESTION GENERATOR
-=====================================
-*/
-
-
-switch(topic){
-
-    case "addition":
-        return generateAddition(difficulty);
-
-    case "subtraction":
-        return generateSubtraction(difficulty);
-
-    case "multiplication":
-        return generateMultiplication(difficulty);
-
-    case "division":
-        return generateDivision(difficulty);
-
-    case "fractions":
-        return generateFraction();
-
-    case "decimals":
-        return generateDecimal();
-
-    case "percent":
-        return generatePercent();
-
-    case "ratio":
-        return generateRatio();
-
-    case "algebra":
-        return generateAlgebra();
-
-    case "integers":
-        return generateInteger();
-
-    case "exponents":
-        return generateExponent();
-
-    case "wordProblems":
-        return generateWordProblem(grade);   // ⭐ FIXED
-
-    default:
-        return generateAddition(difficulty);
+    return {
+        question: `${a} - ${b} = ?`,
+        answer,
+        options: generateOptions(answer)
+    };
 }
 
+/* ---------------------------------------------
+   Multiplication
+--------------------------------------------- */
+function generateMultiplication(level) {
+    const range = difficultyLevels[level] || difficultyLevels.Easy;
 
+    const a = randomNumber(range.min, range.max);
+    const b = randomNumber(1, 12);
+    const answer = a * b;
 
-/*
-=====================================
-Addition
-=====================================
-*/
-
-
-function generateAddition(level){
-
-
-let range=difficultyLevels[level];
-
-
-let a=randomNumber(
-range.min,
-range.max
-);
-
-
-let b=randomNumber(
-range.min,
-range.max
-);
-
-
-let answer=a+b;
-
-
-return {
-
-
-question:`${a} + ${b} = ?`,
-
-
-answer:answer,
-
-
-options:
-generateOptions(answer)
-
-
-};
-
-
+    return {
+        question: `${a} × ${b} = ?`,
+        answer,
+        options: generateOptions(answer)
+    };
 }
 
+/* ---------------------------------------------
+   Division
+--------------------------------------------- */
+function generateDivision(level) {
+    const divisor = randomNumber(2, 12);
+    const answer = randomNumber(1, 20);
+    const dividend = divisor * answer;
 
-
-
-
-/*
-=====================================
-Subtraction
-=====================================
-*/
-
-
-function generateSubtraction(level){
-
-
-let range=difficultyLevels[level];
-
-
-let a=randomNumber(
-range.min,
-range.max
-);
-
-
-let b=randomNumber(
-1,
-a
-);
-
-
-let answer=a-b;
-
-
-return {
-
-
-question:`${a} - ${b} = ?`,
-
-
-answer:answer,
-
-
-options:
-generateOptions(answer)
-
-
-};
-
-
+    return {
+        question: `${dividend} ÷ ${divisor} = ?`,
+        answer,
+        options: generateOptions(answer)
+    };
 }
 
+/* ---------------------------------------------
+   Fractions → Decimal
+--------------------------------------------- */
+function generateFraction() {
+    const denominator = randomNumber(2, 10);
+    const numerator = randomNumber(1, denominator - 1);
 
+    const answer = Number((numerator / denominator).toFixed(2));
 
-
-
-
-
-/*
-=====================================
-Multiplication
-=====================================
-*/
-
-
-function generateMultiplication(level){
-
-
-let max;
-
-
-if(level==="Easy"){
-
-max=10;
-
+    return {
+        question: `What is ${numerator}/${denominator} as a decimal?`,
+        answer,
+        options: generateOptions(answer).map(x => Number(x).toFixed(2))
+    };
 }
 
-else if(level==="Medium"){
+/* ---------------------------------------------
+   Decimals
+--------------------------------------------- */
+function generateDecimal() {
+    const a = Number((randomNumber(10, 99) / 10).toFixed(1));
+    const b = Number((randomNumber(10, 99) / 10).toFixed(1));
 
-max=20;
+    const answer = Number((a + b).toFixed(1));
 
+    return {
+        question: `${a} + ${b} = ?`,
+        answer,
+        options: generateOptions(answer).map(x => Number(x).toFixed(1))
+    };
 }
 
-else{
+/* ---------------------------------------------
+   Percent
+--------------------------------------------- */
+function generatePercent() {
+    const percent = randomNumber(10, 90);
+    const number = randomNumber(10, 200);
 
-max=50;
+    const answer = Math.round(number * percent / 100);
 
+    return {
+        question: `${percent}% of ${number} = ?`,
+        answer,
+        options: generateOptions(answer)
+    };
 }
 
+/* ---------------------------------------------
+   Ratio
+--------------------------------------------- */
+function generateRatio() {
+    const a = randomNumber(1, 10);
+    const b = randomNumber(1, 10);
+    const multiplier = randomNumber(2, 5);
 
+    const answer = b * multiplier;
 
-let a=randomNumber(
-1,
-max
-);
-
-
-let b=randomNumber(
-1,
-12
-);
-
-
-let answer=a*b;
-
-
-
-return {
-
-
-question:`${a} × ${b} = ?`,
-
-
-answer:answer,
-
-
-options:
-generateOptions(answer)
-
-
-};
-
-
-
+    return {
+        question: `If ratio is ${a}:${b}, what is the second number when the first becomes ${a * multiplier}?`,
+        answer,
+        options: generateOptions(answer)
+    };
 }
 
+/* ---------------------------------------------
+   Algebra
+--------------------------------------------- */
+function generateAlgebra() {
+    const x = randomNumber(1, 20);
+    const add = randomNumber(1, 20);
+    const total = x + add;
 
-
-
-
-
-
-/*
-=====================================
-Division
-=====================================
-*/
-
-
-function generateDivision(level){
-
-
-let divisor=randomNumber(
-2,
-12
-);
-
-
-let answer=randomNumber(
-1,
-20
-);
-
-
-let dividend=
-divisor*answer;
-
-
-
-return {
-
-
-question:`${dividend} ÷ ${divisor} = ?`,
-
-
-answer:answer,
-
-
-options:
-generateOptions(answer)
-
-
-};
-
-
+    return {
+        question: `x + ${add} = ${total}. Find x`,
+        answer: x,
+        options: generateOptions(x)
+    };
 }
 
+/* ---------------------------------------------
+   Integers
+--------------------------------------------- */
+function generateInteger() {
+    const a = randomNumber(-50, 50);
+    const b = randomNumber(-50, 50);
+    const answer = a + b;
 
-
-
-
-
-
-
-/*
-=====================================
-Fractions
-=====================================
-*/
-
-
-function generateFraction(){
-
-
-let denominator=randomNumber(
-2,
-10
-);
-
-
-let numerator=randomNumber(
-1,
-denominator-1
-);
-
-
-
-let answer=
-(numerator/denominator)
-.toFixed(2);
-
-
-
-return {
-
-
-question:
-
-`What is ${numerator}/${denominator} as decimal?`,
-
-
-answer:answer,
-
-
-options:
-generateOptions(
-Number(answer)
-)
-.map(
-x=>Number(x).toFixed(2)
-)
-
-
-};
-
-
-
+    return {
+        question: `${a} + (${b}) = ?`,
+        answer,
+        options: generateOptions(answer)
+    };
 }
 
-
-
-
-
-
-
-
-/*
-=====================================
-Decimals
-=====================================
-*/
-
-
-function generateDecimal(){
-
-
-let a=
-(randomNumber(10,99)/10)
-.toFixed(1);
-
-
-let b=
-(randomNumber(10,99)/10)
-.toFixed(1);
-
-
-
-let answer=
-(
-Number(a)+Number(b)
-)
-.toFixed(1);
-
-
-
-return {
-
-
-question:
-
-`${a} + ${b} = ?`,
-
-
-answer:answer,
-
-
-options:
-
-generateOptions(
-Number(answer)
-)
-.map(
-x=>Number(x).toFixed(1)
-)
-
-
-};
-
-
-
-}
-
-
-
-
-
-
-
-
-/*
-=====================================
-Percent
-=====================================
-*/
-
-
-function generatePercent(){
-
-
-let percent=randomNumber(
-10,
-90
-);
-
-
-let number=randomNumber(
-10,
-200
-);
-
-
-
-let answer=
-(
-number*percent/100
-)
-.toFixed(0);
-
-
-
-return {
-
-
-question:
-
-`${percent}% of ${number} = ?`,
-
-
-answer:Number(answer),
-
-
-options:
-generateOptions(
-Number(answer)
-)
-
-
-};
-
-
-
-}
-
-
-
-
-
-
-
-
-/*
-=====================================
-Ratio
-=====================================
-*/
-
-
-function generateRatio(){
-
-
-let a=randomNumber(
-1,
-10
-);
-
-
-let b=randomNumber(
-1,
-10
-);
-
-
-let multiply=randomNumber(
-2,
-5
-);
-
-
-
-return {
-
-
-question:
-
-`If ratio is ${a}:${b}, 
-what is the second number when first becomes ${a*multiply}?`,
-
-
-answer:b*multiply,
-
-
-options:
-generateOptions(
-b*multiply
-)
-
-
-};
-
-
-}
-
-
-
-
-
-
-
-
-/*
-=====================================
-Algebra
-=====================================
-*/
-
-
-function generateAlgebra(){
-
-
-let x=randomNumber(
-1,
-20
-);
-
-
-let add=randomNumber(
-1,
-20
-);
-
-
-let total=x+add;
-
-
-
-return {
-
-
-question:
-
-`x + ${add} = ${total}. Find x`,
-
-
-answer:x,
-
-
-options:
-generateOptions(x)
-
-
-};
-
-
-}
-
-
-
-
-
-
-
-
-/*
-=====================================
-Integers
-=====================================
-*/
-
-
-function generateInteger(){
-
-
-let a=randomNumber(
--50,
-50
-);
-
-
-let b=randomNumber(
--50,
-50
-);
-
-
-let answer=a+b;
-
-
-
-return {
-
-
-question:
-
-`${a} + (${b}) = ?`,
-
-
-answer:answer,
-
-
-options:
-generateOptions(answer)
-
-
-};
-
-
-}
-
-
-
-/*
-=====================================
-Word problem
-=====================================
-*/
-
-const problems = wordProblems[grade];
-
+/* ---------------------------------------------
+   Word Problems
+--------------------------------------------- */
 function generateWordProblem(grade) {
     const problems = wordProblems[grade];
-    const randomIndex = Math.floor(Math.random() * problems.length);
+
+    if (!problems || problems.length === 0) {
+        return {
+            question: "No word problems available for this grade.",
+            answer: null,
+            options: []
+        };
+    }
+
+    const randomIndex = randomNumber(0, problems.length - 1);
     return problems[randomIndex];
 }
 
+/* ---------------------------------------------
+   Exponents
+--------------------------------------------- */
+function generateExponent() {
+    const base = randomNumber(2, 8);
+    const power = randomNumber(2, 4);
+    const answer = Math.pow(base, power);
 
-
-
-/*
-=====================================
-Exponents
-=====================================
-*/
-
-
-function generateExponent(){
-
-
-let base=randomNumber(
-2,
-8
-);
-
-
-let power=randomNumber(
-2,
-4
-);
-
-
-
-let answer=
-Math.pow(
-base,
-power
-);
-
-
-
-return {
-
-
-question:
-
-`${base}⁽${power}⁾ = ?`,
-
-
-answer:answer,
-
-
-options:
-generateOptions(answer)
-
-
-};
-
-
+    return {
+        question: `${base}⁽${power}⁾ = ?`,
+        answer,
+        options: generateOptions(answer)
+    };
 }
