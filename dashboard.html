@@ -2,158 +2,74 @@
 <html lang="en">
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Learning Portal - Dashboard</title>
 
-<meta charset="UTF-8">
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Math Learning Portal - Dashboard</title>
-
-<link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/dashboard.css">
-
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
 </head>
-
 
 <body>
 
-
 <header class="dashboard-header">
-
-<h1>📚 My Math Dashboard</h1>
-
-<button onclick="goHome()">
-🏠 Home
-</button>
-
+    <h1>📚 My Math Dashboard</h1>
+    <button onclick="goHome()">🏠 Home</button>
 </header>
-
-
 
 <main class="dashboard-container">
 
+    <!-- Student Info -->
+    <section class="student-card">
+        <h2 id="studentName">Student</h2>
+        <p>Grade: <span id="studentGrade">-</span></p>
+    </section>
 
-<section class="student-card">
+    <!-- Stats -->
+    <section class="stats-grid">
 
-<h2 id="studentName">
-Student
-</h2>
+        <div class="stat-card">
+            <h3>📝 Questions</h3>
+            <p id="questionsCompleted">0</p>
+        </div>
 
-<p>
-Grade:
-<span id="studentGrade">
--
-</span>
-</p>
+        <div class="stat-card">
+            <h3>🎯 Accuracy</h3>
+            <p id="accuracy">0%</p>
+        </div>
 
+        <div class="stat-card">
+            <h3>🔥 Streak</h3>
+            <p id="streak">0 Days</p>
+        </div>
 
-</section>
+        <div class="stat-card">
+            <h3>🏆 Badges</h3>
+            <p id="badgeCount">0</p>
+        </div>
 
+    </section>
 
+    <!-- Topic Progress -->
+    <section class="progress-section">
+        <h2>📈 Topic Progress</h2>
+        <div id="topicProgress"></div>
+    </section>
 
-<section class="stats-grid">
-
-
-<div class="stat-card">
-
-<h3>📝 Questions</h3>
-
-<p id="questionsCompleted">
-0
-</p>
-
-</div>
-
-
-
-<div class="stat-card">
-
-<h3>🎯 Accuracy</h3>
-
-<p id="accuracy">
-0%
-</p>
-
-</div>
-
-
-
-<div class="stat-card">
-
-<h3>🔥 Streak</h3>
-
-<p id="streak">
-0 Days
-</p>
-
-</div>
-
-
-
-<div class="stat-card">
-
-<h3>🏆 Badges</h3>
-
-<p id="badgeCount">
-0
-</p>
-
-</div>
-
-
-</section>
-
-
-
-
-<section class="progress-section">
-
-
-<h2>📈 Topic Progress</h2>
-
-
-<div id="topicProgress">
-
-</div>
-
-
-</section>
-
-
-
-
-
-<section class="achievement-section">
-
-
-<h2>
-🏆 Achievements
-</h2>
-
-
-<div id="badges">
-
-No badges yet
-
-</div>
-
-
-</section>
-
-
+    <!-- Achievements -->
+    <section class="achievement-section">
+        <h2>🏆 Achievements</h2>
+        <div id="badges">No badges yet</div>
+    </section>
 
 </main>
 
-
-
-
+<!-- Scripts -->
+<script src="js/utils.js"></script>
 <script src="js/storage.js"></script>
-
 <script src="js/progress.js"></script>
-
 <script src="js/dashboard.js"></script>
 
-
 </body>
-
 </html>
