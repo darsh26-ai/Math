@@ -89,19 +89,19 @@ currentQuiz.difficulty=difficulty;
 
 
 
-for(
-let i=0;
-i<count;
-i++
-){
+for (let i = 0; i < count; i++) {
 
-let question =
-if (topic === "wordProblems") {
-    return generateWordProblem(selectedGrade);
+    let question;
+
+    if (topic === "wordProblems") {
+        question = generateWordProblem(selectedGrade);
+    } else {
+        question = generateQuestion(topic, difficulty, selectedGrade);
+    }
+
+    currentQuiz.questions.push(question);
 }
-topic,
-difficulty
-);
+
 
 
 currentQuiz.questions.push(
