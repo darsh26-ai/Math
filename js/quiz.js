@@ -43,94 +43,45 @@ Start Quiz
 */
 
 
-function startQuiz(mode){
+function startQuiz(mode) {
 
+    currentQuiz.mode = mode;
+    currentQuiz.questions = [];
+    currentQuiz.currentIndex = 0;
+    currentQuiz.score = 0;
 
-currentQuiz.mode = mode;
+    let count = Number(document.getElementById("questionCount").value);
+    currentQuiz.totalQuestions = count;
 
+    let topic = selectedTopic;
+    let difficulty = document.getElementById("difficulty").value;
 
-currentQuiz.questions=[];
+    currentQuiz.selectedTopic = topic;
+    currentQuiz.difficulty = difficulty;
 
-currentQuiz.currentIndex=0;
+    // ⭐ ADD THIS — define selectedGrade
+    let selectedGrade = Number(document.getElementById("gradeSelect").value);
+    currentQuiz.selectedGrade = selectedGrade;
 
-currentQuiz.score=0;
+    // ⭐ FIXED LOOP
+    for (let i = 0; i < count; i++) {
 
+        let question;
 
+        if (topic === "wordProblems") {
+            question = generateWordProblem(selectedGrade);
+        } else {
+            question = generateQuestion(topic, difficulty, selectedGrade);
+        }
 
-let count =
-Number(
-document.getElementById(
-"questionCount"
-).value
-);
-
-
-
-currentQuiz.totalQuestions=count;
-
-
-
-let topic =
-selectedTopic;
-
-
-
-let difficulty =
-document.getElementById(
-"difficulty"
-).value;
-
-
-
-currentQuiz.selectedTopic=topic;
-
-currentQuiz.difficulty=difficulty;
-
-
-
-
-for (let i = 0; i < count; i++) {
-
-    let question;
-
-    if (topic === "wordProblems") {
-        question = generateWordProblem(selectedGrade);
-    } else {
-        question = generateQuestion(topic, difficulty, selectedGrade);
+        currentQuiz.questions.push(question);
     }
 
-    currentQuiz.questions.push(question);
+    console.log("Generated questions:", currentQuiz.questions);
+
+    showPage("quizPage");
+    loadQuestion();
 }
-
-
-
-currentQuiz.questions.push(
-question
-);
-
-}
-
-
-console.log(
-"Generated questions:",
-currentQuiz.questions
-);
-
-
-showPage(
-"quizPage"
-);
-
-
-loadQuestion();
-
-
-}
-
-
-
-
-
 
 
 /*
