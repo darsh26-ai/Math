@@ -775,8 +775,17 @@ generateOptions(answer)
 
 
 
+/*
+=====================================
+Word problem
+=====================================
+*/
 
-
+function generateWordProblem(grade) {
+    const problems = wordProblems[grade];
+    const randomIndex = Math.floor(Math.random() * problems.length);
+    return problems[randomIndex];
+}
 
 
 
