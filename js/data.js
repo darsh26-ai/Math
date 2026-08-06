@@ -215,3 +215,30 @@ console.log(
 "data.js loaded",
 mathData
 );
+
+const wordProblems = {
+  1: [
+    {
+      question: "Rita has 5 apples. She buys 3 more. How many apples does she have now?",
+      answer: 8
+    },
+    {
+      question: "Tom has 10 balloons. 4 flew away. How many are left?",
+      answer: 6
+    }
+  ],
+
+  2: [
+    {
+      question: "A box has 24 crayons. Sarah adds 13 more. How many crayons now?",
+      answer: 37
+    }
+  ],
+
+  3: [
+    {
+      question: "A farmer has 45 cows. He sells 18. How many cows remain?",
+      answer: 27
+    }
+  ]
+};
