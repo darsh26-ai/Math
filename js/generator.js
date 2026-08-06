@@ -114,91 +114,47 @@ MAIN QUESTION GENERATOR
 */
 
 
-function generateQuestion(topic,difficulty){
-
-
 switch(topic){
 
+    case "addition":
+        return generateAddition(difficulty);
 
-case "addition":
+    case "subtraction":
+        return generateSubtraction(difficulty);
 
-return generateAddition(difficulty);
+    case "multiplication":
+        return generateMultiplication(difficulty);
 
+    case "division":
+        return generateDivision(difficulty);
 
+    case "fractions":
+        return generateFraction();
 
-case "subtraction":
+    case "decimals":
+        return generateDecimal();
 
-return generateSubtraction(difficulty);
+    case "percent":
+        return generatePercent();
 
+    case "ratio":
+        return generateRatio();
 
+    case "algebra":
+        return generateAlgebra();
 
-case "multiplication":
+    case "integers":
+        return generateInteger();
 
-return generateMultiplication(difficulty);
+    case "exponents":
+        return generateExponent();
 
+    case "wordProblems":
+        return generateWordProblem(grade);   // ⭐ FIXED
 
-
-case "division":
-
-return generateDivision(difficulty);
-
-
-
-case "fractions":
-
-return generateFraction();
-
-
-
-case "decimals":
-
-return generateDecimal();
-
-
-
-case "percent":
-
-return generatePercent();
-
-
-
-case "ratio":
-
-return generateRatio();
-
-
-
-case "algebra":
-
-return generateAlgebra();
-
-
-
-case "integers":
-
-return generateInteger();
-
-
-
-case "exponents":
-
-return generateExponent();
-
-case "wordProblems":
-    return generateWordProblem(grade);
-
-default:
-
-return generateAddition(difficulty);
-
-
+    default:
+        return generateAddition(difficulty);
 }
-
-
-
-}
-
-
 
 
 
@@ -784,11 +740,12 @@ Word problem
 
 const problems = wordProblems[grade];
 
-function generateWordProblem(topic, difficulty, grade) {
+function generateWordProblem(grade) {
     const problems = wordProblems[grade];
     const randomIndex = Math.floor(Math.random() * problems.length);
     return problems[randomIndex];
 }
+
 
 
 
