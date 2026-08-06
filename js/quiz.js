@@ -96,7 +96,9 @@ i++
 ){
 
 let question =
-generateQuestion(
+if (topic === "wordProblems") {
+    return generateWordProblem(selectedGrade);
+}
 topic,
 difficulty
 );
