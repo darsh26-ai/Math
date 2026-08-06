@@ -51,6 +51,7 @@ function setupButtons() {
     if (themeButton) {
         themeButton.onclick = function () {
             document.body.classList.toggle("dark");
+            localStorage.setItem("darkMode", document.body.classList.contains("dark"));
         };
     }
 
