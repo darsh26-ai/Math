@@ -1,71 +1,42 @@
 /*
 =================================================
 Math Learning Center
-
-quiz.js
-
-Controls:
-- Quiz flow
-- Practice mode
-- Answer checking
-- Score tracking
-- Results
-
+quiz.js (Improved Version)
 =================================================
 */
 
-
 let currentQuiz = {
-
     questions: [],
-
     currentIndex: 0,
-
     score: 0,
-
     selectedTopic: "",
-
     difficulty: "Easy",
-
     totalQuestions: 10,
-
+    selectedGrade: 1,
     mode: "quiz"
-
 };
 
-
-
-
-/*
-=====================================
-Start Quiz
-=====================================
-*/
-
-
+/* ---------------------------------------------
+   Start Quiz
+--------------------------------------------- */
 function startQuiz(mode) {
-
     currentQuiz.mode = mode;
     currentQuiz.questions = [];
     currentQuiz.currentIndex = 0;
     currentQuiz.score = 0;
 
-    let count = Number(document.getElementById("questionCount").value);
+    const count = Number(document.getElementById("questionCount")?.value || 10);
     currentQuiz.totalQuestions = count;
 
-    let topic = selectedTopic;
-    let difficulty = document.getElementById("difficulty").value;
+    const topic = selectedTopic || "addition";
+    const difficulty = document.getElementById("difficulty")?.value || "Easy";
+    const selectedGrade = Number(document.getElementById("gradeSelect")?.value || 1);
 
     currentQuiz.selectedTopic = topic;
     currentQuiz.difficulty = difficulty;
-
-    // ⭐ ADD THIS — define selectedGrade
-    let selectedGrade = Number(document.getElementById("gradeSelect").value);
     currentQuiz.selectedGrade = selectedGrade;
 
-    // ⭐ FIXED LOOP
     for (let i = 0; i < count; i++) {
-
         let question;
 
         if (topic === "wordProblems") {
@@ -74,534 +45,163 @@ function startQuiz(mode) {
             question = generateQuestion(topic, difficulty, selectedGrade);
         }
 
+        // Ensure word problems have options
+        if (!question.options || question.options.length === 0) {
+            question.options = generateOptions(question.answer);
+        }
+
         currentQuiz.questions.push(question);
     }
-
-    console.log("Generated questions:", currentQuiz.questions);
 
     showPage("quizPage");
     loadQuestion();
 }
 
+/* ---------------------------------------------
+   Load Question
+--------------------------------------------- */
+function loadQuestion() {
+    const index = currentQuiz.currentIndex;
+    const question = currentQuiz.questions[index];
 
-/*
-=====================================
-Load Question
-=====================================
-*/
+    const progressText = document.getElementById("progressText");
+    const questionContainer = document.getElementById("questionContainer");
+    const answerBox = document.getElementById("answerContainer");
+    const nextButton = document.getElementById("nextButton");
 
+    if (!progressText || !questionContainer || !answerBox || !nextButton) {
+        console.error("Quiz DOM elements missing");
+        return;
+    }
 
-function loadQuestion(){
+    progressText.innerHTML = `Question ${index + 1} of ${currentQuiz.totalQuestions}`;
+    questionContainer.innerHTML = question.question;
 
+    answerBox.innerHTML = "";
 
-let index =
-currentQuiz.currentIndex;
+    question.options.forEach(option => {
+        const button = document.createElement("button");
+        button.className = "answerButton";
+        button.innerHTML = option;
 
+        button.onclick = () => checkAnswer(option, button);
 
+        answerBox.appendChild(button);
+    });
 
-let question =
-currentQuiz.questions[index];
-
-
-
-document.getElementById(
-"progressText"
-)
-.innerHTML =
-
-`Question ${index+1}
-of
-${currentQuiz.totalQuestions}`;
-
-
-
-document.getElementById(
-"questionContainer"
-)
-.innerHTML =
-
-question.question;
-
-
-
-let answerBox =
-document.getElementById(
-"answerContainer"
-);
-
-
-
-answerBox.innerHTML="";
-
-
-
-
-question.options.forEach(
-option=>{
-
-
-let button =
-document.createElement(
-"button"
-);
-
-
-
-button.className=
-"answerButton";
-
-
-
-button.innerHTML=
-option;
-
-
-
-button.onclick=function(){
-
-
-checkAnswer(
-option,
-button
-);
-
-
-};
-
-
-
-answerBox.appendChild(
-button
-);
-
-
+    nextButton.style.display = "none";
 }
 
-);
+/* ---------------------------------------------
+   Check Answer
+--------------------------------------------- */
+function checkAnswer(selected, button) {
+    const question = currentQuiz.questions[currentQuiz.currentIndex];
+    const buttons = document.querySelectorAll(".answerButton");
 
+    buttons.forEach(btn => (btn.disabled = true));
 
+    const isCorrect = String(selected) === String(question.answer);
 
-document.getElementById(
-"nextButton"
-)
-.style.display="none";
+    if (isCorrect) {
+        button.classList.add("correct");
+        currentQuiz.score++;
+    } else {
+        button.classList.add("wrong");
 
+        buttons.forEach(btn => {
+            if (String(btn.innerHTML) === String(question.answer)) {
+                btn.classList.add("correct");
+            }
+        });
+    }
 
+    // Save student progress
+    recordAnswer(currentQuiz.selectedTopic, isCorrect);
+
+    const nextButton = document.getElementById("nextButton");
+    nextButton.style.display = "block";
 }
 
+/* ---------------------------------------------
+   Next Question
+--------------------------------------------- */
+function nextQuestion() {
+    currentQuiz.currentIndex++;
 
-
-
-
-
-
-
-/*
-=====================================
-Check Answer
-=====================================
-*/
-
-
-/*
-=====================================
-Check Answer
-=====================================
-*/
-
-
-function checkAnswer(
-selected,
-button
-){
-
-
-let question =
-currentQuiz.questions[
-currentQuiz.currentIndex
-];
-
-
-
-let buttons =
-document.querySelectorAll(
-".answerButton"
-);
-
-
-
-buttons.forEach(
-btn=>{
-
-btn.disabled=true;
-
+    if (currentQuiz.currentIndex >= currentQuiz.totalQuestions) {
+        finishQuiz();
+    } else {
+        loadQuestion();
+    }
 }
 
-);
+/* ---------------------------------------------
+   Finish Quiz
+--------------------------------------------- */
+function finishQuiz() {
+    const percentage = Math.round(
+        (currentQuiz.score / currentQuiz.totalQuestions) * 100
+    );
 
+    showPage("resultsPage");
 
+    const scoreBox = document.getElementById("scoreBox");
 
-let isCorrect = false;
+    scoreBox.innerHTML = `
+        <h3>Score</h3>
+        <h1>${currentQuiz.score} / ${currentQuiz.totalQuestions}</h1>
+        <p>Accuracy: ${percentage}%</p>
+        <p>${getRating(percentage)}</p>
+    `;
 
+    // Save quiz history
+    saveQuizHistory(
+        currentQuiz.selectedTopic,
+        currentQuiz.score,
+        currentQuiz.totalQuestions
+    );
 
-
-if(
-String(selected)
-===
-String(question.answer)
-){
-
-
-button.classList.add(
-"correct"
-);
-
-
-currentQuiz.score++;
-
-
-isCorrect = true;
-
-
+    // Save global progress
+    saveQuizResult(currentQuiz.score, currentQuiz.totalQuestions);
 }
 
-else{
+/* ---------------------------------------------
+   Save Quiz History (localStorage)
+--------------------------------------------- */
+function saveQuizHistory(topic, score, total) {
+    const result = {
+        topic,
+        score,
+        total,
+        percentage: Math.round((score / total) * 100),
+        date: new Date().toISOString()
+    };
 
+    const history =
+        JSON.parse(localStorage.getItem("quizHistory")) || [];
 
-button.classList.add(
-"wrong"
-);
+    history.push(result);
 
-
-
-buttons.forEach(
-btn=>{
-
-
-if(
-String(btn.innerHTML)
-===
-String(question.answer)
-){
-
-btn.classList.add(
-"correct"
-);
-
+    localStorage.setItem("quizHistory", JSON.stringify(history));
 }
 
-
+/* ---------------------------------------------
+   Performance Rating
+--------------------------------------------- */
+function getRating(percent) {
+    if (percent === 100) return "🏆 Perfect Score!";
+    if (percent >= 90) return "⭐⭐⭐⭐ Excellent";
+    if (percent >= 70) return "⭐⭐⭐ Good Job";
+    if (percent >= 50) return "⭐⭐ Keep Practicing";
+    return "⭐ Try Again";
 }
 
-);
-
-
+/* ---------------------------------------------
+   Restart Quiz
+--------------------------------------------- */
+function restartQuiz() {
+    startQuiz(currentQuiz.mode);
 }
-
-
-
-
-// ===============================
-// SAVE PROGRESS
-// ===============================
-
-console.log("Before saving progress");
-
-
-recordAnswer(
-currentQuiz.selectedTopic,
-isCorrect
-);
-
-
-console.log("After saving progress");
-
-
-let next =
-document.getElementById(
-"nextButton"
-);
-
-
-console.log(
-"Next button:",
-next
-);
-
-
-
-next.style.display="block";
-
-
-console.log(
-"Next button should be visible"
-);
-}
-/*
-=====================================
-Next Question
-=====================================
-*/
-
-function nextQuestion(){
-
-
-console.log(
-"Next clicked"
-);
-
-
-console.log(
-"Current Index:",
-currentQuiz.currentIndex
-);
-
-
-console.log(
-"Total Questions:",
-currentQuiz.totalQuestions
-);
-
-
-
-currentQuiz.currentIndex++;
-
-
-
-if(
-currentQuiz.currentIndex >= currentQuiz.totalQuestions
-){
-
-
-console.log(
-"Quiz Finished"
-);
-
-
-finishQuiz();
-
-
-}
-
-else{
-
-
-console.log(
-"Loading Question:",
-currentQuiz.currentIndex + 1
-);
-
-
-loadQuestion();
-
-
-}
-
-
-}
-
-
-/*
-=====================================
-Finish Quiz
-=====================================
-*/
-
-
-function finishQuiz(){
-
-
-let percentage =
-
-Math.round(
-
-(
-currentQuiz.score /
-currentQuiz.totalQuestions
-)
-*
-100
-
-);
-
-
-
-showPage(
-"resultsPage"
-);
-
-
-
-document.getElementById(
-"scoreBox"
-)
-.innerHTML =
-
-`
-
-<h3>
-Score
-</h3>
-
-<h1>
-${currentQuiz.score}
-/
-${currentQuiz.totalQuestions}
-</h1>
-
-
-<p>
-Accuracy:
-${percentage}%
-</p>
-
-
-<p>
-
-${getRating(percentage)}
-
-</p>
-
-`;
-
-
-
-saveQuizResult(
-
-currentQuiz.selectedTopic,
-
-currentQuiz.score,
-
-currentQuiz.totalQuestions
-
-);
-
-
-}
-
-function saveQuizResult(
-topic,
-score,
-total
-){
-
-
-let result = {
-
-
-topic:topic,
-
-score:score,
-
-total:total,
-
-percentage:
-Math.round(
-(score/total)*100
-),
-
-date:
-new Date().toISOString()
-
-
-};
-
-
-
-let history =
-JSON.parse(
-localStorage.getItem(
-"quizHistory"
-)
-)
-||
-[];
-
-
-
-history.push(result);
-
-
-
-localStorage.setItem(
-"quizHistory",
-JSON.stringify(history)
-);
-
-
-}
-
-
-
-
-
-
-/*
-=====================================
-Performance Rating
-=====================================
-*/
-
-
-function getRating(percent){
-
-
-if(percent===100){
-
-return "🏆 Perfect Score!";
-
-}
-
-
-if(percent>=90){
-
-return "⭐⭐⭐⭐ Excellent";
-
-}
-
-
-if(percent>=70){
-
-return "⭐⭐⭐ Good Job";
-
-}
-
-
-if(percent>=50){
-
-return "⭐⭐ Keep Practicing";
-
-}
-
-
-return "⭐ Try Again";
-
-}
-
-
-
-
-
-
-
-
-/*
-=====================================
-Restart
-=====================================
-*/
-
-
-function restartQuiz(){
-
-
-startQuiz(
-currentQuiz.mode
-);
-
-
-}
-
 
 console.log("quiz.js loaded");
-console.log("END OF QUIZ FILE");
