@@ -184,7 +184,8 @@ case "exponents":
 
 return generateExponent();
 
-
+case "wordProblems":
+    return generateWordProblem(grade);
 
 default:
 
@@ -781,7 +782,9 @@ Word problem
 =====================================
 */
 
-function generateWordProblem(grade) {
+const problems = wordProblems[grade];
+
+function generateWordProblem(topic, difficulty, grade) {
     const problems = wordProblems[grade];
     const randomIndex = Math.floor(Math.random() * problems.length);
     return problems[randomIndex];
