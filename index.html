@@ -1,233 +1,118 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Learning Center</title>
 
-<meta charset="UTF-8">
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
-
-<title>Math Learning Center</title>
-
-<link rel="stylesheet" href="css/style.css">
-
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
 
 <header>
-
-<h1>📚 Math Learning Center</h1>
-
-<button id="themeButton">
-🌙 Dark Mode
-</button>
-
+    <h1>📚 Math Learning Center</h1>
+    <button id="themeButton">🌙 Dark Mode</button>
 </header>
 
 <div class="container">
 
-<section id="homePage">
+    <!-- Home Page -->
+    <section id="homePage">
+        <h2>Select Grade</h2>
+        <div id="gradeGrid"></div>
+    </section>
 
-<h2>Select Grade</h2>
+    <!-- Topic Page -->
+    <section id="topicPage" class="hidden">
+        <button class="backButton">⬅ Back</button>
+        <h2 id="gradeTitle"></h2>
+        <div id="topicGrid"></div>
+    </section>
 
-<div id="gradeGrid"></div>
+    <!-- Settings Page -->
+    <section id="settingsPage" class="hidden">
+        <button class="backButton">⬅ Back</button>
 
-</section>
+        <h2>Quiz Settings</h2>
 
-<section
-id="topicPage"
-class="hidden">
+        <div class="settings">
 
-<button class="backButton">
-⬅ Back
-</button>
+            <label>
+                Difficulty
+                <select id="difficulty">
+                    <option>Easy</option>
+                    <option>Medium</option>
+                    <option>Hard</option>
+                </select>
+            </label>
 
-<h2 id="gradeTitle"></h2>
+            <label>
+                Questions
+                <select id="questionCount">
+                    <option value="5">5</option>
+                    <option value="10" selected>10</option>
+                    <option value="20">20</option>
+                    <option value="30">30</option>
+                    <option value="40">40</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </label>
 
-<div id="topicGrid"></div>
+            <label>
+                Timer
+                <select id="timer">
+                    <option value="0">No Timer</option>
+                    <option value="30">30 Seconds</option>
+                    <option value="60">1 Minute</option>
+                    <option value="120">2 Minutes</option>
+                    <option value="300">5 Minutes</option>
+                </select>
+            </label>
 
-</section>
+            <div class="buttons">
+                <button id="practiceBtn">Practice Mode</button>
+                <button id="quizBtn">Quiz Mode</button>
+            </div>
 
-<section
-id="settingsPage"
-class="hidden">
+        </div>
+    </section>
 
-<button class="backButton">
-⬅ Back
-</button>
+    <!-- Quiz Page -->
+    <section id="quizPage" class="hidden">
 
-<h2>Quiz Settings</h2>
+        <div class="quizHeader">
+            <div id="progressText">Question</div>
+            <div id="timerDisplay">00:00</div>
+        </div>
 
-<div class="settings">
+        <div id="questionContainer"></div>
+        <div id="answerContainer"></div>
 
-<label>
+        <button id="nextButton" onclick="nextQuestion()">Next →</button>
+    </section>
 
-Difficulty
+    <!-- Results Page -->
+    <section id="resultsPage" class="hidden">
+        <h2>Quiz Complete</h2>
+        <div id="scoreBox"></div>
 
-<select id="difficulty">
+        <button id="restartButton" onclick="restartQuiz()">Play Again</button>
+        <button id="homeButton">Home</button>
+    </section>
 
-<option>Easy</option>
-
-<option>Medium</option>
-
-<option>Hard</option>
-
-</select>
-
-</label>
-
-<label>
-
-Questions
-
-<select id="questionCount">
-
-<option value="5">5</option>
-
-<option value="10" selected>10</option>
-
-<option value="20">20</option>
-
-<option value="30">30</option>
-
-<option value="40">40</option>
-
-<option value="50">50</option>
-
-<option value="100">100</option>
-
-</select>
-
-</label>
-
-<label>
-
-Timer
-
-<select id="timer">
-
-<option value="0">
-No Timer
-</option>
-
-<option value="30">
-30 Seconds
-</option>
-
-<option value="60">
-1 Minute
-</option>
-
-<option value="120">
-2 Minutes
-</option>
-
-<option value="300">
-5 Minutes
-</option>
-
-</select>
-
-</label>
-
-<div class="buttons">
-
-<button id="practiceBtn">Practice Mode</button>
-<button id="quizBtn">Quiz Mode</button>
-
+    <!-- Stats Page -->
+    <section id="statsPage">
+        <h2>Progress</h2>
+        <div id="statsContainer"></div>
+    </section>
 
 </div>
 
-</div>
-
-</section>
-
-<section
-id="quizPage"
-class="hidden">
-
-<div class="quizHeader">
-
-<div id="progressText">
-
-Question
-
-</div>
-
-<div id="timerDisplay">
-
-00:00
-
-</div>
-
-</div>
-
-<div
-id="questionContainer">
-
-</div>
-
-<div
-id="answerContainer">
-
-</div>
-
-<button 
-id="nextButton"
-onclick="nextQuestion()">
-
-Next →
-
-</button>
-
-</section>
-
-<section
-id="resultsPage"
-class="hidden">
-
-<h2>
-
-Quiz Complete
-
-</h2>
-
-<div id="scoreBox"></div>
-
-<button 
-id="restartButton"
-onclick="restartQuiz()">
-
-Play Again
-
-</button>
-
-<button
-id="homeButton">
-
-Home
-
-</button>
-
-</section>
-
-<section
-id="statsPage">
-
-<h2>
-
-Progress
-
-</h2>
-
-<div id="statsContainer">
-
-</div>
-
-</section>
-
-</div>
-
+<!-- Scripts (ordered by dependency) -->
 <script src="js/data.js"></script>
 <script src="js/storage.js"></script>
 <script src="js/utils.js"></script>
