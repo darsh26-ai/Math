@@ -1,7 +1,14 @@
 
-console.log("ui.js loaded");
-function chooseTopic(topic){
+// Attach button handlers
+document.getElementById("practiceBtn").onclick = function () {
+    startQuiz("practice");
+};
 
-selectedTopic = topic;
+document.getElementById("quizBtn").onclick = function () {
+    startQuiz("quiz");
+};
 
+function chooseTopic(topic) {
+    selectedTopic = topic;
 }
+
