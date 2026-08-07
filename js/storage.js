@@ -1,12 +1,25 @@
 /*
 =================================================
 Math Learning Center
-storage.js (Improved Version)
+storage.js (Improved Production Version)
 =================================================
 */
 
 const STORAGE_KEY = "mathLearningProgress";
 const STUDENT_KEY = "mathStudent";
+
+/* ---------------------------------------------
+   Safe JSON Loader
+--------------------------------------------- */
+function safeJSON(key, fallback = null) {
+    try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+    } catch (e) {
+        console.error(`Failed to parse ${key}:`, e);
+        return fallback;
+    }
+}
 
 /* ---------------------------------------------
    Default Progress Structure
@@ -26,13 +39,7 @@ function getDefaultProgress() {
    Load Progress (Safe)
 --------------------------------------------- */
 function loadProgress() {
-    try {
-        const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
-        return data || getDefaultProgress();
-    } catch (e) {
-        console.error("Progress load failed:", e);
-        return getDefaultProgress();
-    }
+    return safeJSON(STORAGE_KEY, getDefaultProgress());
 }
 
 /* ---------------------------------------------
@@ -54,20 +61,10 @@ function resetProgress() {
 }
 
 /* ---------------------------------------------
-   Student Handling
+   Default Student Structure
 --------------------------------------------- */
-function getStudent() {
-    try {
-        const data = JSON.parse(localStorage.getItem(STUDENT_KEY));
-        return data || null;
-    } catch (e) {
-        console.error("Student load failed:", e);
-        return null;
-    }
-}
-
-function createStudent(name, grade) {
-    const student = {
+function getDefaultStudent(name = "Student", grade = "—") {
+    return {
         name,
         grade,
         stats: {
@@ -82,11 +79,27 @@ function createStudent(name, grade) {
         },
         achievements: []
     };
+}
 
+/* ---------------------------------------------
+   Load Student (Safe)
+--------------------------------------------- */
+function getStudent() {
+    return safeJSON(STUDENT_KEY, null);
+}
+
+/* ---------------------------------------------
+   Create Student
+--------------------------------------------- */
+function createStudent(name, grade) {
+    const student = getDefaultStudent(name, grade);
     saveStudent(student);
     return student;
 }
 
+/* ---------------------------------------------
+   Save Student (Safe)
+--------------------------------------------- */
 function saveStudent(student) {
     try {
         localStorage.setItem(STUDENT_KEY, JSON.stringify(student));
@@ -95,4 +108,4 @@ function saveStudent(student) {
     }
 }
 
-console.log("storage.js loaded");
+console.log("Improved storage.js loaded");
