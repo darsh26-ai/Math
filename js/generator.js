@@ -1,7 +1,7 @@
 /*
 =================================================
 Math Learning Center
-generator.js (Improved Version)
+generator.js (Final Improved Version)
 =================================================
 */
 
@@ -38,54 +38,25 @@ function generateOptions(answer) {
 }
 
 /* ---------------------------------------------
-   MAIN QUESTION GENERATOR (fixed)
+   MAIN QUESTION GENERATOR
 --------------------------------------------- */
 function generateQuestion(topic, difficulty, grade) {
-    if (!topic) {
-        console.warn("No topic provided. Defaulting to addition.");
-        topic = "addition";
-    }
+    if (!topic) topic = "addition";
 
     switch (topic) {
-        case "addition":
-            return generateAddition(difficulty);
-
-        case "subtraction":
-            return generateSubtraction(difficulty);
-
-        case "multiplication":
-            return generateMultiplication(difficulty);
-
-        case "division":
-            return generateDivision(difficulty);
-
-        case "fractions":
-            return generateFraction();
-
-        case "decimals":
-            return generateDecimal();
-
-        case "percent":
-            return generatePercent();
-
-        case "ratio":
-            return generateRatio();
-
-        case "algebra":
-            return generateAlgebra();
-
-        case "integers":
-            return generateInteger();
-
-        case "exponents":
-            return generateExponent();
-
-        case "wordProblems":
-            return generateWordProblem(grade);
-
-        default:
-            console.warn("Unknown topic:", topic);
-            return generateAddition(difficulty);
+        case "addition": return generateAddition(difficulty);
+        case "subtraction": return generateSubtraction(difficulty);
+        case "multiplication": return generateMultiplication(difficulty);
+        case "division": return generateDivision(difficulty);
+        case "fractions": return generateFraction();
+        case "decimals": return generateDecimal();
+        case "percent": return generatePercent();
+        case "ratio": return generateRatio();
+        case "algebra": return generateAlgebra();
+        case "integers": return generateInteger();
+        case "exponents": return generateExponent();
+        case "wordProblems": return generateWordProblem(grade);
+        default: return generateAddition(difficulty);
     }
 }
 
@@ -94,7 +65,6 @@ function generateQuestion(topic, difficulty, grade) {
 --------------------------------------------- */
 function generateAddition(level) {
     const range = difficultyLevels[level] || difficultyLevels.Easy;
-
     const a = randomNumber(range.min, range.max);
     const b = randomNumber(range.min, range.max);
     const answer = a + b;
@@ -111,7 +81,6 @@ function generateAddition(level) {
 --------------------------------------------- */
 function generateSubtraction(level) {
     const range = difficultyLevels[level] || difficultyLevels.Easy;
-
     const a = randomNumber(range.min, range.max);
     const b = randomNumber(1, a);
     const answer = a - b;
@@ -128,7 +97,6 @@ function generateSubtraction(level) {
 --------------------------------------------- */
 function generateMultiplication(level) {
     const range = difficultyLevels[level] || difficultyLevels.Easy;
-
     const a = randomNumber(range.min, range.max);
     const b = randomNumber(1, 12);
     const answer = a * b;
@@ -161,7 +129,6 @@ function generateDivision(level) {
 function generateFraction() {
     const denominator = randomNumber(2, 10);
     const numerator = randomNumber(1, denominator - 1);
-
     const answer = Number((numerator / denominator).toFixed(2));
 
     return {
@@ -177,7 +144,6 @@ function generateFraction() {
 function generateDecimal() {
     const a = Number((randomNumber(10, 99) / 10).toFixed(1));
     const b = Number((randomNumber(10, 99) / 10).toFixed(1));
-
     const answer = Number((a + b).toFixed(1));
 
     return {
@@ -193,7 +159,6 @@ function generateDecimal() {
 function generatePercent() {
     const percent = randomNumber(10, 90);
     const number = randomNumber(10, 200);
-
     const answer = Math.round(number * percent / 100);
 
     return {
@@ -210,7 +175,6 @@ function generateRatio() {
     const a = randomNumber(1, 10);
     const b = randomNumber(1, 10);
     const multiplier = randomNumber(2, 5);
-
     const answer = b * multiplier;
 
     return {
@@ -250,33 +214,14 @@ function generateInteger() {
     };
 }
 
-/* ---------------------------------------------
-   Word Problems
---------------------------------------------- */
-function generateWordProblem(grade) {
-    const problems = wordProblems[grade];
-
-    if (!problems || problems.length === 0) {
-        return {
-            question: "No word problems available for this grade.",
-            answer: null,
-            options: []
-        };
-    }
-
-    const randomIndex = randomNumber(0, problems.length - 1);
-    return problems[randomIndex];
-}
-
 /*
 =================================================
-Dynamic Word Problem Generator
+Dynamic Word Problem Generator (Unique)
 =================================================
 */
 
 function generateWordProblem(grade) {
 
-    // Difficulty scaling by grade
     const ranges = {
         1: { min: 1, max: 20 },
         2: { min: 10, max: 40 },
@@ -289,84 +234,33 @@ function generateWordProblem(grade) {
 
     const { min, max } = ranges[grade] || ranges[1];
 
-    // Random numbers for story
     const a = randomNumber(min, max);
     const b = randomNumber(min / 2, max / 2);
     const c = randomNumber(1, 10);
 
-    // Story templates
     const templates = [
 
-        // Addition
-        {
-            question: `A student has ${a} stickers and gets ${b} more. How many stickers now?`,
-            answer: a + b
-        },
+        () => ({ question: `A student has ${a} stickers and gets ${b} more. How many now?`, answer: a + b }),
+        () => ({ question: `A store has ${a} toys and receives ${b} more. Total toys?`, answer: a + b }),
 
-        {
-            question: `A store has ${a} toys. They receive ${b} new toys. How many toys now?`,
-            answer: a + b
-        },
+        () => ({ question: `${a} apples were on a tree. ${b} fell. How many remain?`, answer: a - b }),
+        () => ({ question: `A box has ${a} crayons. ${b} break. How many work?`, answer: a - b }),
 
-        // Subtraction
-        {
-            question: `${a} apples were on a tree. ${b} fell down. How many remain?`,
-            answer: a - b
-        },
+        () => ({ question: `A class has ${a} students. ${b} leave and ${c} join. Total?`, answer: a - b + c }),
+        () => ({ question: `A farmer has ${a} cows. Sells ${b}, buys ${c}. Total?`, answer: a - b + c }),
 
-        {
-            question: `A box has ${a} crayons. ${b} break. How many crayons still work?`,
-            answer: a - b
-        },
+        () => ({ question: `A pack has ${c} pencils. Teacher buys ${a} packs. Total pencils?`, answer: a * c }),
+        () => ({ question: `${b} boxes with ${c} candies each. Total candies?`, answer: b * c }),
 
-        // Multi-step
-        {
-            question: `A class has ${a} students. ${b} go home early and ${c} new students join. How many students now?`,
-            answer: a - b + c
-        },
+        () => ({ question: `${a} candies shared among ${c} kids. How many each?`, answer: Math.floor(a / c) }),
+        () => ({ question: `${a} markers divided into groups of ${c}. Number of groups?`, answer: Math.floor(a / c) }),
 
-        {
-            question: `A farmer has ${a} cows. He sells ${b} and buys ${c} more. How many cows now?`,
-            answer: a - b + c
-        },
+        () => ({ question: `${c * 10}% of ${a} students passed. How many?`, answer: Math.round((c * 10 / 100) * a) }),
 
-        // Multiplication
-        {
-            question: `A pack has ${c} pencils. A teacher buys ${a} packs. How many pencils total?`,
-            answer: a * c
-        },
-
-        {
-            question: `Each box has ${c} candies. ${b} boxes are filled. How many candies total?`,
-            answer: b * c
-        },
-
-        // Division
-        {
-            question: `${a} candies are shared equally among ${c} kids. How many candies per kid?`,
-            answer: Math.floor(a / c)
-        },
-
-        {
-            question: `A teacher divides ${a} markers into groups of ${c}. How many groups?`,
-            answer: Math.floor(a / c)
-        },
-
-        // Percent (Grades 5–7)
-        {
-            question: `${c * 10}% of ${a} students passed the test. How many passed?`,
-            answer: Math.round((c * 10 / 100) * a)
-        },
-
-        // Ratio (Grades 6–7)
-        {
-            question: `A recipe uses ratio ${c}:${b}. If you use ${a} cups of flour, how much sugar?`,
-            answer: Math.round((b / c) * a)
-        }
+        () => ({ question: `Recipe ratio ${c}:${b}. If flour is ${a}, how much sugar?`, answer: Math.round((b / c) * a) })
     ];
 
-    // Pick a random template
-    const chosen = randomItem(templates);
+    const chosen = randomItem(templates)();
 
     return {
         question: chosen.question,
@@ -374,7 +268,6 @@ function generateWordProblem(grade) {
         options: generateOptions(chosen.answer)
     };
 }
-
 
 /* ---------------------------------------------
    Exponents
