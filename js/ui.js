@@ -1,7 +1,7 @@
 /*
 =================================================
 Math Learning Center
-ui.js (Full Working Version with clockTime Support)
+ui.js (Improved Production Version)
 =================================================
 */
 
@@ -13,38 +13,29 @@ function el(id) {
 }
 
 /* ---------------------------------------------
-   Global State
+   Global UI State
 --------------------------------------------- */
 let selectedTopic = null;
-let currentQuestion = null;
-let currentMode = null;
 
 /* ---------------------------------------------
    Attach Button Handlers
 --------------------------------------------- */
-const practiceBtn = el("practiceBtn");
-const quizBtn = el("quizBtn");
+document.addEventListener("DOMContentLoaded", () => {
+    const practiceBtn = el("practiceBtn");
+    const quizBtn = el("quizBtn");
 
-if (practiceBtn) {
-    practiceBtn.onclick = () => startQuiz("practice");
-}
-
-if (quizBtn) {
-    quizBtn.onclick = () => startQuiz("quiz");
-}
+    if (practiceBtn) practiceBtn.onclick = () => startQuiz("practice");
+    if (quizBtn) quizBtn.onclick = () => startQuiz("quiz");
+});
 
 /* ---------------------------------------------
    Topic Selection
 --------------------------------------------- */
-function chooseTopic(topic) {
-    selectedTopic = topic;
+function chooseTopic(topicId) {
+    selectedTopic = topicId;
 
-    const topicButtons = document.querySelectorAll(".topicCard");
-    topicButtons.forEach(btn => {
-        btn.classList.remove("selectedTopic");
-        if (btn.dataset.topic === topic) {
-            btn.classList.add("selectedTopic");
-        }
+    document.querySelectorAll(".topicCard").forEach(card => {
+        card.classList.toggle("selectedTopic", card.dataset.topic === topicId);
     });
 
     console.log("Selected topic:", selectedTopic);
@@ -54,8 +45,6 @@ function chooseTopic(topic) {
    Start Quiz / Practice Mode
 --------------------------------------------- */
 function startQuiz(mode) {
-    currentMode = mode;
-
     if (!selectedTopic) {
         alert("Please select a topic first.");
         return;
@@ -63,11 +52,12 @@ function startQuiz(mode) {
 
     console.log("Starting mode:", mode);
 
-    // Generate question
-    currentQuestion = generateQuestion(selectedTopic, "Easy", 3);
+    // Use your improved quiz engine
+    currentMode = mode;
+    currentQuestion = generateQuestion(selectedTopic, "Easy", Number(window.selectedGrade || 1));
 
-    // Render question
     renderQuestion(currentQuestion);
+    showPage("quizPage");
 }
 
 /* ---------------------------------------------
@@ -77,37 +67,37 @@ function renderQuestion(question) {
     const questionBox = el("questionBox");
     const optionsBox = el("optionsBox");
     const clockContainer = el("clockContainer");
+    const resultBox = el("resultBox");
 
     if (!questionBox || !optionsBox) {
-        console.error("Missing UI elements: questionBox or optionsBox");
+        console.error("Missing UI elements");
         return;
     }
 
     // Render question text
-    questionBox.innerText = question.question;
+    questionBox.textContent = question.question;
 
     // Render clock if needed
     if (question.clockTime) {
         renderClock(question.clockTime);
     } else if (clockContainer) {
-        clockContainer.innerHTML = ""; // Clear clock for normal questions
+        clockContainer.innerHTML = "";
     }
 
-    // Render options safely
-    if (!question.options || !Array.isArray(question.options)) {
+    // Render options
+    optionsBox.innerHTML = "";
+    resultBox.innerHTML = "";
+
+    if (!Array.isArray(question.options)) {
         console.error("Invalid options:", question);
         return;
     }
 
-    optionsBox.innerHTML = "";
-
     question.options.forEach(opt => {
         const btn = document.createElement("button");
         btn.className = "optionBtn";
-        btn.innerText = opt;
-
+        btn.textContent = opt;
         btn.onclick = () => handleAnswer(opt);
-
         optionsBox.appendChild(btn);
     });
 }
@@ -117,23 +107,25 @@ function renderQuestion(question) {
 --------------------------------------------- */
 function handleAnswer(selected) {
     const resultBox = el("resultBox");
-
     if (!resultBox) return;
 
-    if (selected === currentQuestion.answer) {
-        resultBox.innerText = "Correct!";
+    const correct = normalizeAnswer(currentQuestion.answer);
+    const chosen = normalizeAnswer(selected);
+
+    if (chosen === correct) {
+        resultBox.textContent = "Correct!";
         resultBox.style.color = "green";
     } else {
-        resultBox.innerText = "Try again!";
+        resultBox.textContent = "Try again!";
         resultBox.style.color = "red";
     }
 
-    // Auto-load next question in practice mode
+    // Practice mode auto-next
     if (currentMode === "practice") {
         setTimeout(() => {
-            currentQuestion = generateQuestion(selectedTopic, "Easy", 3);
+            currentQuestion = generateQuestion(selectedTopic, "Easy", Number(window.selectedGrade || 1));
             renderQuestion(currentQuestion);
-            resultBox.innerText = "";
+            resultBox.textContent = "";
         }, 800);
     }
 }
@@ -164,3 +156,5 @@ function renderClock(time) {
         </svg>
     `;
 }
+
+console.log("Improved ui.js loaded");
