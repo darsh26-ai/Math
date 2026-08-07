@@ -300,20 +300,16 @@ margin-bottom:20px;
 }
 
 #practiceButton{
-
-background:var(--secondary);
-
-color:white;
-
+  background: #28a745;
+  color: white;
 }
+
 
 #quizButton{
-
-background:var(--primary);
-
-color:white;
-
+  background: #007bff;
+  color: white;
 }
+
 
 #nextButton{
 
