@@ -1,7 +1,7 @@
 /*
 =================================================
 Math Learning Center
-quiz.js (Final Working Version with clockTime Support)
+quiz.js (Improved Version)
 =================================================
 */
 
@@ -25,18 +25,17 @@ function startQuiz(mode) {
     currentQuiz.currentIndex = 0;
     currentQuiz.score = 0;
 
-    const count = Number(el("questionCount")?.value || 10);
+    const count = Number(document.getElementById("questionCount")?.value || 10);
     currentQuiz.totalQuestions = count;
 
     const topic = selectedTopic || "addition";
-    const difficulty = el("difficulty")?.value || "Easy";
-    const selectedGrade = Number(el("gradeSelect")?.value || 1);
+    const difficulty = document.getElementById("difficulty")?.value || "Easy";
+    const selectedGrade = Number(document.getElementById("gradeSelect")?.value || 1);
 
     currentQuiz.selectedTopic = topic;
     currentQuiz.difficulty = difficulty;
     currentQuiz.selectedGrade = selectedGrade;
 
-    // Generate questions
     for (let i = 0; i < count; i++) {
         let question;
 
@@ -46,6 +45,7 @@ function startQuiz(mode) {
             question = generateQuestion(topic, difficulty, selectedGrade);
         }
 
+        // Ensure word problems have options
         if (!question.options || question.options.length === 0) {
             question.options = generateOptions(question.answer);
         }
@@ -53,10 +53,7 @@ function startQuiz(mode) {
         currentQuiz.questions.push(question);
     }
 
-    // Show quiz page
     showPage("quizPage");
-
-    // Load first question
     loadQuestion();
 }
 
@@ -67,42 +64,29 @@ function loadQuestion() {
     const index = currentQuiz.currentIndex;
     const question = currentQuiz.questions[index];
 
-    const progressText = el("progressText");
-    const questionBox = el("questionBox");
-    const clockContainer = el("clockContainer");
-    const optionsBox = el("optionsBox");
-    const resultBox = el("resultBox");
-    const nextButton = el("nextButton");
+    const progressText = document.getElementById("progressText");
+    const questionContainer = document.getElementById("questionContainer");
+    const answerBox = document.getElementById("answerContainer");
+    const nextButton = document.getElementById("nextButton");
 
-    if (!progressText || !questionBox || !optionsBox || !nextButton) {
+    if (!progressText || !questionContainer || !answerBox || !nextButton) {
         console.error("Quiz DOM elements missing");
         return;
     }
 
     progressText.innerHTML = `Question ${index + 1} of ${currentQuiz.totalQuestions}`;
+    questionContainer.innerHTML = question.question;
 
-    // Render question text
-    questionBox.innerHTML = question.question;
-
-    // Render clock if needed
-    if (question.clockTime) {
-        renderClock(question.clockTime);
-    } else {
-        clockContainer.innerHTML = "";
-    }
-
-    // Render options
-    optionsBox.innerHTML = "";
-    resultBox.innerHTML = "";
+    answerBox.innerHTML = "";
 
     question.options.forEach(option => {
-        const btn = document.createElement("button");
-        btn.className = "answerButton";
-        btn.innerHTML = option;
+        const button = document.createElement("button");
+        button.className = "answerButton";
+        button.innerHTML = option;
 
-        btn.onclick = () => checkAnswer(option, btn);
+        button.onclick = () => checkAnswer(option, button);
 
-        optionsBox.appendChild(btn);
+        answerBox.appendChild(button);
     });
 
     nextButton.style.display = "none";
@@ -114,7 +98,6 @@ function loadQuestion() {
 function checkAnswer(selected, button) {
     const question = currentQuiz.questions[currentQuiz.currentIndex];
     const buttons = document.querySelectorAll(".answerButton");
-    const resultBox = el("resultBox");
 
     buttons.forEach(btn => (btn.disabled = true));
 
@@ -123,12 +106,8 @@ function checkAnswer(selected, button) {
     if (isCorrect) {
         button.classList.add("correct");
         currentQuiz.score++;
-        resultBox.innerHTML = "Correct!";
-        resultBox.style.color = "green";
     } else {
         button.classList.add("wrong");
-        resultBox.innerHTML = "Try again!";
-        resultBox.style.color = "red";
 
         buttons.forEach(btn => {
             if (String(btn.innerHTML) === String(question.answer)) {
@@ -137,9 +116,11 @@ function checkAnswer(selected, button) {
         });
     }
 
+    // Save student progress
     recordAnswer(currentQuiz.selectedTopic, isCorrect);
 
-    el("nextButton").style.display = "block";
+    const nextButton = document.getElementById("nextButton");
+    nextButton.style.display = "block";
 }
 
 /* ---------------------------------------------
@@ -165,7 +146,7 @@ function finishQuiz() {
 
     showPage("resultsPage");
 
-    const scoreBox = el("scoreBox");
+    const scoreBox = document.getElementById("scoreBox");
 
     scoreBox.innerHTML = `
         <h3>Score</h3>
@@ -174,17 +155,19 @@ function finishQuiz() {
         <p>${getRating(percentage)}</p>
     `;
 
+    // Save quiz history
     saveQuizHistory(
         currentQuiz.selectedTopic,
         currentQuiz.score,
         currentQuiz.totalQuestions
     );
 
+    // Save global progress
     saveQuizResult(currentQuiz.score, currentQuiz.totalQuestions);
 }
 
 /* ---------------------------------------------
-   Save Quiz History
+   Save Quiz History (localStorage)
 --------------------------------------------- */
 function saveQuizHistory(topic, score, total) {
     const result = {
@@ -204,7 +187,7 @@ function saveQuizHistory(topic, score, total) {
 }
 
 /* ---------------------------------------------
-   Rating
+   Performance Rating
 --------------------------------------------- */
 function getRating(percent) {
     if (percent === 100) return "🏆 Perfect Score!";
