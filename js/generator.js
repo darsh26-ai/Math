@@ -1,7 +1,7 @@
 /*
 =================================================
 Math Learning Center
-generator.js (Final Improved Version)
+generator.js (Final Version)
 =================================================
 */
 
