@@ -89,8 +89,22 @@
             <div id="timerDisplay">00:00</div>
         </div>
 
-        <div id="questionContainer"></div>
-        <div id="answerContainer"></div>
+        <!-- ⭐ NEW FULL QUESTION AREA (supports clock questions) -->
+        <div id="questionArea">
+
+            <!-- Question text -->
+            <div id="questionBox" class="questionBox"></div>
+
+            <!-- Clock image (only appears for elapsedTime topic) -->
+            <div id="clockContainer" class="clockContainer"></div>
+
+            <!-- Multiple-choice options -->
+            <div id="optionsBox" class="optionsBox"></div>
+
+            <!-- Correct / Try again message -->
+            <div id="resultBox" class="resultBox"></div>
+
+        </div>
 
         <button id="nextButton" onclick="nextQuestion()">Next →</button>
     </section>
