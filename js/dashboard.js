@@ -1,3 +1,10 @@
+/*
+=================================================
+Math Learning Center
+dashboard.js (Improved Production Version)
+=================================================
+*/
+
 document.addEventListener("DOMContentLoaded", () => {
     try {
         loadDashboard();
@@ -6,66 +13,80 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-/* ------------------------------
+/* ---------------------------------------------
    Utility: Safe DOM getter
------------------------------- */
+--------------------------------------------- */
 function el(id) {
     return document.getElementById(id);
 }
 
-/* ------------------------------
-   Main Dashboard Loader
------------------------------- */
-function loadDashboard() {
-    const student = getStudent();
-
-    // Fallback for missing student
-    if (!student) {
-        safeSet("studentName", "Guest Student");
-        safeSet("studentGrade", "—");
-        safeSet("questionsCompleted", 0);
-        safeSet("accuracy", "0%");
-        safeSet("streak", "0 Days");
-        safeSet("badgeCount", 0);
-        safeSet("topicProgress", "No practice data yet");
-        safeSet("badges", "No badges earned yet ⭐");
-        return;
+/* ---------------------------------------------
+   Safe JSON loader
+--------------------------------------------- */
+function safeJSON(key) {
+    try {
+        return JSON.parse(localStorage.getItem(key));
+    } catch {
+        return null;
     }
-
-    // Basic fields
-    safeSet("studentName", "👋 " + (student.name || "Student"));
-    safeSet("studentGrade", student.grade || "—");
-
-    // Stats
-    const attempted = student.stats?.attempted || 0;
-    const accuracy = student.stats?.accuracy || 0;
-    safeSet("questionsCompleted", attempted);
-    safeSet("accuracy", accuracy + "%");
-
-    // Streak
-    const streak = student.streak?.current || 0;
-    safeSet("streak", streak + " Days");
-
-    // Badges
-    const badges = Array.isArray(student.achievements) ? student.achievements : [];
-    safeSet("badgeCount", badges.length);
-    displayBadges(badges);
-
-    // Topic progress
-    displayTopics(student.topics || {});
 }
 
-/* ------------------------------
+/* ---------------------------------------------
+   Normalize Student Object
+--------------------------------------------- */
+function normalizeStudent(s) {
+    return {
+        name: s?.name || "Student",
+        grade: s?.grade || "—",
+        stats: {
+            attempted: s?.stats?.attempted || 0,
+            accuracy: s?.stats?.accuracy || 0
+        },
+        streak: {
+            current: s?.streak?.current || 0
+        },
+        achievements: Array.isArray(s?.achievements) ? s.achievements : [],
+        topics: s?.topics || {}
+    };
+}
+
+/* ---------------------------------------------
+   Main Dashboard Loader
+--------------------------------------------- */
+function loadDashboard() {
+    const rawStudent = safeJSON("studentProfile");
+    const student = normalizeStudent(rawStudent);
+
+    // Basic fields
+    safeSet("studentName", "👋 " + student.name);
+    safeSet("studentGrade", student.grade);
+
+    // Stats
+    safeSet("questionsCompleted", student.stats.attempted);
+    safeSet("accuracy", student.stats.accuracy + "%");
+
+    // Streak
+    safeSet("streak", student.streak.current + " Days");
+
+    // Badges
+    safeSet("badgeCount", student.achievements.length);
+    displayBadges(student.achievements);
+
+    // Topic progress
+    displayTopics(student.topics);
+}
+
+/* ---------------------------------------------
    Safe setter for DOM elements
------------------------------- */
+--------------------------------------------- */
 function safeSet(id, value) {
     const node = el(id);
     if (node) node.innerHTML = value;
 }
 
-/* ------------------------------
+/* ---------------------------------------------
    Badge Display
------------------------------- */
+--------------------------------------------- */
 function displayBadges(badges) {
     const area = el("badges");
     if (!area) return;
@@ -76,13 +97,13 @@ function displayBadges(badges) {
     }
 
     area.innerHTML = badges
-        .map(badge => `<span class="badge">🏆 ${badge}</span>`)
+        .map(b => `<span class="badge">🏅 ${b}</span>`)
         .join("");
 }
 
-/* ------------------------------
+/* ---------------------------------------------
    Topic Progress Display
------------------------------- */
+--------------------------------------------- */
 function displayTopics(topics) {
     const area = el("topicProgress");
     if (!area) return;
@@ -96,27 +117,32 @@ function displayTopics(topics) {
     area.innerHTML = keys
         .map(topicId => {
             const data = topics[topicId] || {};
-
             const attempted = data.attempted || 0;
             const correct = data.correct || 0;
 
-            const accuracy =
+            const percent =
                 attempted > 0 ? Math.round((correct / attempted) * 100) : 0;
 
             return `
                 <div class="topic-card">
                     <h3>${data.name || topicId}</h3>
                     <p>Completed: ${attempted}</p>
-                    <p>Accuracy: ${accuracy}%</p>
+                    <p>Accuracy: ${percent}%</p>
+
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width:${percent}%"></div>
+                    </div>
                 </div>
             `;
         })
         .join("");
 }
 
-/* ------------------------------
+/* ---------------------------------------------
    Navigation
------------------------------- */
+--------------------------------------------- */
 function goHome() {
-    window.location.href = "index.html";
+    location.replace("index.html");
 }
+
+console.log("Improved dashboard.js loaded");
