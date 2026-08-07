@@ -268,6 +268,114 @@ function generateWordProblem(grade) {
     return problems[randomIndex];
 }
 
+/*
+=================================================
+Dynamic Word Problem Generator
+=================================================
+*/
+
+function generateWordProblem(grade) {
+
+    // Difficulty scaling by grade
+    const ranges = {
+        1: { min: 1, max: 20 },
+        2: { min: 10, max: 40 },
+        3: { min: 20, max: 80 },
+        4: { min: 30, max: 120 },
+        5: { min: 40, max: 200 },
+        6: { min: 50, max: 300 },
+        7: { min: 60, max: 500 }
+    };
+
+    const { min, max } = ranges[grade] || ranges[1];
+
+    // Random numbers for story
+    const a = randomNumber(min, max);
+    const b = randomNumber(min / 2, max / 2);
+    const c = randomNumber(1, 10);
+
+    // Story templates
+    const templates = [
+
+        // Addition
+        {
+            question: `A student has ${a} stickers and gets ${b} more. How many stickers now?`,
+            answer: a + b
+        },
+
+        {
+            question: `A store has ${a} toys. They receive ${b} new toys. How many toys now?`,
+            answer: a + b
+        },
+
+        // Subtraction
+        {
+            question: `${a} apples were on a tree. ${b} fell down. How many remain?`,
+            answer: a - b
+        },
+
+        {
+            question: `A box has ${a} crayons. ${b} break. How many crayons still work?`,
+            answer: a - b
+        },
+
+        // Multi-step
+        {
+            question: `A class has ${a} students. ${b} go home early and ${c} new students join. How many students now?`,
+            answer: a - b + c
+        },
+
+        {
+            question: `A farmer has ${a} cows. He sells ${b} and buys ${c} more. How many cows now?`,
+            answer: a - b + c
+        },
+
+        // Multiplication
+        {
+            question: `A pack has ${c} pencils. A teacher buys ${a} packs. How many pencils total?`,
+            answer: a * c
+        },
+
+        {
+            question: `Each box has ${c} candies. ${b} boxes are filled. How many candies total?`,
+            answer: b * c
+        },
+
+        // Division
+        {
+            question: `${a} candies are shared equally among ${c} kids. How many candies per kid?`,
+            answer: Math.floor(a / c)
+        },
+
+        {
+            question: `A teacher divides ${a} markers into groups of ${c}. How many groups?`,
+            answer: Math.floor(a / c)
+        },
+
+        // Percent (Grades 5–7)
+        {
+            question: `${c * 10}% of ${a} students passed the test. How many passed?`,
+            answer: Math.round((c * 10 / 100) * a)
+        },
+
+        // Ratio (Grades 6–7)
+        {
+            question: `A recipe uses ratio ${c}:${b}. If you use ${a} cups of flour, how much sugar?`,
+            answer: Math.round((b / c) * a)
+        }
+    ];
+
+    // Pick a random template
+    const chosen = randomItem(templates);
+
+    return {
+        question: chosen.question,
+        answer: chosen.answer,
+        options: generateOptions(chosen.answer)
+    };
+}
+
+
 /* ---------------------------------------------
    Exponents
 --------------------------------------------- */
