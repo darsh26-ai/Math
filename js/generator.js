@@ -1,7 +1,7 @@
 /*
 =================================================
 Math Learning Center
-generator.js (Final Version)
+generator.js (Final Version with Elapsed Time)
 =================================================
 */
 
@@ -56,6 +56,7 @@ function generateQuestion(topic, difficulty, grade) {
         case "integers": return generateInteger();
         case "exponents": return generateExponent();
         case "wordProblems": return generateWordProblem(grade);
+        case "elapsedTime": return generateElapsedTime();   // ⭐ NEW TOPIC
         default: return generateAddition(difficulty);
     }
 }
@@ -260,7 +261,7 @@ function generateWordProblem(grade) {
         () => ({ question: `Recipe ratio ${c}:${b}. If flour is ${a}, how much sugar?`, answer: Math.round((b / c) * a) })
     ];
 
-    const chosen = randomItem(templates)();
+    const chosen = templates[randomNumber(0, templates.length - 1)]();
 
     return {
         question: chosen.question,
@@ -281,5 +282,48 @@ function generateExponent() {
         question: `${base}⁽${power}⁾ = ?`,
         answer,
         options: generateOptions(answer)
+    };
+}
+
+/*
+=================================================
+Elapsed Time (Clock Reading + Time Addition)
+=================================================
+*/
+
+function generateElapsedTime() {
+
+    // Random hour and minute
+    const hour = randomNumber(1, 12);
+    const minute = randomNumber(0, 59);
+
+    // Random elapsed minutes
+    const elapsedChoices = [15, 20, 30, 45, 60];
+    const elapsed = elapsedChoices[randomNumber(0, elapsedChoices.length - 1)];
+
+    // Build start time
+    const startDate = new Date();
+    startDate.setHours(hour);
+    startDate.setMinutes(minute);
+
+    // Add elapsed minutes
+    const endDate = new Date(startDate.getTime() + elapsed * 60000);
+
+    const endHour = endDate.getHours();
+    const endMinute = endDate.getMinutes();
+
+    const formattedStart = `${hour}:${minute.toString().padStart(2, "0")}`;
+    const formattedEnd = `${endHour}:${endMinute.toString().padStart(2, "0")}`;
+
+    return {
+        question: `The clock shows ${formattedStart}. What time will it be after ${elapsed} minutes?`,
+        answer: formattedEnd,
+        options: shuffle([
+            formattedEnd,
+            `${endHour}:${(endMinute + 10) % 60}`,
+            `${endHour}:${(endMinute + 15) % 60}`,
+            `${endHour}:${(endMinute + 20) % 60}`,
+            `${endHour}:${(endMinute + 25) % 60}`
+        ])
     };
 }
