@@ -1,28 +1,32 @@
 /*
 =================================================
 Math Learning Center
-progress.js (Improved Version)
+progress.js (Improved Production Version)
 =================================================
 */
+
+/* ---------------------------------------------
+   Safe JSON Loader
+--------------------------------------------- */
+function safeJSON(key, fallback) {
+    try {
+        return JSON.parse(localStorage.getItem(key)) || fallback;
+    } catch {
+        return fallback;
+    }
+}
 
 /* ---------------------------------------------
    Load or Initialize Progress
 --------------------------------------------- */
 function loadProgress() {
-    let data = JSON.parse(localStorage.getItem("progress"));
-
-    if (!data) {
-        data = {
-            totalQuestions: 0,
-            correctAnswers: 0,
-            wrongAnswers: 0,
-            quizzesCompleted: 0,
-            history: []
-        };
-        saveProgress(data);
-    }
-
-    return data;
+    return safeJSON("progress", {
+        totalQuestions: 0,
+        correctAnswers: 0,
+        wrongAnswers: 0,
+        quizzesCompleted: 0,
+        history: []
+    });
 }
 
 function saveProgress(progress) {
@@ -34,7 +38,6 @@ function saveProgress(progress) {
 --------------------------------------------- */
 function saveQuizResult(score, total) {
     const progress = loadProgress();
-
     const wrong = total - score;
 
     progress.totalQuestions += total;
@@ -42,7 +45,9 @@ function saveQuizResult(score, total) {
     progress.wrongAnswers += wrong;
     progress.quizzesCompleted++;
 
-    const accuracy = Math.round((progress.correctAnswers / progress.totalQuestions) * 100);
+    const accuracy = Math.round(
+        (progress.correctAnswers / progress.totalQuestions) * 100
+    );
 
     progress.history.push({
         date: new Date().toLocaleDateString(),
@@ -50,6 +55,10 @@ function saveQuizResult(score, total) {
         total,
         accuracy
     });
+
+    if (progress.history.length > 200) {
+        progress.history.shift();
+    }
 
     saveProgress(progress);
     updateStatistics();
@@ -59,11 +68,9 @@ function saveQuizResult(score, total) {
    Calculate Accuracy
 --------------------------------------------- */
 function getAccuracy() {
-    const progress = loadProgress();
-
-    if (progress.totalQuestions === 0) return 0;
-
-    return Math.round((progress.correctAnswers / progress.totalQuestions) * 100);
+    const p = loadProgress();
+    if (p.totalQuestions === 0) return 0;
+    return Math.round((p.correctAnswers / p.totalQuestions) * 100);
 }
 
 /* ---------------------------------------------
@@ -73,18 +80,18 @@ function updateStatistics() {
     const container = document.getElementById("statsContainer");
     if (!container) return;
 
-    const progress = loadProgress();
+    const p = loadProgress();
     const accuracy = getAccuracy();
 
     container.innerHTML = `
         <div class="statCard">
             <div class="statTitle">Questions Completed</div>
-            <h2>${progress.totalQuestions}</h2>
+            <h2>${p.totalQuestions}</h2>
         </div>
 
         <div class="statCard">
             <div class="statTitle">Correct Answers</div>
-            <h2>${progress.correctAnswers}</h2>
+            <h2>${p.correctAnswers}</h2>
         </div>
 
         <div class="statCard">
@@ -98,7 +105,7 @@ function updateStatistics() {
 
         <div class="statCard">
             <div class="statTitle">Quizzes Completed</div>
-            <h2>${progress.quizzesCompleted}</h2>
+            <h2>${p.quizzesCompleted}</h2>
         </div>
     `;
 }
@@ -110,7 +117,7 @@ document.addEventListener("DOMContentLoaded", () => {
     updateStatistics();
 });
 
-console.log("progress.js loaded");
+console.log("Improved progress.js loaded");
 
 /* ---------------------------------------------
    Record Individual Answer (Student Stats)
@@ -124,18 +131,11 @@ function recordAnswer(topic, isCorrect) {
     }
 
     // Ensure stats exist
-    if (!student.stats) {
-        student.stats = { attempted: 0, correct: 0, accuracy: 0 };
-    }
+    student.stats = student.stats || { attempted: 0, correct: 0, accuracy: 0 };
 
     // Ensure topic stats exist
-    if (!student.topics) {
-        student.topics = {};
-    }
-
-    if (!student.topics[topic]) {
-        student.topics[topic] = { attempted: 0, correct: 0 };
-    }
+    student.topics = student.topics || {};
+    student.topics[topic] = student.topics[topic] || { attempted: 0, correct: 0 };
 
     // Update overall stats
     student.stats.attempted++;
@@ -156,14 +156,12 @@ function recordAnswer(topic, isCorrect) {
 }
 
 /* ---------------------------------------------
-   Streak Tracking
+   Streak Tracking (Improved)
 --------------------------------------------- */
 function updateStreak(student) {
     const today = new Date().toDateString();
 
-    if (!student.streak) {
-        student.streak = { current: 0, lastPractice: today };
-    }
+    student.streak = student.streak || { current: 0, lastPractice: today };
 
     if (student.streak.lastPractice !== today) {
         student.streak.current++;
@@ -172,20 +170,30 @@ function updateStreak(student) {
 }
 
 /* ---------------------------------------------
-   Badge System
+   Badge System (Improved)
 --------------------------------------------- */
 function checkBadges(student) {
-    if (!student.achievements) {
-        student.achievements = [];
+    student.achievements = student.achievements || [];
+
+    const addBadge = (name) => {
+        if (!student.achievements.includes(name)) {
+            student.achievements.push(name);
+        }
+    };
+
+    if (student.stats.attempted >= 100) {
+        addBadge("Math Explorer");
     }
 
-    if (student.stats.attempted >= 100 &&
-        !student.achievements.includes("Math Explorer")) {
-        student.achievements.push("Math Explorer");
+    if (student.stats.accuracy >= 90) {
+        addBadge("Accuracy Star");
     }
 
-    if (student.stats.accuracy >= 90 &&
-        !student.achievements.includes("Accuracy Star")) {
-        student.achievements.push("Accuracy Star");
+    if (student.streak.current >= 7) {
+        addBadge("7-Day Streak");
+    }
+
+    if (student.topics && Object.keys(student.topics).length >= 5) {
+        addBadge("Topic Master");
     }
 }
