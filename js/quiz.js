@@ -1,64 +1,58 @@
 /*
 =================================================
 Math Learning Center
-quiz.js (Final Working Version)
+quiz.js (Improved Production Version)
 =================================================
 */
 
-let currentQuiz = {
-    questions: [],
-    currentIndex: 0,
-    score: 0,
-    selectedTopic: "",
-    difficulty: "Easy",
-    totalQuestions: 10,
-    selectedGrade: 1,
-    mode: "quiz"
-};
+let currentQuiz = null;
+
+/* ---------------------------------------------
+   Create Fresh Quiz State
+--------------------------------------------- */
+function createQuizState(mode, topic, difficulty, grade, totalQuestions) {
+    return {
+        mode,
+        selectedTopic: topic,
+        difficulty,
+        selectedGrade: grade,
+        totalQuestions,
+        currentIndex: 0,
+        score: 0,
+        questions: []
+    };
+}
 
 /* ---------------------------------------------
    Start Quiz
 --------------------------------------------- */
 function startQuiz(mode) {
-    currentQuiz.mode = mode;
-    currentQuiz.questions = [];
-    currentQuiz.currentIndex = 0;
-    currentQuiz.score = 0;
-
-    const count = Number(el("questionCount")?.value || 10);
-    currentQuiz.totalQuestions = count;
-
-    const topic = selectedTopic || "addition";
+    const topic = selectedTopic;
     const difficulty = el("difficulty")?.value || "Easy";
+    const totalQuestions = Number(el("questionCount")?.value || 10);
+    const grade = Number(window.selectedGrade || 1);
 
-    // ⭐ Use grade selected from gradeGrid (app.js)
-    const selectedGrade = Number(window.selectedGrade || 1);
-
-    currentQuiz.selectedTopic = topic;
-    currentQuiz.difficulty = difficulty;
-    currentQuiz.selectedGrade = selectedGrade;
-
-    // Generate questions
-    for (let i = 0; i < count; i++) {
-        let question;
-
-        if (topic === "wordProblems") {
-            question = generateWordProblem(selectedGrade);
-        } else {
-            question = generateQuestion(topic, difficulty, selectedGrade);
-        }
-
-        if (!question.options || question.options.length === 0) {
-            question.options = generateOptions(question.answer);
-        }
-
-        currentQuiz.questions.push(question);
+    if (!topic) {
+        alert("Please select a topic first.");
+        return;
     }
 
-    // Show quiz page
-    showPage("quizPage");
+    currentQuiz = createQuizState(mode, topic, difficulty, grade, totalQuestions);
 
-    // Load first question
+    for (let i = 0; i < totalQuestions; i++) {
+        let q = (topic === "wordProblems")
+            ? generateWordProblem(grade)
+            : generateQuestion(topic, difficulty, grade);
+
+        if (!q.options || q.options.length === 0) {
+            q.options = generateOptions(q.answer);
+        }
+
+        q.options = shuffle(q.options);
+        currentQuiz.questions.push(q);
+    }
+
+    showPage("quizPage");
     loadQuestion();
 }
 
@@ -66,81 +60,91 @@ function startQuiz(mode) {
    Load Question
 --------------------------------------------- */
 function loadQuestion() {
-    const index = currentQuiz.currentIndex;
-    const question = currentQuiz.questions[index];
+    const q = currentQuiz.questions[currentQuiz.currentIndex];
 
-    const progressText = el("progressText");
-    const questionBox = el("questionBox");
-    const clockContainer = el("clockContainer");
-    const optionsBox = el("optionsBox");
-    const resultBox = el("resultBox");
-    const nextButton = el("nextButton");
+    el("progressText").textContent =
+        `Question ${currentQuiz.currentIndex + 1} of ${currentQuiz.totalQuestions}`;
 
-    if (!progressText || !questionBox || !optionsBox || !nextButton) {
-        console.error("Quiz DOM elements missing");
-        return;
-    }
+    el("questionBox").textContent = q.question;
 
-    progressText.innerHTML = `Question ${index + 1} of ${currentQuiz.totalQuestions}`;
-
-    // Render question text
-    questionBox.innerHTML = question.question;
-
-    // Render clock if needed
-    if (question.clockTime) {
-        renderClock(question.clockTime);
+    if (q.clockTime) {
+        renderClock(q.clockTime);
     } else {
-        clockContainer.innerHTML = "";
+        el("clockContainer").innerHTML = "";
     }
 
-    // Render options
-    optionsBox.innerHTML = "";
-    resultBox.innerHTML = "";
+    el("optionsBox").innerHTML = "";
+    el("resultBox").innerHTML = "";
+    el("nextButton").style.display = "none";
 
-    question.options.forEach(option => {
+    q.options.forEach(opt => {
         const btn = document.createElement("button");
         btn.className = "answerButton";
-        btn.innerHTML = option;
-
-        btn.onclick = () => checkAnswer(option, btn);
-
-        optionsBox.appendChild(btn);
+        btn.textContent = opt;
+        btn.onclick = () => checkAnswer(opt, btn);
+        el("optionsBox").appendChild(btn);
     });
+}
 
-    nextButton.style.display = "none";
+/* ---------------------------------------------
+   Normalize Answer (Topic-Aware)
+--------------------------------------------- */
+function normalizeAnswer(value) {
+    if (typeof value === "number") return Number(value);
+
+    if (typeof value === "string") {
+        const trimmed = value.trim();
+
+        if (/^\d+:\d+$/.test(trimmed)) {
+            const [h, m] = trimmed.split(":").map(Number);
+            return h * 60 + m;
+        }
+
+        if (/^\d+\/\d+$/.test(trimmed)) {
+            const [n, d] = trimmed.split("/").map(Number);
+            return n / d;
+        }
+
+        if (!isNaN(Number(trimmed))) {
+            return Number(trimmed);
+        }
+
+        return trimmed.toLowerCase();
+    }
+
+    return value;
 }
 
 /* ---------------------------------------------
    Check Answer
 --------------------------------------------- */
 function checkAnswer(selected, button) {
-    const question = currentQuiz.questions[currentQuiz.currentIndex];
-    const buttons = document.querySelectorAll(".answerButton");
-    const resultBox = el("resultBox");
+    const q = currentQuiz.questions[currentQuiz.currentIndex];
+    const correct = normalizeAnswer(q.answer);
+    const chosen = normalizeAnswer(selected);
 
-    buttons.forEach(btn => (btn.disabled = true));
+    const isCorrect = chosen === correct;
 
-    const isCorrect = String(selected) === String(question.answer);
+    document.querySelectorAll(".answerButton").forEach(btn => btn.disabled = true);
 
     if (isCorrect) {
         button.classList.add("correct");
         currentQuiz.score++;
-        resultBox.innerHTML = "Correct!";
-        resultBox.style.color = "green";
+        el("resultBox").textContent = "Correct!";
+        el("resultBox").style.color = "green";
     } else {
         button.classList.add("wrong");
-        resultBox.innerHTML = "Try again!";
-        resultBox.style.color = "red";
+        el("resultBox").textContent = "Try again!";
+        el("resultBox").style.color = "red";
 
-        buttons.forEach(btn => {
-            if (String(btn.innerHTML) === String(question.answer)) {
+        document.querySelectorAll(".answerButton").forEach(btn => {
+            if (normalizeAnswer(btn.textContent) === correct) {
                 btn.classList.add("correct");
             }
         });
     }
 
     recordAnswer(currentQuiz.selectedTopic, isCorrect);
-
     el("nextButton").style.display = "block";
 }
 
@@ -161,35 +165,28 @@ function nextQuestion() {
    Finish Quiz
 --------------------------------------------- */
 function finishQuiz() {
-    const percentage = Math.round(
+    const percent = Math.round(
         (currentQuiz.score / currentQuiz.totalQuestions) * 100
     );
 
     showPage("resultsPage");
 
-    const scoreBox = el("scoreBox");
-
-    scoreBox.innerHTML = `
+    el("scoreBox").innerHTML = `
         <h3>Score</h3>
         <h1>${currentQuiz.score} / ${currentQuiz.totalQuestions}</h1>
-        <p>Accuracy: ${percentage}%</p>
-        <p>${getRating(percentage)}</p>
+        <p>Accuracy: ${percent}%</p>
+        <p>${getRating(percent)}</p>
     `;
 
-    saveQuizHistory(
-        currentQuiz.selectedTopic,
-        currentQuiz.score,
-        currentQuiz.totalQuestions
-    );
-
+    saveQuizHistory(currentQuiz.selectedTopic, currentQuiz.score, currentQuiz.totalQuestions);
     saveQuizResult(currentQuiz.score, currentQuiz.totalQuestions);
 }
 
 /* ---------------------------------------------
-   Save Quiz History
+   Save Quiz History (with cleanup)
 --------------------------------------------- */
 function saveQuizHistory(topic, score, total) {
-    const result = {
+    const entry = {
         topic,
         score,
         total,
@@ -197,10 +194,10 @@ function saveQuizHistory(topic, score, total) {
         date: new Date().toISOString()
     };
 
-    const history =
-        JSON.parse(localStorage.getItem("quizHistory")) || [];
+    const history = JSON.parse(localStorage.getItem("quizHistory")) || [];
+    history.push(entry);
 
-    history.push(result);
+    if (history.length > 200) history.shift();
 
     localStorage.setItem("quizHistory", JSON.stringify(history));
 }
@@ -208,11 +205,11 @@ function saveQuizHistory(topic, score, total) {
 /* ---------------------------------------------
    Rating
 --------------------------------------------- */
-function getRating(percent) {
-    if (percent === 100) return "🏆 Perfect Score!";
-    if (percent >= 90) return "⭐⭐⭐⭐ Excellent";
-    if (percent >= 70) return "⭐⭐⭐ Good Job";
-    if (percent >= 50) return "⭐⭐ Keep Practicing";
+function getRating(p) {
+    if (p === 100) return "🏆 Perfect Score!";
+    if (p >= 90) return "⭐⭐⭐⭐ Excellent";
+    if (p >= 70) return "⭐⭐⭐ Good Job";
+    if (p >= 50) return "⭐⭐ Keep Practicing";
     return "⭐ Try Again";
 }
 
@@ -223,4 +220,4 @@ function restartQuiz() {
     startQuiz(currentQuiz.mode);
 }
 
-console.log("quiz.js loaded");
+console.log("Improved quiz.js loaded");
