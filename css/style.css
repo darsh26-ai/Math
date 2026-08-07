@@ -299,14 +299,14 @@ margin-bottom:20px;
 
 }
 
-#practiceButton{
-  background: #28a745;
+#practiceBtn{
+  background: #28a745;  /* green */
   color: white;
 }
 
 
-#quizButton{
-  background: #007bff;
+#quizBtn{
+  background: #007bff; /* blue */
   color: white;
 }
 
