@@ -34,52 +34,66 @@
 
     <!-- Settings Page -->
     <section id="settingsPage" class="hidden">
-        <button class="backButton">⬅ Back</button>
+    <button class="backButton">⬅ Back</button>
 
-        <h2>Quiz Settings</h2>
+    <h2>Quiz Settings</h2>
 
-        <div class="settings">
+    <div class="settings">
 
-            <label>
-                Difficulty
-                <select id="difficulty">
-                    <option>Easy</option>
-                    <option>Medium</option>
-                    <option>Hard</option>
-                </select>
-            </label>
+        <label>
+            Grade
+            <select id="gradeSelect">
+                <option value="1">Grade 1</option>
+                <option value="2">Grade 2</option>
+                <option value="3">Grade 3</option>
+                <option value="4">Grade 4</option>
+                <option value="5">Grade 5</option>
+                <option value="6">Grade 6</option>
+                <option value="7">Grade 7</option>
+            </select>
+        </label>
 
-            <label>
-                Questions
-                <select id="questionCount">
-                    <option value="5">5</option>
-                    <option value="10" selected>10</option>
-                    <option value="20">20</option>
-                    <option value="30">30</option>
-                    <option value="40">40</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
-                </select>
-            </label>
+        <label>
+            Difficulty
+            <select id="difficulty">
+                <option>Easy</option>
+                <option>Medium</option>
+                <option>Hard</option>
+            </select>
+        </label>
 
-            <label>
-                Timer
-                <select id="timer">
-                    <option value="0">No Timer</option>
-                    <option value="30">30 Seconds</option>
-                    <option value="60">1 Minute</option>
-                    <option value="120">2 Minutes</option>
-                    <option value="300">5 Minutes</option>
-                </select>
-            </label>
+        <label>
+            Questions
+            <select id="questionCount">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="20">20</option>
+                <option value="30">30</option>
+                <option value="40">40</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+        </label>
 
-            <div class="buttons">
-                <button id="practiceBtn">Practice Mode</button>
-                <button id="quizBtn">Quiz Mode</button>
-            </div>
+        <label>
+            Timer
+            <select id="timer">
+                <option value="0">No Timer</option>
+                <option value="30">30 Seconds</option>
+                <option value="60">1 Minute</option>
+                <option value="120">2 Minutes</option>
+                <option value="300">5 Minutes</option>
+            </select>
+        </label>
 
+        <div class="buttons">
+            <button id="practiceBtn">Practice Mode</button>
+            <button id="quizBtn">Quiz Mode</button>
         </div>
-    </section>
+
+    </div>
+</section>
+
 
     <!-- Quiz Page -->
     <section id="quizPage" class="hidden">
