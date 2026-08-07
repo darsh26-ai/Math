@@ -66,18 +66,26 @@ function loadQuestion() {
 
     const progressText = document.getElementById("progressText");
     const questionContainer = document.getElementById("questionContainer");
-    const answerBox = document.getElementById("answerContainer");
+    const optionsBox = el("optionsBox");
     const nextButton = document.getElementById("nextButton");
 
-    if (!progressText || !questionContainer || !answerBox || !nextButton) {
+    if (!progressText || !questionContainer || !optionsBox || !nextButton) {
         console.error("Quiz DOM elements missing");
         return;
     }
 
     progressText.innerHTML = `Question ${index + 1} of ${currentQuiz.totalQuestions}`;
-    questionContainer.innerHTML = question.question;
+    // Replace old questionContainer with new questionBox
+    el("questionBox").innerHTML = question.question;
+    
+    // Clock support
+    if (question.clockTime) {
+        renderClock(question.clockTime);
+    } else {
+        el("clockContainer").innerHTML = "";
+    }
 
-    answerBox.innerHTML = "";
+    optionsBox.innerHTML = "";
 
     question.options.forEach(option => {
         const button = document.createElement("button");
@@ -86,14 +94,14 @@ function loadQuestion() {
 
         button.onclick = () => checkAnswer(option, button);
 
-        answerBox.appendChild(button);
+        optionsBox.appendChild(button);
     });
 
     nextButton.style.display = "none";
 }
 
 /* ---------------------------------------------
-   Check Answer
+   Check Answer (Safe Version)
 --------------------------------------------- */
 function checkAnswer(selected, button) {
     const question = currentQuiz.questions[currentQuiz.currentIndex];
@@ -119,9 +127,13 @@ function checkAnswer(selected, button) {
     // Save student progress
     recordAnswer(currentQuiz.selectedTopic, isCorrect);
 
+    // ⭐ SAFE: Only show nextButton if it exists
     const nextButton = document.getElementById("nextButton");
-    nextButton.style.display = "block";
+    if (nextButton) {
+        nextButton.style.display = "block";
+    }
 }
+
 
 /* ---------------------------------------------
    Next Question
