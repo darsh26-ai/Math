@@ -1309,71 +1309,38 @@ function setupTopicButtons() {
 
 function startTest() {
 
-    const student =
-        getCurrentStudent();
+    const student = getCurrentStudent();
 
     if (!student) {
-
         showLogin();
-
         return;
-
     }
-
 
     const grade =
         parseInt(
-            document
-                .getElementById(
-                    "gradeSelect"
-                )
-                .value
+            document.getElementById("gradeSelect").value
         );
-
 
     const count =
         parseInt(
-            document
-                .getElementById(
-                    "questionCount"
-                )
-                .value
+            document.getElementById("questionCount").value
         );
-
 
     const minutes =
         parseInt(
-            document
-                .getElementById(
-                    "timeLimit"
-                )
-                .value
+            document.getElementById("timeLimit").value
         );
 
-
     const answerType =
-        document
-            .getElementById(
-                "answerType"
-            )
-            .value;
-
+        document.getElementById("answerType").value;
 
     questions = [];
-
     answers = [];
-
     currentQuestion = 0;
 
-    currentTestStart =
-        new Date();
+    currentTestStart = new Date();
 
-
-    for (
-        let i = 0;
-        i < count;
-        i++
-    ) {
+    for (let i = 0; i < count; i++) {
 
         questions.push(
             generateQuestion(
@@ -1385,47 +1352,29 @@ function startTest() {
 
     }
 
-
     hideAllScreens();
 
-
     document
-        .getElementById(
-            "testScreen"
-        )
-        .classList.remove(
-            "hidden"
-        );
-
+        .getElementById("testScreen")
+        .classList.remove("hidden");
 
     if (minutes > 0) {
 
-        remainingSeconds =
-            minutes * 60;
+        remainingSeconds = minutes * 60;
 
         startTimer();
 
-    }
-    else {
+    } else {
 
-        clearInterval(
-            testTimer
-        );
+        clearInterval(testTimer);
 
         document
-            .getElementById(
-                "timer"
-            )
-            .textContent =
-                "⏱ No Timer";
-
+            .getElementById("timer")
+            .textContent = "⏱ No Timer";
     }
 
-
     showQuestion();
-
 }
-
 
 /* =====================================================
    TIMER
@@ -4060,4 +4009,1040 @@ function clearProfileError() {
     }
 
 }
+
+// =====================================================
+// FIREBASE IMPORTS
+// =====================================================
+
+import {
+    auth,
+    db,
+
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    signOut,
+    onAuthStateChanged,
+
+    doc,
+    setDoc,
+    getDoc,
+    serverTimestamp
+} from "./firebase.js";
+
+
+// =====================================================
+// STUDENT VARIABLES
+// =====================================================
+
+let currentStudent = null;
+
+let selectedAvatar = "👧";
+
+
+// =====================================================
+// AUTH ELEMENTS
+// =====================================================
+
+const loginScreen =
+    document.getElementById("loginScreen");
+
+const registerScreen =
+    document.getElementById("registerScreen");
+
+const dashboardScreen =
+    document.getElementById("dashboardScreen");
+
+const setupScreen =
+    document.getElementById("setupScreen");
+
+
+// =====================================================
+// SHOW LOGIN
+// =====================================================
+
+function showLoginScreen() {
+
+    loginScreen.classList.remove("hidden");
+
+    registerScreen.classList.add("hidden");
+
+    dashboardScreen.classList.add("hidden");
+
+    setupScreen.classList.add("hidden");
+
+    document
+        .getElementById("testScreen")
+        .classList.add("hidden");
+
+    document
+        .getElementById("resultScreen")
+        .classList.add("hidden");
+}
+
+
+// =====================================================
+// SHOW REGISTER
+// =====================================================
+
+function showRegisterScreen() {
+
+    loginScreen.classList.add("hidden");
+
+    registerScreen.classList.remove("hidden");
+
+    dashboardScreen.classList.add("hidden");
+
+    setupScreen.classList.add("hidden");
+}
+
+
+// =====================================================
+// SHOW DASHBOARD
+// =====================================================
+
+function showDashboard() {
+
+    loginScreen.classList.add("hidden");
+
+    registerScreen.classList.add("hidden");
+
+    dashboardScreen.classList.remove("hidden");
+
+    setupScreen.classList.add("hidden");
+
+    document
+        .getElementById("testScreen")
+        .classList.add("hidden");
+
+    document
+        .getElementById("resultScreen")
+        .classList.add("hidden");
+
+    loadStudentDashboard();
+}
+
+
+// =====================================================
+// SHOW PRACTICE SETUP
+// =====================================================
+
+function showPracticeSetup() {
+
+    dashboardScreen.classList.add("hidden");
+
+    setupScreen.classList.remove("hidden");
+
+    document
+        .getElementById("testScreen")
+        .classList.add("hidden");
+
+    document
+        .getElementById("resultScreen")
+        .classList.add("hidden");
+
+
+    if (currentStudent) {
+
+        document
+            .getElementById("gradeSelect")
+            .value = currentStudent.grade;
+
+    }
+
+}
+
+
+// =====================================================
+// CREATE INTERNAL FIREBASE EMAIL
+// =====================================================
+
+function createStudentEmail(name) {
+
+    return (
+        name
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, "")
+        + "@mathadventure.app"
+    );
+
+}
+
+
+// =====================================================
+// SHOW ERROR
+// =====================================================
+
+function showError(elementId, message) {
+
+    const element =
+        document.getElementById(elementId);
+
+    element.textContent = message;
+
+    element.classList.remove("hidden");
+
+}
+
+
+// =====================================================
+// CLEAR ERROR
+// =====================================================
+
+function clearError(elementId) {
+
+    const element =
+        document.getElementById(elementId);
+
+    element.textContent = "";
+
+    element.classList.add("hidden");
+
+}
+
+
+// =====================================================
+// AVATAR SELECTION
+// =====================================================
+
+document
+    .querySelectorAll(".avatar-btn")
+    .forEach(button => {
+
+        button.addEventListener(
+            "click",
+            function () {
+
+                document
+                    .querySelectorAll(".avatar-btn")
+                    .forEach(btn => {
+
+                        btn.classList.remove(
+                            "selected"
+                        );
+
+                    });
+
+
+                this.classList.add(
+                    "selected"
+                );
+
+
+                selectedAvatar =
+                    this.dataset.avatar;
+
+            }
+        );
+
+    });
+
+
+// =====================================================
+// SHOW REGISTER BUTTON
+// =====================================================
+
+document
+    .getElementById("showRegisterButton")
+    .addEventListener(
+        "click",
+        showRegisterScreen
+    );
+
+
+// =====================================================
+// BACK TO LOGIN
+// =====================================================
+
+document
+    .getElementById("backToLoginButton")
+    .addEventListener(
+        "click",
+        showLoginScreen
+    );
+
+
+// =====================================================
+// CREATE STUDENT
+// =====================================================
+
+document
+    .getElementById("registerButton")
+    .addEventListener(
+        "click",
+        createStudent
+    );
+
+
+async function createStudent() {
+
+    clearError("registerError");
+
+
+    const name =
+        document
+            .getElementById("registerName")
+            .value
+            .trim();
+
+
+    const grade =
+        parseInt(
+            document
+                .getElementById("registerGrade")
+                .value
+        );
+
+
+    const pin =
+        document
+            .getElementById("registerPin")
+            .value
+            .trim();
+
+
+    const confirmPin =
+        document
+            .getElementById("registerPinConfirm")
+            .value
+            .trim();
+
+
+    // -------------------------------------------------
+    // VALIDATION
+    // -------------------------------------------------
+
+    if (!name) {
+
+        showError(
+            "registerError",
+            "Please enter the student's name."
+        );
+
+        return;
+
+    }
+
+
+    if (name.length < 2) {
+
+        showError(
+            "registerError",
+            "Student name must be at least 2 characters."
+        );
+
+        return;
+
+    }
+
+
+    if (!/^\d{6}$/.test(pin)) {
+
+        showError(
+            "registerError",
+            "PIN must contain exactly 6 numbers."
+        );
+
+        return;
+
+    }
+
+
+    if (pin !== confirmPin) {
+
+        showError(
+            "registerError",
+            "The PINs do not match."
+        );
+
+        return;
+
+    }
+
+
+    const email =
+        createStudentEmail(name);
+
+
+    const button =
+        document.getElementById(
+            "registerButton"
+        );
+
+
+    button.disabled = true;
+
+    button.textContent =
+        "⏳ Creating Profile...";
+
+
+    try {
+
+        // -------------------------------------------------
+        // CREATE FIREBASE AUTH USER
+        // -------------------------------------------------
+
+        const userCredential =
+            await createUserWithEmailAndPassword(
+                auth,
+                email,
+                pin
+            );
+
+
+        const user =
+            userCredential.user;
+
+
+        // -------------------------------------------------
+        // CREATE FIRESTORE PROFILE
+        // -------------------------------------------------
+
+        const profile = {
+
+            name: name,
+
+            grade: grade,
+
+            avatar: selectedAvatar,
+
+            email: email,
+
+            createdAt: serverTimestamp(),
+
+            statistics: {
+
+                tests: 0,
+
+                correct: 0,
+
+                questions: 0,
+
+                accuracy: 0
+
+            },
+
+            topics: {
+
+                addition: {
+                    correct: 0,
+                    questions: 0,
+                    accuracy: 0
+                },
+
+                subtraction: {
+                    correct: 0,
+                    questions: 0,
+                    accuracy: 0
+                },
+
+                multiplication: {
+                    correct: 0,
+                    questions: 0,
+                    accuracy: 0
+                },
+
+                division: {
+                    correct: 0,
+                    questions: 0,
+                    accuracy: 0
+                }
+
+            }
+
+        };
+
+
+        await setDoc(
+            doc(
+                db,
+                "students",
+                user.uid
+            ),
+            profile
+        );
+
+
+        currentStudent = {
+
+            uid: user.uid,
+
+            ...profile
+
+        };
+
+
+        // -------------------------------------------------
+        // OPEN DASHBOARD
+        // -------------------------------------------------
+
+        showDashboard();
+
+
+    }
+    catch (error) {
+
+        console.error(
+            "Create student error:",
+            error
+        );
+
+
+        let message =
+            "Unable to create profile.";
+
+
+        if (
+            error.code ===
+            "auth/email-already-in-use"
+        ) {
+
+            message =
+                "A student with this name already exists. Please use Login.";
+
+        }
+
+
+        else if (
+            error.code ===
+            "auth/weak-password"
+        ) {
+
+            message =
+                "Please use a 6-digit PIN.";
+
+        }
+
+
+        showError(
+            "registerError",
+            message
+        );
+
+    }
+
+
+    finally {
+
+        button.disabled = false;
+
+        button.textContent =
+            "🚀 Create My Profile";
+
+    }
+
+}
+
+
+// =====================================================
+// LOGIN
+// =====================================================
+
+document
+    .getElementById("loginButton")
+    .addEventListener(
+        "click",
+        loginStudent
+    );
+
+
+async function loginStudent() {
+
+    clearError("loginError");
+
+
+    const name =
+        document
+            .getElementById("loginName")
+            .value
+            .trim();
+
+
+    const pin =
+        document
+            .getElementById("loginPin")
+            .value
+            .trim();
+
+
+    if (!name) {
+
+        showError(
+            "loginError",
+            "Please enter your name."
+        );
+
+        return;
+
+    }
+
+
+    if (!/^\d{6}$/.test(pin)) {
+
+        showError(
+            "loginError",
+            "Please enter your 6-digit PIN."
+        );
+
+        return;
+
+    }
+
+
+    const email =
+        createStudentEmail(name);
+
+
+    const button =
+        document.getElementById(
+            "loginButton"
+        );
+
+
+    button.disabled = true;
+
+    button.textContent =
+        "⏳ Logging in...";
+
+
+    try {
+
+        await signInWithEmailAndPassword(
+            auth,
+            email,
+            pin
+        );
+
+
+    }
+    catch (error) {
+
+        console.error(
+            "Login error:",
+            error
+        );
+
+
+        showError(
+            "loginError",
+            "Incorrect student name or PIN."
+        );
+
+    }
+
+
+    finally {
+
+        button.disabled = false;
+
+        button.textContent =
+            "🔐 Login";
+
+    }
+
+}
+
+
+// =====================================================
+// FIREBASE AUTH STATE
+// =====================================================
+
+onAuthStateChanged(
+    auth,
+    async function (user) {
+
+        if (!user) {
+
+            currentStudent = null;
+
+            showLoginScreen();
+
+            return;
+
+        }
+
+
+        try {
+
+            const profileSnapshot =
+                await getDoc(
+                    doc(
+                        db,
+                        "students",
+                        user.uid
+                    )
+                );
+
+
+            if (
+                profileSnapshot.exists()
+            ) {
+
+                currentStudent = {
+
+                    uid: user.uid,
+
+                    ...profileSnapshot.data()
+
+                };
+
+
+                showDashboard();
+
+            }
+            else {
+
+                await signOut(auth);
+
+                showLoginScreen();
+
+            }
+
+        }
+        catch (error) {
+
+            console.error(
+                "Loading student profile:",
+                error
+            );
+
+            showError(
+                "loginError",
+                "Unable to load your profile."
+            );
+
+        }
+
+    }
+);
+
+
+// =====================================================
+// LOAD DASHBOARD
+// =====================================================
+
+async function loadStudentDashboard() {
+
+    if (!auth.currentUser) {
+        return;
+    }
+
+
+    try {
+
+        const snapshot =
+            await getDoc(
+                doc(
+                    db,
+                    "students",
+                    auth.currentUser.uid
+                )
+            );
+
+
+        if (!snapshot.exists()) {
+
+            return;
+
+        }
+
+
+        currentStudent = {
+
+            uid: auth.currentUser.uid,
+
+            ...snapshot.data()
+
+        };
+
+
+        const student =
+            currentStudent;
+
+
+        // -------------------------------------------------
+        // PROFILE
+        // -------------------------------------------------
+
+        document
+            .getElementById("dashboardName")
+            .textContent =
+            student.name;
+
+
+        document
+            .getElementById("profileName")
+            .textContent =
+            student.name;
+
+
+        document
+            .getElementById("dashboardAvatar")
+            .textContent =
+            student.avatar || "👧";
+
+
+        document
+            .getElementById("profileGrade")
+            .textContent =
+            "Grade " + student.grade;
+
+
+        // -------------------------------------------------
+        // STATISTICS
+        // -------------------------------------------------
+
+        const stats =
+            student.statistics || {};
+
+
+        const tests =
+            stats.tests || 0;
+
+
+        const correct =
+            stats.correct || 0;
+
+
+        const questions =
+            stats.questions || 0;
+
+
+        const accuracy =
+            questions > 0
+                ? Math.round(
+                    correct /
+                    questions *
+                    100
+                )
+                : 0;
+
+
+        document
+            .getElementById("statTests")
+            .textContent =
+            tests;
+
+
+        document
+            .getElementById("statCorrect")
+            .textContent =
+            correct;
+
+
+        document
+            .getElementById("statAccuracy")
+            .textContent =
+            accuracy + "%";
+
+
+        document
+            .getElementById("overallProgressText")
+            .textContent =
+            accuracy + "%";
+
+
+        document
+            .getElementById("overallProgressBar")
+            .style.width =
+            accuracy + "%";
+
+
+        // -------------------------------------------------
+        // TOPICS
+        // -------------------------------------------------
+
+        const topics =
+            student.topics || {};
+
+
+        updateTopicProgress(
+            "addition",
+            topics.addition
+        );
+
+
+        updateTopicProgress(
+            "subtraction",
+            topics.subtraction
+        );
+
+
+        updateTopicProgress(
+            "multiplication",
+            topics.multiplication
+        );
+
+
+        updateTopicProgress(
+            "division",
+            topics.division
+        );
+
+
+    }
+    catch (error) {
+
+        console.error(
+            "Dashboard error:",
+            error
+        );
+
+    }
+
+}
+
+
+// =====================================================
+// UPDATE TOPIC PROGRESS
+// =====================================================
+
+function updateTopicProgress(
+    topic,
+    data
+) {
+
+    const questions =
+        data?.questions || 0;
+
+
+    const correct =
+        data?.correct || 0;
+
+
+    const percentage =
+        questions > 0
+            ? Math.round(
+                correct /
+                questions *
+                100
+            )
+            : 0;
+
+
+    const bar =
+        document.getElementById(
+            topic + "Progress"
+        );
+
+
+    const label =
+        document.getElementById(
+            topic + "Percent"
+        );
+
+
+    if (bar) {
+
+        bar.style.width =
+            percentage + "%";
+
+    }
+
+
+    if (label) {
+
+        label.textContent =
+            percentage + "%";
+
+    }
+
+}
+
+
+// =====================================================
+// LOGOUT
+// =====================================================
+
+document
+    .getElementById("logoutButton")
+    .addEventListener(
+        "click",
+        async function () {
+
+            try {
+
+                await signOut(auth);
+
+                currentStudent = null;
+
+                showLoginScreen();
+
+            }
+            catch (error) {
+
+                console.error(
+                    "Logout error:",
+                    error
+                );
+
+            }
+
+        }
+    );
+
+
+// =====================================================
+// START PRACTICE
+// =====================================================
+
+document
+    .getElementById("startPracticeButton")
+    .addEventListener(
+        "click",
+        showPracticeSetup
+    );
+
+
+// =====================================================
+// BACK TO DASHBOARD
+// =====================================================
+
+document
+    .getElementById("backDashboardButton")
+    .addEventListener(
+        "click",
+        showDashboard
+    );
+
+
+document
+    .getElementById("resultDashboardButton")
+    .addEventListener(
+        "click",
+        showDashboard
+    );
+
+
+// =====================================================
+// PROFILE BUTTON
+// =====================================================
+
+document
+    .getElementById("profileButton")
+    .addEventListener(
+        "click",
+        function () {
+
+            if (!currentStudent) {
+                return;
+            }
+
+
+            document
+                .getElementById("registerName")
+                .value =
+                currentStudent.name;
+
+
+            document
+                .getElementById("registerGrade")
+                .value =
+                currentStudent.grade;
+
+
+            showRegisterScreen();
+
+        }
+    );
 
