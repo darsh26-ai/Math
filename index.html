@@ -29,96 +29,842 @@
 
 <body>
 
-    <!-- =====================================================
-         HEADER
-    ====================================================== -->
+<!-- =====================================================
+     HEADER
+===================================================== -->
 
-    <header>
+<header>
 
-        <div class="header-content">
+    <div class="header-content">
 
-            <div>
-                <h1>🧮 Math Adventure</h1>
+        <div>
+            <h1>🧮 Math Adventure</h1>
 
-                <p>
-                    Fun Math Practice for Grades 1–7 ⭐
-                </p>
+            <p>
+                Fun Math Practice for Grades 1–7 ⭐
+            </p>
+        </div>
+
+        <div
+            id="headerStudent"
+            class="header-student hidden"
+        >
+            <span id="headerAvatar">😊</span>
+
+            <span id="headerStudentName">
+                Student
+            </span>
+
+            <button
+                class="header-logout"
+                onclick="logoutStudent()"
+            >
+                Logout
+            </button>
+        </div>
+
+    </div>
+
+</header>
+
+
+<!-- =====================================================
+     MAIN CONTAINER
+===================================================== -->
+
+<div class="container">
+
+
+<!-- =====================================================
+     LOGIN SCREEN
+===================================================== -->
+
+<section
+    id="loginScreen"
+    class="screen"
+>
+
+    <div class="auth-card">
+
+        <div class="auth-logo">
+            🧮
+        </div>
+
+        <h2>
+            Welcome to Math Adventure!
+        </h2>
+
+        <p class="auth-subtitle">
+            Sign in to continue your math journey ⭐
+        </p>
+
+        <div class="form-group">
+
+            <label for="loginStudentName">
+                👤 Student Name
+            </label>
+
+            <input
+                type="text"
+                id="loginStudentName"
+                placeholder="Enter your name"
+                autocomplete="off"
+            >
+
+        </div>
+
+        <div class="form-group">
+
+            <label for="loginPin">
+                🔑 Student PIN
+            </label>
+
+            <input
+                type="password"
+                id="loginPin"
+                placeholder="Enter your PIN"
+                maxlength="6"
+                inputmode="numeric"
+            >
+
+        </div>
+
+        <div
+            id="loginError"
+            class="form-error hidden"
+        ></div>
+
+        <button
+            class="main-btn"
+            onclick="loginStudent()"
+        >
+            🚀 Login
+        </button>
+
+        <div class="auth-divider">
+            <span>New Student?</span>
+        </div>
+
+        <button
+            class="secondary-btn"
+            onclick="showCreateProfile()"
+        >
+            👤 Create Student Profile
+        </button>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     CREATE PROFILE SCREEN
+===================================================== -->
+
+<section
+    id="profileScreen"
+    class="screen hidden"
+>
+
+    <div class="auth-card profile-card">
+
+        <div class="auth-logo">
+            👋
+        </div>
+
+        <h2>
+            Create Your Profile
+        </h2>
+
+        <p class="auth-subtitle">
+            Let's get your Math Adventure started!
+        </p>
+
+
+        <!-- STUDENT NAME -->
+
+        <div class="form-group">
+
+            <label for="profileName">
+                👤 Student Name
+            </label>
+
+            <input
+                type="text"
+                id="profileName"
+                placeholder="Enter student name"
+                maxlength="30"
+                autocomplete="off"
+            >
+
+        </div>
+
+
+        <!-- PIN -->
+
+        <div class="form-group">
+
+            <label for="profilePin">
+                🔑 Create a 4–6 digit PIN
+            </label>
+
+            <input
+                type="password"
+                id="profilePin"
+                placeholder="Example: 1234"
+                maxlength="6"
+                inputmode="numeric"
+            >
+
+        </div>
+
+
+        <!-- GRADE -->
+
+        <div class="form-group">
+
+            <label for="profileGrade">
+                📚 Choose Your Grade
+            </label>
+
+            <select id="profileGrade">
+
+                <option value="1">
+                    Grade 1
+                </option>
+
+                <option value="2">
+                    Grade 2
+                </option>
+
+                <option value="3">
+                    Grade 3
+                </option>
+
+                <option value="4">
+                    Grade 4
+                </option>
+
+                <option value="5">
+                    Grade 5
+                </option>
+
+                <option value="6">
+                    Grade 6
+                </option>
+
+                <option value="7">
+                    Grade 7
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- AVATAR -->
+
+        <div class="form-group">
+
+            <label>
+                🧑 Choose Your Avatar
+            </label>
+
+            <div
+                id="avatarGrid"
+                class="avatar-grid"
+            >
+
+                <button
+                    type="button"
+                    class="avatar-btn selected"
+                    data-avatar="🧑‍🚀"
+                    onclick="selectAvatar(this)"
+                >
+                    🧑‍🚀
+                </button>
+
+                <button
+                    type="button"
+                    class="avatar-btn"
+                    data-avatar="🦸"
+                    onclick="selectAvatar(this)"
+                >
+                    🦸
+                </button>
+
+                <button
+                    type="button"
+                    class="avatar-btn"
+                    data-avatar="🧙"
+                    onclick="selectAvatar(this)"
+                >
+                    🧙
+                </button>
+
+                <button
+                    type="button"
+                    class="avatar-btn"
+                    data-avatar="🦄"
+                    onclick="selectAvatar(this)"
+                >
+                    🦄
+                </button>
+
+                <button
+                    type="button"
+                    class="avatar-btn"
+                    data-avatar="🐼"
+                    onclick="selectAvatar(this)"
+                >
+                    🐼
+                </button>
+
+                <button
+                    type="button"
+                    class="avatar-btn"
+                    data-avatar="🐯"
+                    onclick="selectAvatar(this)"
+                >
+                    🐯
+                </button>
+
+                <button
+                    type="button"
+                    class="avatar-btn"
+                    data-avatar="🐨"
+                    onclick="selectAvatar(this)"
+                >
+                    🐨
+                </button>
+
+                <button
+                    type="button"
+                    class="avatar-btn"
+                    data-avatar="🦊"
+                    onclick="selectAvatar(this)"
+                >
+                    🦊
+                </button>
+
             </div>
 
-            <!-- Profile Button -->
-            <button
-                id="profileButton"
-                class="profile-header-btn"
-                onclick="openProfile()"
-            >
-                <span id="headerAvatar">😊</span>
+        </div>
 
-                <span id="headerStudentName">
-                    Student Profile
-                </span>
+
+        <div
+            id="profileError"
+            class="form-error hidden"
+        ></div>
+
+
+        <button
+            class="main-btn"
+            onclick="createStudentProfile()"
+        >
+            🎉 Create My Profile
+        </button>
+
+        <button
+            class="secondary-btn"
+            onclick="showLogin()"
+        >
+            ← Back to Login
+        </button>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     DASHBOARD
+===================================================== -->
+
+<section
+    id="dashboardScreen"
+    class="screen hidden"
+>
+
+    <div class="dashboard-welcome">
+
+        <div class="welcome-content">
+
+            <div
+                id="dashboardAvatar"
+                class="large-avatar"
+            >
+                🧑‍🚀
+            </div>
+
+            <div>
+
+                <h2>
+                    👋 Welcome,
+                    <span id="dashboardName">
+                        Student
+                    </span>!
+                </h2>
+
+                <p>
+                    Ready for another Math Adventure?
+                </p>
+
+                <div
+                    id="dashboardGrade"
+                    class="grade-badge"
+                >
+                    Grade 1
+                </div>
+
+            </div>
+
+        </div>
+
+        <button
+            class="logout-btn"
+            onclick="logoutStudent()"
+        >
+            🚪 Logout
+        </button>
+
+    </div>
+
+
+    <!-- STATISTICS -->
+
+    <div class="stats-grid">
+
+        <div class="stat-card blue">
+
+            <div class="stat-icon">
+                📝
+            </div>
+
+            <div
+                id="testsCompleted"
+                class="stat-number"
+            >
+                0
+            </div>
+
+            <div class="stat-label">
+                Tests Completed
+            </div>
+
+        </div>
+
+
+        <div class="stat-card purple">
+
+            <div class="stat-icon">
+                ⭐
+            </div>
+
+            <div
+                id="averageScore"
+                class="stat-number"
+            >
+                0%
+            </div>
+
+            <div class="stat-label">
+                Average Score
+            </div>
+
+        </div>
+
+
+        <div class="stat-card green">
+
+            <div class="stat-icon">
+                🏆
+            </div>
+
+            <div
+                id="bestScore"
+                class="stat-number"
+            >
+                0%
+            </div>
+
+            <div class="stat-label">
+                Best Score
+            </div>
+
+        </div>
+
+
+        <div class="stat-card pink">
+
+            <div class="stat-icon">
+                ❓
+            </div>
+
+            <div
+                id="questionsAnswered"
+                class="stat-number"
+            >
+                0
+            </div>
+
+            <div class="stat-label">
+                Questions Answered
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- DASHBOARD ACTIONS -->
+
+    <div class="dashboard-actions">
+
+        <button
+            class="dashboard-action primary-action"
+            onclick="showPracticeSetup()"
+        >
+
+            <span class="action-icon">
+                🚀
+            </span>
+
+            <span>
+                <strong>
+                    Start Math Practice
+                </strong>
+
+                <small>
+                    Choose a topic and begin
+                </small>
+            </span>
+
+        </button>
+
+
+        <button
+            class="dashboard-action"
+            onclick="showProgress()"
+        >
+
+            <span class="action-icon">
+                📊
+            </span>
+
+            <span>
+                <strong>
+                    My Progress
+                </strong>
+
+                <small>
+                    View scores and performance
+                </small>
+            </span>
+
+        </button>
+
+
+        <button
+            class="dashboard-action"
+            onclick="showProfile()"
+        >
+
+            <span class="action-icon">
+                👤
+            </span>
+
+            <span>
+                <strong>
+                    My Profile
+                </strong>
+
+                <small>
+                    View student information
+                </small>
+
+            </span>
+
+        </button>
+
+    </div>
+
+
+    <!-- RECENT TESTS -->
+
+    <div class="dashboard-card">
+
+        <div class="section-title">
+
+            <h2>
+                📅 Recent Tests
+            </h2>
+
+            <button
+                class="text-button"
+                onclick="showProgress()"
+            >
+                View All
             </button>
 
         </div>
 
-    </header>
+        <div
+            id="recentTests"
+            class="recent-tests"
+        ></div>
+
+    </div>
+
+</section>
 
 
-    <!-- =====================================================
-         PROFILE SETUP SCREEN
-    ====================================================== -->
+<!-- =====================================================
+     PROFILE VIEW
+===================================================== -->
 
-    <div
-        id="profileScreen"
-        class="profile-screen hidden"
-    >
+<section
+    id="profileViewScreen"
+    class="screen hidden"
+>
 
-        <div class="profile-card">
+    <div class="page-card">
 
-            <div class="profile-icon">
-                👤
+        <button
+            class="back-button"
+            onclick="showDashboard()"
+        >
+            ← Dashboard
+        </button>
+
+        <div class="profile-display">
+
+            <div
+                id="profileViewAvatar"
+                class="profile-avatar-large"
+            >
+                🧑‍🚀
             </div>
 
-            <h2>
-                Welcome to Math Adventure!
+            <h2 id="profileViewName">
+                Student
             </h2>
 
-            <p class="profile-subtitle">
-                Create your student profile to get started.
-            </p>
+            <div
+                id="profileViewGrade"
+                class="grade-badge"
+            >
+                Grade 1
+            </div>
+
+        </div>
 
 
-            <!-- Student Name -->
+        <div class="profile-info-grid">
 
-            <div class="profile-field">
+            <div class="info-box">
 
-                <label for="studentName">
-                    👤 Student Name
-                </label>
+                <span>
+                    📝
+                </span>
 
-                <input
-                    type="text"
-                    id="studentName"
-                    placeholder="Enter your name"
-                    maxlength="30"
-                    autocomplete="off"
-                >
+                <strong id="profileTests">
+                    0
+                </strong>
+
+                <small>
+                    Tests Completed
+                </small>
 
             </div>
 
 
-            <!-- Grade -->
+            <div class="info-box">
 
-            <div class="profile-field">
+                <span>
+                    ⭐
+                </span>
 
-                <label for="studentGrade">
-                    🎓 Choose Your Grade
+                <strong id="profileAverage">
+                    0%
+                </strong>
+
+                <small>
+                    Average Score
+                </small>
+
+            </div>
+
+
+            <div class="info-box">
+
+                <span>
+                    🏆
+                </span>
+
+                <strong id="profileBest">
+                    0%
+                </strong>
+
+                <small>
+                    Best Score
+                </small>
+
+            </div>
+
+        </div>
+
+        <button
+            class="secondary-btn"
+            onclick="showDashboard()"
+        >
+            ← Back to Dashboard
+        </button>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     PROGRESS SCREEN
+===================================================== -->
+
+<section
+    id="progressScreen"
+    class="screen hidden"
+>
+
+    <div class="page-card">
+
+        <button
+            class="back-button"
+            onclick="showDashboard()"
+        >
+            ← Dashboard
+        </button>
+
+        <div class="page-heading">
+
+            <div>
+                <h2>
+                    📊 My Math Progress
+                </h2>
+
+                <p>
+                    Keep practicing and watch your skills grow!
+                </p>
+            </div>
+
+            <div
+                id="progressAvatar"
+                class="medium-avatar"
+            >
+                🧑‍🚀
+            </div>
+
+        </div>
+
+
+        <!-- OVERALL PROGRESS -->
+
+        <div class="overall-progress">
+
+            <div class="overall-score">
+
+                <span>
+                    Overall Accuracy
+                </span>
+
+                <strong id="progressOverall">
+                    0%
+                </strong>
+
+            </div>
+
+            <div class="progress-track">
+
+                <div
+                    id="overallProgressBar"
+                    class="progress-fill"
+                    style="width:0%"
+                ></div>
+
+            </div>
+
+        </div>
+
+
+        <!-- TOPIC PERFORMANCE -->
+
+        <div class="progress-section">
+
+            <h3>
+                📚 Topic Performance
+            </h3>
+
+            <div
+                id="topicPerformance"
+                class="topic-performance"
+            ></div>
+
+        </div>
+
+
+        <!-- TEST HISTORY -->
+
+        <div class="progress-section">
+
+            <h3>
+                📝 Test History
+            </h3>
+
+            <div
+                id="testHistory"
+                class="test-history"
+            ></div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     PRACTICE SETUP
+===================================================== -->
+
+<section
+    id="setupScreen"
+    class="screen hidden"
+>
+
+    <div class="card">
+
+        <button
+            class="back-button"
+            onclick="showDashboard()"
+        >
+            ← Dashboard
+        </button>
+
+        <h2 class="setup-title">
+            🎯 Choose Your Math Practice
+        </h2>
+
+
+        <div class="option-grid">
+
+            <!-- GRADE -->
+
+            <div class="option">
+
+                <label>
+                    📚 Grade
                 </label>
 
-                <select id="studentGrade">
-
-                    <option value="">
-                        Select Grade
-                    </option>
+                <select id="gradeSelect">
 
                     <option value="1">
                         Grade 1
@@ -153,655 +899,397 @@
             </div>
 
 
-            <!-- Avatar -->
+            <!-- QUESTIONS -->
 
-            <div class="profile-field">
+            <div class="option">
 
                 <label>
-                    😊 Choose Your Avatar
+                    🔢 Number of Questions
                 </label>
 
-                <div class="avatar-grid">
+                <select id="questionCount">
 
-                    <button
-                        type="button"
-                        class="avatar-option"
-                        data-avatar="😊"
-                    >
-                        😊
-                    </button>
+                    <option value="5">
+                        5 Questions
+                    </option>
 
-                    <button
-                        type="button"
-                        class="avatar-option"
-                        data-avatar="🧑‍🎓"
-                    >
-                        🧑‍🎓
-                    </button>
+                    <option value="10" selected>
+                        10 Questions
+                    </option>
 
-                    <button
-                        type="button"
-                        class="avatar-option"
-                        data-avatar="👩‍🎓"
-                    >
-                        👩‍🎓
-                    </button>
+                    <option value="15">
+                        15 Questions
+                    </option>
 
-                    <button
-                        type="button"
-                        class="avatar-option"
-                        data-avatar="👨‍🎓"
-                    >
-                        👨‍🎓
-                    </button>
+                    <option value="20">
+                        20 Questions
+                    </option>
 
-                    <button
-                        type="button"
-                        class="avatar-option"
-                        data-avatar="🦸"
-                    >
-                        🦸
-                    </button>
-
-                    <button
-                        type="button"
-                        class="avatar-option"
-                        data-avatar="🦸‍♀️"
-                    >
-                        🦸‍♀️
-                    </button>
-
-                    <button
-                        type="button"
-                        class="avatar-option"
-                        data-avatar="🐼"
-                    >
-                        🐼
-                    </button>
-
-                    <button
-                        type="button"
-                        class="avatar-option"
-                        data-avatar="🦄"
-                    >
-                        🦄
-                    </button>
-
-                </div>
+                </select>
 
             </div>
 
 
-            <button
-                class="profile-save-btn"
-                onclick="saveProfile()"
-            >
-                🚀 Create My Profile
-            </button>
+            <!-- TIMER -->
+
+            <div class="option">
+
+                <label>
+                    ⏱ Test Time
+                </label>
+
+                <select id="timeLimit">
+
+                    <option value="0">
+                        No Timer
+                    </option>
+
+                    <option value="5">
+                        5 Minutes
+                    </option>
+
+                    <option value="10" selected>
+                        10 Minutes
+                    </option>
+
+                    <option value="15">
+                        15 Minutes
+                    </option>
+
+                    <option value="20">
+                        20 Minutes
+                    </option>
+
+                </select>
+
+            </div>
 
 
-            <p
-                id="profileError"
-                class="profile-error"
-            ></p>
+            <!-- ANSWER TYPE -->
+
+            <div class="option">
+
+                <label>
+                    ✏️ Answer Type
+                </label>
+
+                <select id="answerType">
+
+                    <option value="choice">
+                        🔘 Multiple Choice
+                    </option>
+
+                    <option value="blank">
+                        ✏️ Fill in the Blank
+                    </option>
+
+                    <option value="mixed">
+                        🎲 Mixed
+                    </option>
+
+                </select>
+
+            </div>
 
         </div>
 
+
+        <h3 class="topic-heading">
+            📖 Choose a Topic
+        </h3>
+
+
+        <div class="topic-grid">
+
+            <button
+                class="topic-btn selected"
+                data-topic="mixed"
+            >
+                🧩 Mixed Practice
+            </button>
+
+            <button
+                class="topic-btn"
+                data-topic="addition"
+            >
+                ➕ Addition
+            </button>
+
+            <button
+                class="topic-btn"
+                data-topic="subtraction"
+            >
+                ➖ Subtraction
+            </button>
+
+            <button
+                class="topic-btn"
+                data-topic="multiplication"
+            >
+                ✖️ Multiplication
+            </button>
+
+            <button
+                class="topic-btn"
+                data-topic="division"
+            >
+                ➗ Division
+            </button>
+
+            <button
+                class="topic-btn"
+                data-topic="fractions"
+            >
+                🍕 Fractions
+            </button>
+
+            <button
+                class="topic-btn"
+                data-topic="decimals"
+            >
+                🔢 Decimals
+            </button>
+
+            <button
+                class="topic-btn"
+                data-topic="word"
+            >
+                📖 Word Problems
+            </button>
+
+            <button
+                class="topic-btn"
+                data-topic="time"
+            >
+                🕐 Time
+            </button>
+
+            <button
+                class="topic-btn"
+                data-topic="comparison"
+            >
+                ⚖️ Compare
+            </button>
+
+        </div>
+
+
+        <button
+            class="main-btn"
+            onclick="startTest()"
+        >
+            🚀 Start Math Test
+        </button>
+
     </div>
 
+</section>
 
-    <!-- =====================================================
-         MAIN APP
-    ====================================================== -->
 
-    <main
-        id="mainApp"
-        class="hidden"
-    >
+<!-- =====================================================
+     TEST SCREEN
+===================================================== -->
 
-        <div class="container">
+<section
+    id="testScreen"
+    class="screen hidden"
+>
 
+    <div class="card">
 
-            <!-- =================================================
-                 STUDENT WELCOME
-            ================================================== -->
+        <div class="test-header">
 
-            <div class="student-welcome">
-
-                <div class="welcome-avatar">
-                    <span id="welcomeAvatar">
-                        😊
-                    </span>
-                </div>
-
-                <div class="welcome-text">
-
-                    <h2>
-                        Hi,
-                        <span id="welcomeName">
-                            Student
-                        </span>
-                       ! 👋
-                    </h2>
-
-                    <p>
-                        Ready for your next Math Adventure?
-                    </p>
-
-                </div>
-
-                <div class="welcome-grade">
-
-                    <span>🎓</span>
-
-                    <strong id="welcomeGrade">
-                        Grade 1
-                    </strong>
-
-                </div>
-
-            </div>
-
-
-            <!-- =================================================
-                 SETUP SCREEN
-            ================================================== -->
-
-            <div
-                id="setupScreen"
-                class="card"
-            >
-
-                <h2 class="setup-title">
-                    🎯 Choose Your Math Practice
-                </h2>
-
-
-                <div class="option-grid">
-
-
-                    <!-- GRADE -->
-
-                    <div class="option">
-
-                        <label for="gradeSelect">
-                            📚 Grade
-                        </label>
-
-                        <select id="gradeSelect">
-
-                            <option value="1">
-                                Grade 1
-                            </option>
-
-                            <option value="2">
-                                Grade 2
-                            </option>
-
-                            <option value="3">
-                                Grade 3
-                            </option>
-
-                            <option value="4">
-                                Grade 4
-                            </option>
-
-                            <option value="5">
-                                Grade 5
-                            </option>
-
-                            <option value="6">
-                                Grade 6
-                            </option>
-
-                            <option value="7">
-                                Grade 7
-                            </option>
-
-                        </select>
-
-                    </div>
-
-
-                    <!-- QUESTIONS -->
-
-                    <div class="option">
-
-                        <label for="questionCount">
-                            🔢 Number of Questions
-                        </label>
-
-                        <select id="questionCount">
-
-                            <option value="5">
-                                5 Questions
-                            </option>
-
-                            <option
-                                value="10"
-                                selected
-                            >
-                                10 Questions
-                            </option>
-
-                            <option value="15">
-                                15 Questions
-                            </option>
-
-                            <option value="20">
-                                20 Questions
-                            </option>
-
-                        </select>
-
-                    </div>
-
-
-                    <!-- TIMER -->
-
-                    <div class="option">
-
-                        <label for="timeLimit">
-                            ⏱ Test Time
-                        </label>
-
-                        <select id="timeLimit">
-
-                            <option value="0">
-                                No Timer
-                            </option>
-
-                            <option value="5">
-                                5 Minutes
-                            </option>
-
-                            <option
-                                value="10"
-                                selected
-                            >
-                                10 Minutes
-                            </option>
-
-                            <option value="15">
-                                15 Minutes
-                            </option>
-
-                            <option value="20">
-                                20 Minutes
-                            </option>
-
-                        </select>
-
-                    </div>
-
-
-                    <!-- ANSWER TYPE -->
-
-                    <div class="option">
-
-                        <label for="answerType">
-                            ✏️ Answer Type
-                        </label>
-
-                        <select id="answerType">
-
-                            <option value="choice">
-                                🔘 Multiple Choice
-                            </option>
-
-                            <option value="blank">
-                                ✏️ Fill in the Blank
-                            </option>
-
-                            <option value="mixed">
-                                🎲 Mixed
-                            </option>
-
-                        </select>
-
-                    </div>
-
-                </div>
-
-
-                <h3 class="topic-heading">
-                    📖 Choose a Topic
-                </h3>
-
-
-                <div class="topic-grid">
-
-                    <button
-                        class="topic-btn selected"
-                        data-topic="mixed"
-                    >
-                        🧩 Mixed Practice
-                    </button>
-
-                    <button
-                        class="topic-btn"
-                        data-topic="addition"
-                    >
-                        ➕ Addition
-                    </button>
-
-                    <button
-                        class="topic-btn"
-                        data-topic="subtraction"
-                    >
-                        ➖ Subtraction
-                    </button>
-
-                    <button
-                        class="topic-btn"
-                        data-topic="multiplication"
-                    >
-                        ✖️ Multiplication
-                    </button>
-
-                    <button
-                        class="topic-btn"
-                        data-topic="division"
-                    >
-                        ➗ Division
-                    </button>
-
-                    <button
-                        class="topic-btn"
-                        data-topic="fractions"
-                    >
-                        🍕 Fractions
-                    </button>
-
-                    <button
-                        class="topic-btn"
-                        data-topic="decimals"
-                    >
-                        🔢 Decimals
-                    </button>
-
-                    <button
-                        class="topic-btn"
-                        data-topic="word"
-                    >
-                        📖 Word Problems
-                    </button>
-
-                    <button
-                        class="topic-btn"
-                        data-topic="time"
-                    >
-                        🕐 Time
-                    </button>
-
-                    <button
-                        class="topic-btn"
-                        data-topic="comparison"
-                    >
-                        ⚖️ Compare
-                    </button>
-
-                </div>
-
-
-                <button
-                    class="main-btn"
-                    onclick="startTest()"
-                >
-                    🚀 Start Math Test
-                </button>
-
-            </div>
-
-
-            <!-- =================================================
-                 TEST SCREEN
-            ================================================== -->
-
-            <div
-                id="testScreen"
-                class="card hidden"
-            >
-
-                <div class="test-header">
-
-                    <div class="progress-area">
-
-                        <div
-                            class="progress-text"
-                            id="progressText"
-                        >
-                            Question 1 of 10
-                        </div>
-
-                        <div class="progress">
-
-                            <div
-                                id="progressBar"
-                                class="progress-bar"
-                            ></div>
-
-                        </div>
-
-                    </div>
-
-
-                    <div
-                        id="timer"
-                        class="timer"
-                    >
-                        ⏱ 10:00
-                    </div>
-
-                </div>
-
+            <div class="progress-area">
 
                 <div
-                    id="questionContainer"
-                ></div>
+                    class="progress-text"
+                    id="progressText"
+                >
+                    Question 1 of 10
+                </div>
 
+                <div class="progress">
 
-                <div class="navigation">
-
-                    <button
-                        class="nav-btn previous"
-                        onclick="previousQuestion()"
-                    >
-                        ⬅ Previous
-                    </button>
-
-                    <button
-                        class="nav-btn next"
-                        onclick="nextQuestion()"
-                    >
-                        Next ➡
-                    </button>
+                    <div
+                        id="progressBar"
+                        class="progress-bar"
+                    ></div>
 
                 </div>
 
             </div>
 
 
-            <!-- =================================================
-                 RESULT SCREEN
-            ================================================== -->
-
             <div
-                id="resultScreen"
-                class="card hidden"
+                id="timer"
+                class="timer"
             >
-
-                <div class="result">
-
-                    <h2>
-                        🎉 Test Complete!
-                    </h2>
-
-
-                    <div class="score-circle">
-
-                        <div
-                            class="score-number"
-                            id="scorePercent"
-                        >
-                            0%
-                        </div>
-
-                        <div>
-                            Score
-                        </div>
-
-                    </div>
-
-
-                    <div
-                        class="result-message"
-                        id="resultMessage"
-                    >
-                        Great Job!
-                    </div>
-
-
-                    <div
-                        class="result-details"
-                        id="resultDetails"
-                    ></div>
-
-
-                    <button
-                        class="main-btn"
-                        onclick="newTest()"
-                    >
-                        🔄 Start New Test
-                    </button>
-
-                </div>
-
-
-                <div class="review">
-
-                    <h2>
-                        📝 Review Your Answers
-                    </h2>
-
-                    <div
-                        id="reviewContainer"
-                    ></div>
-
-                </div>
-
+                ⏱ 10:00
             </div>
 
         </div>
 
-    </main>
+
+        <div
+            id="questionContainer"
+        ></div>
 
 
-    <!-- =====================================================
-         PROFILE MODAL
-    ====================================================== -->
-
-    <div
-        id="profileModal"
-        class="modal-overlay hidden"
-    >
-
-        <div class="profile-modal">
+        <div class="navigation">
 
             <button
-                class="modal-close"
-                onclick="closeProfile()"
+                class="nav-btn previous"
+                onclick="previousQuestion()"
             >
-                ✕
+                ⬅ Previous
             </button>
 
-            <div
-                class="modal-avatar"
-                id="modalAvatar"
-            >
-                😊
-            </div>
-
-            <h2>
-                Student Profile
-            </h2>
-
-            <p id="modalStudentName">
-                Student
-            </p>
-
-            <div class="modal-grade">
-                🎓
-                <span id="modalGrade">
-                    Grade 1
-                </span>
-            </div>
-
-
             <button
-                class="modal-action edit"
-                onclick="editProfile()"
+                class="nav-btn next"
+                onclick="nextQuestion()"
             >
-                ✏️ Edit Profile
-            </button>
-
-
-            <button
-                class="modal-action logout"
-                onclick="logoutStudent()"
-            >
-                🚪 Clear Student Profile
+                Next ➡
             </button>
 
         </div>
 
     </div>
 
-
-    <!-- =====================================================
-         JAVASCRIPT
-    ====================================================== -->
-
-    <script src="js/app.js"></script>
+</section>
 
 
-    <!-- =====================================================
-         SERVICE WORKER
-    ====================================================== -->
+<!-- =====================================================
+     RESULT SCREEN
+===================================================== -->
 
-    <script>
+<section
+    id="resultScreen"
+    class="screen hidden"
+>
 
-        if ("serviceWorker" in navigator) {
+    <div class="card">
 
-            window.addEventListener(
-                "load",
-                function () {
+        <div class="result">
 
-                    navigator.serviceWorker
-                        .register("service-worker.js")
-                        .then(function () {
+            <h2>
+                🎉 Test Complete!
+            </h2>
 
-                            console.log(
-                                "Service Worker registered"
-                            );
 
-                        })
-                        .catch(function (error) {
+            <div class="score-circle">
 
-                            console.error(
-                                "Service Worker registration failed:",
-                                error
-                            );
+                <div
+                    class="score-number"
+                    id="scorePercent"
+                >
+                    0%
+                </div>
 
-                        });
+                <div>
+                    Score
+                </div>
 
-                }
-            );
+            </div>
+
+
+            <div
+                class="result-message"
+                id="resultMessage"
+            >
+                Great Job!
+            </div>
+
+
+            <div
+                class="result-details"
+                id="resultDetails"
+            ></div>
+
+
+            <div
+                id="resultBadge"
+                class="result-badge"
+            ></div>
+
+
+            <button
+                class="main-btn"
+                onclick="showPracticeSetup()"
+            >
+                🔄 Start New Test
+            </button>
+
+
+            <button
+                class="secondary-btn"
+                onclick="showDashboard()"
+            >
+                🏠 Back to Dashboard
+            </button>
+
+        </div>
+
+
+        <div class="review">
+
+            <h2>
+                📝 Review Your Answers
+            </h2>
+
+            <div
+                id="reviewContainer"
+            ></div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+</div>
+
+
+<!-- =====================================================
+     JAVASCRIPT
+===================================================== -->
+
+<script src="js/app.js"></script>
+
+
+<script>
+
+if ("serviceWorker" in navigator) {
+
+    window.addEventListener(
+        "load",
+        function () {
+
+            navigator.serviceWorker
+                .register("service-worker.js")
+                .then(function () {
+
+                    console.log(
+                        "Service Worker registered"
+                    );
+
+                })
+                .catch(function (error) {
+
+                    console.error(
+                        "Service Worker registration failed:",
+                        error
+                    );
+
+                });
 
         }
+    );
 
-    </script>
+}
+
+</script>
 
 </body>
-
 </html>
+
