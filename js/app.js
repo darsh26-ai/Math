@@ -4843,3 +4843,23 @@ window.previousQuestion =
 
 window.finishTest =
     finishTest;
+
+// =====================================================
+// MAKE HTML ONCLICK FUNCTIONS GLOBALLY AVAILABLE
+// =====================================================
+
+window.showCreateProfile = showCreateProfile;
+window.showLogin = showLogin;
+window.createStudentProfile = createStudentProfile;
+window.selectAvatar = selectAvatar;
+window.loginStudent = loginStudent;
+window.logoutStudent = logoutStudent;
+
+window.showDashboard = showDashboard;
+window.showPracticeSetup = showPracticeSetup;
+window.showProgress = showProgress;
+window.showProfile = showProfile;
+
+window.startTest = startTest;
+window.previousQuestion = previousQuestion;
+window.nextQuestion = nextQuestion;
