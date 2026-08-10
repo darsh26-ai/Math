@@ -4017,17 +4017,16 @@ function clearProfileError() {
 import {
     auth,
     db,
-
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     signOut,
     onAuthStateChanged,
-
     doc,
     setDoc,
     getDoc,
+    updateDoc,
     serverTimestamp
-} from "./firebase.js";
+} from "./firebase-config.js";
 
 
 // =====================================================
