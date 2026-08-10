@@ -4035,8 +4035,6 @@ import {
 
 let currentStudent = null;
 
-let selectedAvatar = "👧";
-
 
 // =====================================================
 // AUTH ELEMENTS
