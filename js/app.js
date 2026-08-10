@@ -5045,3 +5045,24 @@ document
         }
     );
 
+// =====================================================
+// MAKE FUNCTIONS AVAILABLE TO HTML onclick="" HANDLERS
+// =====================================================
+
+window.showCreateProfile = showCreateProfile;
+window.createStudentProfile = createStudentProfile;
+window.showLogin = showLogin;
+window.loginStudent = loginStudent;
+window.logoutStudent = logoutStudent;
+window.selectAvatar = selectAvatar;
+
+window.showDashboard = showDashboard;
+window.showPracticeSetup = showPracticeSetup;
+window.showProgress = showProgress;
+window.showProfile = showProfile;
+
+window.startTest = startTest;
+window.showQuestion = showQuestion;
+window.submitAnswer = submitAnswer;
+window.nextQuestion = nextQuestion;
+window.finishTest = finishTest;
