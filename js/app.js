@@ -4026,7 +4026,7 @@ import {
     getDoc,
     updateDoc,
     serverTimestamp
-} from "./firebase-config.js";
+} from "./firebase.js";
 
 
 // =====================================================
