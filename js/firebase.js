@@ -2,7 +2,9 @@
 // Math Adventure - Firebase
 // =====================================================
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import {
+    initializeApp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 import {
     getAuth,
@@ -10,7 +12,7 @@ import {
     signInWithEmailAndPassword,
     signOut,
     onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import {
     getFirestore,
@@ -19,7 +21,7 @@ import {
     getDoc,
     updateDoc,
     serverTimestamp
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 
 // =====================================================
@@ -54,24 +56,29 @@ const firebaseConfig = {
 // INITIALIZE
 // =====================================================
 
-const firebaseApp =
-    initializeApp(firebaseConfig);
+const app =
+    initializeApp(
+        firebaseConfig
+    );
 
 
 const auth =
-    getAuth(firebaseApp);
+    getAuth(
+        app
+    );
 
 
 const db =
-    getFirestore(firebaseApp);
-
+    getFirestore(
+        app
+    );
 
 // =====================================================
 // EXPORT
 // =====================================================
 
-export {
 
+export {
     auth,
     db,
 
@@ -85,7 +92,6 @@ export {
     getDoc,
     updateDoc,
     serverTimestamp
-
 };
 
 const FILES_TO_CACHE = [
