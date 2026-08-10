@@ -1,7 +1,11 @@
 // =====================================================
 // MATH ADVENTURE
-// Firebase Student Login + Dashboard + Progress
-// Math Practice Engine
+// Firebase Authentication + Firestore
+// Grades 1–7 Math Practice
+// =====================================================
+
+// =====================================================
+// FIREBASE IMPORTS
 // =====================================================
 
 import {
@@ -18,23 +22,28 @@ import {
     serverTimestamp
 } from "./firebase.js";
 
+
 // =====================================================
 // GLOBAL VARIABLES
 // =====================================================
 
+let currentStudent = null;
+
 let selectedTopic = "mixed";
+
 let selectedAvatar = "🧑‍🚀";
 
 let questions = [];
+
 let answers = [];
+
 let currentQuestion = 0;
 
 let testTimer = null;
-let remainingSeconds = 0;
-let currentTestStart = null;
 
-let currentStudent = null;
-let isFinishingTest = false;
+let remainingSeconds = 0;
+
+let currentTestStart = null;
 
 
 // =====================================================
@@ -44,8 +53,10 @@ let isFinishingTest = false;
 document.addEventListener("DOMContentLoaded", () => {
 
     setupTopicButtons();
-    setupAvatarButtons();
-    setupEventListeners();
+
+    setupEnterKeyHandlers();
+
+    setupFirebaseAuth();
 
     console.log("Math Adventure loaded successfully.");
 
@@ -53,58 +64,63 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 // =====================================================
-// DOM HELPER
+// FIREBASE AUTH STATE
 // =====================================================
 
-function getElement(id) {
-    return document.getElementById(id);
+function setupFirebaseAuth() {
+
+    onAuthStateChanged(
+        auth,
+        async (user) => {
+
+            if (!user) {
+
+                currentStudent = null;
+
+                showLogin();
+
+                return;
+            }
+
+            try {
+
+                await loadCurrentStudent(user.uid);
+
+                if (currentStudent) {
+
+                    showDashboard();
+
+                }
+                else {
+
+                    await signOut(auth);
+
+                    showLogin();
+
+                }
+
+            }
+            catch (error) {
+
+                console.error(
+                    "Authentication state error:",
+                    error
+                );
+
+                currentStudent = null;
+
+                showLogin();
+
+                showLoginError(
+                    "Unable to load your student profile."
+                );
+
+            }
+
+        }
+    );
+
 }
-
-function setText(id, value) {
-    const element = getElement(id);
-
-    if (element) {
-        element.textContent = value;
-    }
-}
-
-function showElement(id) {
-    const element = getElement(id);
-
-    if (element) {
-        element.classList.remove("hidden");
-    }
-}
-
-function hideElement(id) {
-    const element = getElement(id);
-
-    if (element) {
-        element.classList.add("hidden");
-    }
-}
-
-
-// =====================================================
-// AUTH STATE
-// =====================================================
-
-onAuthStateChanged(auth, async (user) => {
-
-    if (!user) {
-
-        currentStudent = null;
-
-        clearInterval(testTimer);
-
-        showLoginScreen();
-
-        return;
-    }
-
-    await loadCurrentStudent(user.uid);
-
-});
 
 
 // =====================================================
@@ -113,48 +129,51 @@ onAuthStateChanged(auth, async (user) => {
 
 async function loadCurrentStudent(uid) {
 
-    try {
-
-        const snapshot = await getDoc(
-            doc(
-                db,
-                "students",
-                uid
-            )
+    const studentRef =
+        doc(
+            db,
+            "students",
+            uid
         );
 
-        if (!snapshot.exists()) {
+    const snapshot =
+        await getDoc(
+            studentRef
+        );
 
-            console.error(
-                "Student profile not found."
-            );
+    if (!snapshot.exists()) {
 
-            await signOut(auth);
+        currentStudent = null;
 
-            return;
-        }
-
-        currentStudent = {
-            uid: uid,
-            ...snapshot.data()
-        };
-
-        showDashboard();
-
+        return null;
     }
-    catch (error) {
 
-        console.error(
-            "Error loading student profile:",
-            error
-        );
+    currentStudent = {
 
-        showError(
-            "loginError",
-            "Unable to load your student profile."
-        );
+        uid: uid,
 
-    }
+        ...snapshot.data()
+
+    };
+
+    return currentStudent;
+
+}
+
+
+// =====================================================
+// CREATE INTERNAL FIREBASE EMAIL
+// =====================================================
+
+function createStudentEmail(name) {
+
+    return (
+        name
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, "")
+        + "@mathadventure.app"
+    );
 
 }
 
@@ -166,19 +185,36 @@ async function loadCurrentStudent(uid) {
 function hideAllScreens() {
 
     const screens = [
+
         "loginScreen",
-        "registerScreen",
+
         "profileScreen",
+
         "dashboardScreen",
+
         "profileViewScreen",
+
         "progressScreen",
+
         "setupScreen",
+
         "testScreen",
+
         "resultScreen"
+
     ];
 
-    screens.forEach(id => {
-        hideElement(id);
+    screens.forEach((id) => {
+
+        const element =
+            document.getElementById(id);
+
+        if (element) {
+
+            element.classList.add("hidden");
+
+        }
+
     });
 
 }
@@ -188,28 +224,50 @@ function hideAllScreens() {
 // SHOW LOGIN
 // =====================================================
 
-function showLoginScreen() {
+function showLogin() {
+
+    clearInterval(testTimer);
 
     hideAllScreens();
 
-    showElement("loginScreen");
+    const screen =
+        document.getElementById(
+            "loginScreen"
+        );
 
-    clearError("loginError");
+    if (screen) {
+
+        screen.classList.remove("hidden");
+
+    }
+
+    updateHeader();
+
+    clearLoginError();
 
 }
 
 
 // =====================================================
-// SHOW REGISTER
+// SHOW CREATE PROFILE
 // =====================================================
 
-function showRegisterScreen() {
+function showCreateProfile() {
 
     hideAllScreens();
 
-    showElement("registerScreen");
+    const screen =
+        document.getElementById(
+            "profileScreen"
+        );
 
-    clearError("registerError");
+    if (screen) {
+
+        screen.classList.remove("hidden");
+
+    }
+
+    clearProfileError();
 
 }
 
@@ -222,18 +280,32 @@ function showDashboard() {
 
     if (!currentStudent) {
 
-        showLoginScreen();
+        showLogin();
 
         return;
+
     }
 
     clearInterval(testTimer);
 
     hideAllScreens();
 
-    showElement("dashboardScreen");
+    const screen =
+        document.getElementById(
+            "dashboardScreen"
+        );
+
+    if (screen) {
+
+        screen.classList.remove("hidden");
+
+    }
+
+    updateHeader();
 
     updateDashboard();
+
+    loadStudentDashboard();
 
 }
 
@@ -246,14 +318,26 @@ function showPracticeSetup() {
 
     if (!currentStudent) {
 
-        showLoginScreen();
+        showLogin();
 
         return;
+
     }
+
+    clearInterval(testTimer);
 
     hideAllScreens();
 
-    showElement("setupScreen");
+    const screen =
+        document.getElementById(
+            "setupScreen"
+        );
+
+    if (screen) {
+
+        screen.classList.remove("hidden");
+
+    }
 
     setGradeFromProfile();
 
@@ -267,26 +351,27 @@ function showPracticeSetup() {
 function showProfile() {
 
     if (!currentStudent) {
-        showLoginScreen();
+
+        showLogin();
+
         return;
+
     }
 
     hideAllScreens();
 
-    if (getElement("profileViewScreen")) {
+    const screen =
+        document.getElementById(
+            "profileViewScreen"
+        );
 
-        showElement("profileViewScreen");
+    if (screen) {
 
-        updateProfileScreen();
-
-    }
-    else if (getElement("registerScreen")) {
-
-        populateProfileForm();
-
-        showRegisterScreen();
+        screen.classList.remove("hidden");
 
     }
+
+    updateProfileScreen();
 
 }
 
@@ -299,14 +384,24 @@ function showProgress() {
 
     if (!currentStudent) {
 
-        showLoginScreen();
+        showLogin();
 
         return;
+
     }
 
     hideAllScreens();
 
-    showElement("progressScreen");
+    const screen =
+        document.getElementById(
+            "progressScreen"
+        );
+
+    if (screen) {
+
+        screen.classList.remove("hidden");
+
+    }
 
     updateProgressScreen();
 
@@ -320,376 +415,103 @@ function showProgress() {
 function updateHeader() {
 
     const headerStudent =
-        getElement("headerStudent");
+        document.getElementById(
+            "headerStudent"
+        );
 
     if (!headerStudent) {
+
         return;
+
     }
 
     if (!currentStudent) {
 
-        headerStudent.classList.add("hidden");
-
-        return;
-    }
-
-    headerStudent.classList.remove("hidden");
-
-    setText(
-        "headerAvatar",
-        currentStudent.avatar || "🧑‍🚀"
-    );
-
-    setText(
-        "headerStudentName",
-        currentStudent.name || "Student"
-    );
-
-}
-
-
-// =====================================================
-// SETUP EVENT LISTENERS
-// =====================================================
-
-function setupEventListeners() {
-
-    const showRegisterButton =
-        getElement("showRegisterButton");
-
-    if (showRegisterButton) {
-
-        showRegisterButton.addEventListener(
-            "click",
-            showRegisterScreen
-        );
-
-    }
-
-
-    const backToLoginButton =
-        getElement("backToLoginButton");
-
-    if (backToLoginButton) {
-
-        backToLoginButton.addEventListener(
-            "click",
-            showLoginScreen
-        );
-
-    }
-
-
-    const registerButton =
-        getElement("registerButton");
-
-    if (registerButton) {
-
-        registerButton.addEventListener(
-            "click",
-            createStudent
-        );
-
-    }
-
-
-    const loginButton =
-        getElement("loginButton");
-
-    if (loginButton) {
-
-        loginButton.addEventListener(
-            "click",
-            loginStudent
-        );
-
-    }
-
-
-    const logoutButton =
-        getElement("logoutButton");
-
-    if (logoutButton) {
-
-        logoutButton.addEventListener(
-            "click",
-            logoutStudent
-        );
-
-    }
-
-
-    const startPracticeButton =
-        getElement("startPracticeButton");
-
-    if (startPracticeButton) {
-
-        startPracticeButton.addEventListener(
-            "click",
-            showPracticeSetup
-        );
-
-    }
-
-
-    const backDashboardButton =
-        getElement("backDashboardButton");
-
-    if (backDashboardButton) {
-
-        backDashboardButton.addEventListener(
-            "click",
-            showDashboard
-        );
-
-    }
-
-
-    const resultDashboardButton =
-        getElement("resultDashboardButton");
-
-    if (resultDashboardButton) {
-
-        resultDashboardButton.addEventListener(
-            "click",
-            showDashboard
-        );
-
-    }
-
-
-    const profileButton =
-        getElement("profileButton");
-
-    if (profileButton) {
-
-        profileButton.addEventListener(
-            "click",
-            showProfile
-        );
-
-    }
-
-
-    const progressButton =
-        getElement("progressButton");
-
-    if (progressButton) {
-
-        progressButton.addEventListener(
-            "click",
-            showProgress
-        );
-
-    }
-
-
-    const startTestButton =
-        getElement("startTestButton");
-
-    if (startTestButton) {
-
-        startTestButton.addEventListener(
-            "click",
-            startTest
-        );
-
-    }
-
-
-    const nextQuestionButton =
-        getElement("nextQuestionButton");
-
-    if (nextQuestionButton) {
-
-        nextQuestionButton.addEventListener(
-            "click",
-            nextQuestion
-        );
-
-    }
-
-
-    const previousQuestionButton =
-        getElement("previousQuestionButton");
-
-    if (previousQuestionButton) {
-
-        previousQuestionButton.addEventListener(
-            "click",
-            previousQuestion
-        );
-
-    }
-
-
-    const finishTestButton =
-        getElement("finishTestButton");
-
-    if (finishTestButton) {
-
-        finishTestButton.addEventListener(
-            "click",
-            finishTest
-        );
-
-    }
-
-}
-
-
-// =====================================================
-// AVATAR SELECTION
-// =====================================================
-
-function setupAvatarButtons() {
-
-    document
-        .querySelectorAll(".avatar-btn")
-        .forEach(button => {
-
-            button.addEventListener(
-                "click",
-                () => {
-
-                    document
-                        .querySelectorAll(".avatar-btn")
-                        .forEach(btn => {
-
-                            btn.classList.remove(
-                                "selected"
-                            );
-
-                        });
-
-                    button.classList.add(
-                        "selected"
-                    );
-
-                    selectedAvatar =
-                        button.dataset.avatar ||
-                        button.textContent.trim();
-
-                }
-            );
-
-        });
-
-}
-
-
-// =====================================================
-// TOPIC BUTTONS
-// =====================================================
-
-function setupTopicButtons() {
-
-    document
-        .querySelectorAll(".topic-btn")
-        .forEach(button => {
-
-            button.addEventListener(
-                "click",
-                () => {
-
-                    document
-                        .querySelectorAll(".topic-btn")
-                        .forEach(btn => {
-
-                            btn.classList.remove(
-                                "selected"
-                            );
-
-                        });
-
-                    button.classList.add(
-                        "selected"
-                    );
-
-                    selectedTopic =
-                        button.dataset.topic ||
-                        "mixed";
-
-                }
-            );
-
-        });
-
-}
-
-
-// =====================================================
-// CREATE INTERNAL FIREBASE EMAIL
-// =====================================================
-
-function createStudentEmail(name) {
-
-    const cleanName =
-        name
-            .trim()
-            .toLowerCase()
-            .replace(/[^a-z0-9]/g, "");
-
-    return (
-        cleanName +
-        "@mathadventure.app"
-    );
-
-}
-
-
-// =====================================================
-// CREATE STUDENT
-// =====================================================
-
-async function createStudent() {
-
-    clearError("registerError");
-
-    const nameElement =
-        getElement("registerName");
-
-    const gradeElement =
-        getElement("registerGrade");
-
-    const pinElement =
-        getElement("registerPin");
-
-    const confirmPinElement =
-        getElement("registerPinConfirm");
-
-
-    if (
-        !nameElement ||
-        !gradeElement ||
-        !pinElement ||
-        !confirmPinElement
-    ) {
-
-        showError(
-            "registerError",
-            "Registration form is incomplete."
+        headerStudent.classList.add(
+            "hidden"
         );
 
         return;
+
     }
 
+    headerStudent.classList.remove(
+        "hidden"
+    );
+
+    const avatar =
+        document.getElementById(
+            "headerAvatar"
+        );
 
     const name =
-        nameElement.value.trim();
+        document.getElementById(
+            "headerStudentName"
+        );
+
+    if (avatar) {
+
+        avatar.textContent =
+            currentStudent.avatar ||
+            "🧑‍🚀";
+
+    }
+
+    if (name) {
+
+        name.textContent =
+            currentStudent.name ||
+            "Student";
+
+    }
+
+}
+
+
+// =====================================================
+// CREATE STUDENT PROFILE
+// =====================================================
+
+async function createStudentProfile() {
+
+    clearProfileError();
+
+    const nameInput =
+        document.getElementById(
+            "profileName"
+        );
+
+    const pinInput =
+        document.getElementById(
+            "profilePin"
+        );
+
+    const gradeInput =
+        document.getElementById(
+            "profileGrade"
+        );
+
+    if (
+        !nameInput ||
+        !pinInput ||
+        !gradeInput
+    ) {
+
+        return;
+
+    }
+
+    const name =
+        nameInput.value.trim();
+
+    const pin =
+        pinInput.value.trim();
 
     const grade =
         parseInt(
-            gradeElement.value,
+            gradeInput.value,
             10
         );
-
-    const pin =
-        pinElement.value.trim();
-
-    const confirmPin =
-        confirmPinElement.value.trim();
-
 
     // -------------------------------------------------
     // VALIDATION
@@ -697,25 +519,33 @@ async function createStudent() {
 
     if (!name) {
 
-        showError(
-            "registerError",
+        showProfileError(
             "Please enter the student's name."
         );
 
         return;
-    }
 
+    }
 
     if (name.length < 2) {
 
-        showError(
-            "registerError",
+        showProfileError(
             "Student name must be at least 2 characters."
         );
 
         return;
+
     }
 
+    if (!/^\d{6}$/.test(pin)) {
+
+        showProfileError(
+            "PIN must contain exactly 6 digits."
+        );
+
+        return;
+
+    }
 
     if (
         !grade ||
@@ -723,44 +553,24 @@ async function createStudent() {
         grade > 7
     ) {
 
-        showError(
-            "registerError",
-            "Please select a valid grade."
+        showProfileError(
+            "Please select a grade."
         );
 
         return;
+
     }
-
-
-    if (!/^\d{6}$/.test(pin)) {
-
-        showError(
-            "registerError",
-            "PIN must contain exactly 6 numbers."
-        );
-
-        return;
-    }
-
-
-    if (pin !== confirmPin) {
-
-        showError(
-            "registerError",
-            "The PINs do not match."
-        );
-
-        return;
-    }
-
 
     const email =
         createStudentEmail(name);
 
-
     const button =
-        getElement("registerButton");
-
+        document.getElementById(
+            "createProfileButton"
+        ) ||
+        document.querySelector(
+            '#profileScreen .main-btn'
+        );
 
     if (button) {
 
@@ -771,27 +581,24 @@ async function createStudent() {
 
     }
 
-
     try {
 
         // -------------------------------------------------
         // CREATE FIREBASE AUTH ACCOUNT
         // -------------------------------------------------
 
-        const userCredential =
+        const credential =
             await createUserWithEmailAndPassword(
                 auth,
                 email,
                 pin
             );
 
-
         const user =
-            userCredential.user;
-
+            credential.user;
 
         // -------------------------------------------------
-        // CREATE FIRESTORE PROFILE
+        // FIRESTORE PROFILE
         // -------------------------------------------------
 
         const profile = {
@@ -800,8 +607,7 @@ async function createStudent() {
 
             grade: grade,
 
-            avatar:
-                selectedAvatar || "🧑‍🚀",
+            avatar: selectedAvatar,
 
             email: email,
 
@@ -882,7 +688,6 @@ async function createStudent() {
 
         };
 
-
         await setDoc(
             doc(
                 db,
@@ -892,7 +697,6 @@ async function createStudent() {
             profile
         );
 
-
         currentStudent = {
 
             uid: user.uid,
@@ -901,8 +705,17 @@ async function createStudent() {
 
         };
 
+        // -------------------------------------------------
+        // CLEAR FORM
+        // -------------------------------------------------
 
-        clearRegistrationForm();
+        nameInput.value = "";
+
+        pinInput.value = "";
+
+        // -------------------------------------------------
+        // OPEN DASHBOARD
+        // -------------------------------------------------
 
         showDashboard();
 
@@ -914,10 +727,8 @@ async function createStudent() {
             error
         );
 
-
         let message =
             "Unable to create profile.";
-
 
         if (
             error.code ===
@@ -925,16 +736,7 @@ async function createStudent() {
         ) {
 
             message =
-                "A student with this name already exists. Please login.";
-
-        }
-        else if (
-            error.code ===
-            "auth/weak-password"
-        ) {
-
-            message =
-                "PIN must contain at least 6 characters.";
+                "A student with this name already exists. Please use Login.";
 
         }
         else if (
@@ -943,22 +745,20 @@ async function createStudent() {
         ) {
 
             message =
-                "The student name cannot be used for login.";
+                "That student name cannot be used. Please choose another name.";
 
         }
         else if (
             error.code ===
-            "auth/network-request-failed"
+            "auth/weak-password"
         ) {
 
             message =
-                "Network error. Please check your internet connection.";
+                "PIN must contain exactly 6 digits.";
 
         }
 
-
-        showError(
-            "registerError",
+        showProfileError(
             message
         );
 
@@ -970,7 +770,7 @@ async function createStudent() {
             button.disabled = false;
 
             button.textContent =
-                "🚀 Create My Profile";
+                "🎉 Create My Profile";
 
         }
 
@@ -985,65 +785,60 @@ async function createStudent() {
 
 async function loginStudent() {
 
-    clearError("loginError");
+    clearLoginError();
 
-    const nameElement =
-        getElement("loginName");
-
-    const pinElement =
-        getElement("loginPin");
-
-
-    if (
-        !nameElement ||
-        !pinElement
-    ) {
-
-        showError(
-            "loginError",
-            "Login form is incomplete."
+    const nameInput =
+        document.getElementById(
+            "loginStudentName"
         );
 
+    const pinInput =
+        document.getElementById(
+            "loginPin"
+        );
+
+    if (
+        !nameInput ||
+        !pinInput
+    ) {
+
         return;
+
     }
 
-
     const name =
-        nameElement.value.trim();
+        nameInput.value.trim();
 
     const pin =
-        pinElement.value.trim();
-
+        pinInput.value.trim();
 
     if (!name) {
 
-        showError(
-            "loginError",
-            "Please enter your name."
+        showLoginError(
+            "Please enter the student's name."
         );
 
         return;
-    }
 
+    }
 
     if (!/^\d{6}$/.test(pin)) {
 
-        showError(
-            "loginError",
+        showLoginError(
             "Please enter your 6-digit PIN."
         );
 
         return;
-    }
 
+    }
 
     const email =
         createStudentEmail(name);
 
-
     const button =
-        getElement("loginButton");
-
+        document.querySelector(
+            '#loginScreen .main-btn'
+        );
 
     if (button) {
 
@@ -1054,7 +849,6 @@ async function loginStudent() {
 
     }
 
-
     try {
 
         await signInWithEmailAndPassword(
@@ -1063,8 +857,8 @@ async function loginStudent() {
             pin
         );
 
-        nameElement.value = "";
-        pinElement.value = "";
+        // onAuthStateChanged()
+        // will load the profile.
 
     }
     catch (error) {
@@ -1074,25 +868,8 @@ async function loginStudent() {
             error
         );
 
-
-        let message =
-            "Incorrect student name or PIN.";
-
-
-        if (
-            error.code ===
-            "auth/too-many-requests"
-        ) {
-
-            message =
-                "Too many login attempts. Please try again later.";
-
-        }
-
-
-        showError(
-            "loginError",
-            message
+        showLoginError(
+            "Incorrect student name or PIN."
         );
 
     }
@@ -1103,7 +880,7 @@ async function loginStudent() {
             button.disabled = false;
 
             button.textContent =
-                "🔐 Login";
+                "🚀 Login";
 
         }
 
@@ -1118,9 +895,13 @@ async function loginStudent() {
 
 async function logoutStudent() {
 
+    clearInterval(testTimer);
+
     try {
 
-        clearInterval(testTimer);
+        await signOut(auth);
+
+        currentStudent = null;
 
         questions = [];
 
@@ -1128,7 +909,7 @@ async function logoutStudent() {
 
         currentQuestion = 0;
 
-        await signOut(auth);
+        showLogin();
 
     }
     catch (error) {
@@ -1144,62 +925,141 @@ async function logoutStudent() {
 
 
 // =====================================================
-// CLEAR REGISTRATION FORM
+// AVATAR SELECTION
 // =====================================================
 
-function clearRegistrationForm() {
+function selectAvatar(button) {
 
-    const fields = [
-        "registerName",
-        "registerPin",
-        "registerPinConfirm"
-    ];
+    if (!button) {
 
-    fields.forEach(id => {
+        return;
 
-        const element =
-            getElement(id);
+    }
 
-        if (element) {
-            element.value = "";
-        }
+    document
+        .querySelectorAll(
+            ".avatar-btn"
+        )
+        .forEach(
+            (btn) => {
 
-    });
+                btn.classList.remove(
+                    "selected"
+                );
+
+            }
+        );
+
+    button.classList.add(
+        "selected"
+    );
+
+    selectedAvatar =
+        button.dataset.avatar ||
+        "🧑‍🚀";
 
 }
 
 
 // =====================================================
-// PROFILE FORM
+// TOPIC BUTTONS
 // =====================================================
 
-function populateProfileForm() {
+function setupTopicButtons() {
 
-    if (!currentStudent) {
-        return;
+    document
+        .querySelectorAll(
+            ".topic-btn"
+        )
+        .forEach(
+            (button) => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        document
+                            .querySelectorAll(
+                                ".topic-btn"
+                            )
+                            .forEach(
+                                (btn) => {
+
+                                    btn.classList.remove(
+                                        "selected"
+                                    );
+
+                                }
+                            );
+
+                        button.classList.add(
+                            "selected"
+                        );
+
+                        selectedTopic =
+                            button.dataset.topic ||
+                            "mixed";
+
+                    }
+                );
+
+            }
+        );
+
+}
+
+
+// =====================================================
+// ENTER KEY HANDLERS
+// =====================================================
+
+function setupEnterKeyHandlers() {
+
+    const loginPin =
+        document.getElementById(
+            "loginPin"
+        );
+
+    if (loginPin) {
+
+        loginPin.addEventListener(
+            "keydown",
+            (event) => {
+
+                if (
+                    event.key === "Enter"
+                ) {
+
+                    loginStudent();
+
+                }
+
+            }
+        );
+
     }
 
-    const name =
-        getElement("registerName");
+    const profilePin =
+        document.getElementById(
+            "profilePin"
+        );
 
-    const grade =
-        getElement("registerGrade");
+    if (profilePin) {
 
+        profilePin.addEventListener(
+            "keydown",
+            (event) => {
 
-    if (name) {
+                if (
+                    event.key === "Enter"
+                ) {
 
-        name.value =
-            currentStudent.name || "";
+                    createStudentProfile();
 
-    }
+                }
 
-
-    if (grade) {
-
-        grade.value =
-            String(
-                currentStudent.grade || 1
-            );
+            }
+        );
 
     }
 
@@ -1210,102 +1070,188 @@ function populateProfileForm() {
 // DASHBOARD
 // =====================================================
 
-async function updateDashboard() {
+function updateDashboard() {
 
     if (!currentStudent) {
+
         return;
+
     }
 
+    const stats =
+        calculateStudentStats(
+            currentStudent
+        );
 
-    // Refresh from Firestore
+    setText(
+        "dashboardAvatar",
+        currentStudent.avatar ||
+        "🧑‍🚀"
+    );
+
+    setText(
+        "dashboardName",
+        currentStudent.name ||
+        "Student"
+    );
+
+    setText(
+        "dashboardGrade",
+        "Grade " +
+        currentStudent.grade
+    );
+
+    setText(
+        "testsCompleted",
+        stats.tests
+    );
+
+    setText(
+        "averageScore",
+        stats.average + "%"
+    );
+
+    setText(
+        "bestScore",
+        stats.best + "%"
+    );
+
+    setText(
+        "questionsAnswered",
+        stats.questions
+    );
+
+    renderRecentTests(
+        currentStudent
+    );
+
+}
+
+
+// =====================================================
+// LOAD DASHBOARD FROM FIRESTORE
+// =====================================================
+
+async function loadStudentDashboard() {
+
+    if (!auth.currentUser) {
+
+        return;
+
+    }
+
     try {
 
-        const snapshot =
-            await getDoc(
-                doc(
-                    db,
-                    "students",
-                    currentStudent.uid
-                )
-            );
+        await loadCurrentStudent(
+            auth.currentUser.uid
+        );
 
+        if (!currentStudent) {
 
-        if (snapshot.exists()) {
-
-            currentStudent = {
-
-                uid:
-                    currentStudent.uid,
-
-                ...snapshot.data()
-
-            };
+            return;
 
         }
+
+        updateHeader();
+
+        updateDashboard();
 
     }
     catch (error) {
 
         console.error(
-            "Dashboard refresh error:",
+            "Dashboard error:",
             error
         );
 
     }
 
-
-    const student =
-        currentStudent;
+}
 
 
-    setText(
-        "dashboardAvatar",
-        student.avatar || "🧑‍🚀"
-    );
+// =====================================================
+// CALCULATE STUDENT STATS
+// =====================================================
 
+function calculateStudentStats(student) {
 
-    setText(
-        "dashboardName",
-        student.name || "Student"
-    );
+    const history =
+        Array.isArray(
+            student.testsHistory
+        )
+            ? student.testsHistory
+            : [];
 
+    if (history.length > 0) {
 
-    setText(
-        "dashboardGrade",
-        "Grade " +
-        (student.grade || "")
-    );
+        const scores =
+            history.map(
+                (test) =>
+                    Number(
+                        test.percentage
+                    ) || 0
+            );
 
+        const total =
+            scores.reduce(
+                (sum, score) =>
+                    sum + score,
+                0
+            );
 
-    setText(
-        "profileName",
-        student.name || "Student"
-    );
+        const average =
+            Math.round(
+                total /
+                scores.length
+            );
 
+        const best =
+            Math.max(
+                ...scores
+            );
 
-    setText(
-        "profileGrade",
-        "Grade " +
-        (student.grade || "")
-    );
+        const questions =
+            history.reduce(
+                (sum, test) =>
+                    sum +
+                    (
+                        Number(
+                            test.totalQuestions
+                        ) || 0
+                    ),
+                0
+            );
 
+        return {
 
-    updateHeader();
+            tests:
+                history.length,
 
+            average:
+                average,
+
+            best:
+                best,
+
+            questions:
+                questions
+
+        };
+
+    }
 
     const stats =
         student.statistics || {};
 
-
-    const tests =
-        Number(stats.tests) || 0;
+    const questions =
+        Number(
+            stats.questions
+        ) || 0;
 
     const correct =
-        Number(stats.correct) || 0;
-
-    const questions =
-        Number(stats.questions) || 0;
-
+        Number(
+            stats.correct
+        ) || 0;
 
     const accuracy =
         questions > 0
@@ -1316,218 +1262,23 @@ async function updateDashboard() {
             )
             : 0;
 
+    return {
 
-    setText(
-        "testsCompleted",
-        tests
-    );
+        tests:
+            Number(
+                stats.tests
+            ) || 0,
 
-    setText(
-        "statTests",
-        tests
-    );
+        average:
+            accuracy,
 
+        best:
+            accuracy,
 
-    setText(
-        "questionsAnswered",
-        questions
-    );
+        questions:
+            questions
 
-
-    setText(
-        "statCorrect",
-        correct
-    );
-
-
-    setText(
-        "averageScore",
-        accuracy + "%"
-    );
-
-
-    setText(
-        "statAccuracy",
-        accuracy + "%"
-    );
-
-
-    setText(
-        "bestScore",
-        calculateBestScore(
-            student
-        ) + "%"
-    );
-
-
-    setText(
-        "overallProgressText",
-        accuracy + "%"
-    );
-
-
-    const progressBar =
-        getElement(
-            "overallProgressBar"
-        );
-
-
-    if (progressBar) {
-
-        progressBar.style.width =
-            accuracy + "%";
-
-    }
-
-
-    const topics =
-        student.topics || {};
-
-
-    updateTopicProgress(
-        "addition",
-        topics.addition
-    );
-
-    updateTopicProgress(
-        "subtraction",
-        topics.subtraction
-    );
-
-    updateTopicProgress(
-        "multiplication",
-        topics.multiplication
-    );
-
-    updateTopicProgress(
-        "division",
-        topics.division
-    );
-
-    updateTopicProgress(
-        "fractions",
-        topics.fractions
-    );
-
-    updateTopicProgress(
-        "decimals",
-        topics.decimals
-    );
-
-    updateTopicProgress(
-        "word",
-        topics.word
-    );
-
-    updateTopicProgress(
-        "time",
-        topics.time
-    );
-
-    updateTopicProgress(
-        "comparison",
-        topics.comparison
-    );
-
-
-    renderRecentTests(
-        student
-    );
-
-}
-
-
-// =====================================================
-// CALCULATE BEST SCORE
-// =====================================================
-
-function calculateBestScore(student) {
-
-    const tests =
-        student.testsHistory || [];
-
-
-    if (!tests.length) {
-        return 0;
-    }
-
-
-    return Math.max(
-        ...tests.map(
-            test =>
-                Number(
-                    test.percentage
-                ) || 0
-        )
-    );
-
-}
-
-
-// =====================================================
-// UPDATE TOPIC PROGRESS
-// =====================================================
-
-function updateTopicProgress(
-    topic,
-    data
-) {
-
-    if (!data) {
-        data = {};
-    }
-
-
-    const questions =
-        Number(
-            data.questions
-        ) || 0;
-
-
-    const correct =
-        Number(
-            data.correct
-        ) || 0;
-
-
-    const percentage =
-        questions > 0
-            ? Math.round(
-                correct /
-                questions *
-                100
-            )
-            : 0;
-
-
-    const bar =
-        getElement(
-            topic +
-            "Progress"
-        );
-
-
-    const label =
-        getElement(
-            topic +
-            "Percent"
-        );
-
-
-    if (bar) {
-
-        bar.style.width =
-            percentage + "%";
-
-    }
-
-
-    if (label) {
-
-        label.textContent =
-            percentage + "%";
-
-    }
+    };
 
 }
 
@@ -1539,21 +1290,24 @@ function updateTopicProgress(
 function renderRecentTests(student) {
 
     const container =
-        getElement(
+        document.getElementById(
             "recentTests"
         );
 
-
     if (!container) {
+
         return;
+
     }
 
-
     const tests =
-        student.testsHistory || [];
+        Array.isArray(
+            student.testsHistory
+        )
+            ? student.testsHistory
+            : [];
 
-
-    if (!tests.length) {
+    if (tests.length === 0) {
 
         container.innerHTML = `
 
@@ -1576,8 +1330,8 @@ function renderRecentTests(student) {
         `;
 
         return;
-    }
 
+    }
 
     const recent =
         tests
@@ -1585,18 +1339,10 @@ function renderRecentTests(student) {
             .reverse()
             .slice(0, 5);
 
-
     container.innerHTML =
         recent
-            .map(test => {
-
-                const score =
-                    Number(
-                        test.percentage
-                    ) || 0;
-
-
-                return `
+            .map(
+                (test) => `
 
                     <div class="recent-test">
 
@@ -1606,24 +1352,18 @@ function renderRecentTests(student) {
                                 ${getTopicEmoji(
                                     test.topic
                                 )}
-
                                 ${escapeHTML(
                                     test.topic ||
-                                    "Practice"
+                                    "Math Practice"
                                 )}
                             </strong>
 
                             <small>
-                                Grade
-                                ${escapeHTML(
+                                Grade ${escapeHTML(
                                     test.grade
                                 )}
                                 •
-                                ${escapeHTML(
-                                    test.correct
-                                )}/${escapeHTML(
-                                    test.totalQuestions
-                                )}
+                                ${test.correct}/${test.totalQuestions}
                                 correct
                                 •
                                 ${formatDate(
@@ -1637,18 +1377,21 @@ function renderRecentTests(student) {
                             class="test-score"
                             style="
                                 color:${getScoreColor(
-                                    score
+                                    Number(
+                                        test.percentage
+                                    ) || 0
                                 )}
                             "
                         >
-                            ${score}%
+                            ${Number(
+                                test.percentage
+                            ) || 0}%
                         </div>
 
                     </div>
 
-                `;
-
-            })
+                `
+            )
             .join("");
 
 }
@@ -1661,71 +1404,47 @@ function renderRecentTests(student) {
 function updateProfileScreen() {
 
     if (!currentStudent) {
+
         return;
+
     }
 
-
-    const student =
-        currentStudent;
-
+    const stats =
+        calculateStudentStats(
+            currentStudent
+        );
 
     setText(
         "profileViewAvatar",
-        student.avatar || "🧑‍🚀"
+        currentStudent.avatar ||
+        "🧑‍🚀"
     );
-
 
     setText(
         "profileViewName",
-        student.name || "Student"
+        currentStudent.name ||
+        "Student"
     );
-
 
     setText(
         "profileViewGrade",
         "Grade " +
-        (student.grade || "")
+        currentStudent.grade
     );
-
-
-    const stats =
-        student.statistics || {};
-
-
-    const questions =
-        Number(stats.questions) || 0;
-
-    const correct =
-        Number(stats.correct) || 0;
-
-
-    const accuracy =
-        questions > 0
-            ? Math.round(
-                correct /
-                questions *
-                100
-            )
-            : 0;
-
 
     setText(
         "profileTests",
-        Number(stats.tests) || 0
+        stats.tests
     );
-
 
     setText(
         "profileAverage",
-        accuracy + "%"
+        stats.average + "%"
     );
-
 
     setText(
         "profileBest",
-        calculateBestScore(
-            student
-        ) + "%"
+        stats.best + "%"
     );
 
 }
@@ -1738,68 +1457,51 @@ function updateProfileScreen() {
 function updateProgressScreen() {
 
     if (!currentStudent) {
+
         return;
+
     }
 
-
-    const student =
-        currentStudent;
-
-
     const stats =
-        student.statistics || {};
-
-
-    const questions =
-        Number(stats.questions) || 0;
-
-    const correct =
-        Number(stats.correct) || 0;
-
-
-    const accuracy =
-        questions > 0
-            ? Math.round(
-                correct /
-                questions *
-                100
-            )
-            : 0;
-
+        calculateStudentStats(
+            currentStudent
+        );
 
     setText(
         "progressAvatar",
-        student.avatar || "🧑‍🚀"
+        currentStudent.avatar ||
+        "🧑‍🚀"
     );
-
 
     setText(
         "progressOverall",
-        accuracy + "%"
+        stats.average + "%"
     );
 
-
-    const bar =
-        getElement(
+    const progressBar =
+        document.getElementById(
             "overallProgressBar"
         );
 
+    if (progressBar) {
 
-    if (bar) {
-
-        bar.style.width =
-            accuracy + "%";
+        progressBar.style.width =
+            Math.min(
+                100,
+                Math.max(
+                    0,
+                    stats.average
+                )
+            ) + "%";
 
     }
 
-
     renderTopicPerformance(
-        student
+        currentStudent
     );
 
-
     renderTestHistory(
-        student
+        currentStudent
     );
 
 }
@@ -1812,63 +1514,24 @@ function updateProgressScreen() {
 function renderTopicPerformance(student) {
 
     const container =
-        getElement(
+        document.getElementById(
             "topicPerformance"
         );
 
-
     if (!container) {
+
         return;
+
     }
 
-
-    const topics =
-        student.topics || {};
-
-
-    const topicNames = {
-
-        addition:
-            "Addition",
-
-        subtraction:
-            "Subtraction",
-
-        multiplication:
-            "Multiplication",
-
-        division:
-            "Division",
-
-        fractions:
-            "Fractions",
-
-        decimals:
-            "Decimals",
-
-        word:
-            "Word Problems",
-
-        time:
-            "Time",
-
-        comparison:
-            "Compare Numbers"
-
-    };
-
-
-    const available =
-        Object.keys(
-            topicNames
+    const tests =
+        Array.isArray(
+            student.testsHistory
         )
-        .filter(
-            topic =>
-                topics[topic]
-        );
+            ? student.testsHistory
+            : [];
 
-
-    if (!available.length) {
+    if (tests.length === 0) {
 
         container.innerHTML = `
 
@@ -1882,38 +1545,52 @@ function renderTopicPerformance(student) {
         `;
 
         return;
+
     }
 
+    const topicData = {};
 
-    container.innerHTML =
-        available
-            .map(topic => {
+    tests.forEach(
+        (test) => {
 
-                const data =
-                    topics[topic] || {};
+            const topic =
+                test.topic ||
+                "Mixed Practice";
 
+            if (!topicData[topic]) {
 
-                const total =
-                    Number(
-                        data.questions
-                    ) || 0;
+                topicData[topic] = {
 
+                    total: 0,
 
-                const correct =
-                    Number(
-                        data.correct
-                    ) || 0;
+                    score: 0
 
+                };
 
-                const percentage =
-                    total > 0
-                        ? Math.round(
-                            correct /
-                            total *
-                            100
-                        )
-                        : 0;
+            }
 
+            topicData[topic].total++;
+
+            topicData[topic].score +=
+                Number(
+                    test.percentage
+                ) || 0;
+
+        }
+    );
+
+    const rows =
+        Object.entries(
+            topicData
+        )
+        .map(
+            ([topic, data]) => {
+
+                const average =
+                    Math.round(
+                        data.score /
+                        data.total
+                    );
 
                 return `
 
@@ -1923,16 +1600,15 @@ function renderTopicPerformance(student) {
 
                             <span>
                                 ${getTopicEmoji(
-                                    topicNames[topic]
+                                    topic
                                 )}
-
                                 ${escapeHTML(
-                                    topicNames[topic]
+                                    topic
                                 )}
                             </span>
 
                             <span>
-                                ${percentage}%
+                                ${average}%
                             </span>
 
                         </div>
@@ -1942,7 +1618,7 @@ function renderTopicPerformance(student) {
                             <div
                                 class="topic-bar-fill"
                                 style="
-                                    width:${percentage}%
+                                    width:${average}%
                                 "
                             ></div>
 
@@ -1952,8 +1628,12 @@ function renderTopicPerformance(student) {
 
                 `;
 
-            })
-            .join("");
+            }
+        )
+        .join("");
+
+    container.innerHTML =
+        rows;
 
 }
 
@@ -1965,21 +1645,24 @@ function renderTopicPerformance(student) {
 function renderTestHistory(student) {
 
     const container =
-        getElement(
+        document.getElementById(
             "testHistory"
         );
 
-
     if (!container) {
+
         return;
+
     }
 
-
     const tests =
-        student.testsHistory || [];
+        Array.isArray(
+            student.testsHistory
+        )
+            ? student.testsHistory
+            : [];
 
-
-    if (!tests.length) {
+    if (tests.length === 0) {
 
         container.innerHTML = `
 
@@ -1990,82 +1673,78 @@ function renderTestHistory(student) {
         `;
 
         return;
-    }
 
+    }
 
     container.innerHTML =
         tests
             .slice()
             .reverse()
-            .map(test => {
+            .map(
+                (test) => {
 
-                const score =
-                    Number(
-                        test.percentage
-                    ) || 0;
+                    const score =
+                        Number(
+                            test.percentage
+                        ) || 0;
 
+                    return `
 
-                return `
+                        <div class="history-item">
 
-                    <div class="history-item">
+                            <div class="history-main">
 
-                        <div class="history-main">
+                                <strong>
 
-                            <strong>
+                                    ${getTopicEmoji(
+                                        test.topic
+                                    )}
 
-                                ${getTopicEmoji(
-                                    test.topic
-                                )}
+                                    ${escapeHTML(
+                                        test.topic ||
+                                        "Math Practice"
+                                    )}
 
-                                ${escapeHTML(
-                                    test.topic
-                                )}
+                                </strong>
 
-                            </strong>
+                                <small>
 
-                            <small>
+                                    Grade ${escapeHTML(
+                                        test.grade
+                                    )}
 
-                                Grade
-                                ${escapeHTML(
-                                    test.grade
-                                )}
+                                    •
 
-                                •
+                                    ${test.correct}/${test.totalQuestions}
+                                    correct
 
-                                ${escapeHTML(
-                                    test.correct
-                                )}/${escapeHTML(
-                                    test.totalQuestions
-                                )}
+                                    •
 
-                                correct
+                                    ${formatDate(
+                                        test.date
+                                    )}
 
-                                •
+                                </small>
 
-                                ${formatDate(
-                                    test.date
-                                )}
+                            </div>
 
-                            </small>
+                            <div
+                                class="history-score"
+                                style="
+                                    color:${getScoreColor(
+                                        score
+                                    )}
+                                "
+                            >
+                                ${score}%
+                            </div>
 
                         </div>
 
-                        <div
-                            class="history-score"
-                            style="
-                                color:${getScoreColor(
-                                    score
-                                )}
-                            "
-                        >
-                            ${score}%
-                        </div>
+                    `;
 
-                    </div>
-
-                `;
-
-            })
+                }
+            )
             .join("");
 
 }
@@ -2078,15 +1757,15 @@ function renderTestHistory(student) {
 function setGradeFromProfile() {
 
     if (!currentStudent) {
+
         return;
+
     }
 
-
     const gradeSelect =
-        getElement(
+        document.getElementById(
             "gradeSelect"
         );
-
 
     if (gradeSelect) {
 
@@ -2108,86 +1787,63 @@ function startTest() {
 
     if (!currentStudent) {
 
-        showLoginScreen();
+        showLogin();
 
         return;
+
     }
 
-
-    const gradeSelect =
-        getElement(
+    const gradeElement =
+        document.getElementById(
             "gradeSelect"
         );
 
-    const questionCountSelect =
-        getElement(
+    const countElement =
+        document.getElementById(
             "questionCount"
         );
 
-    const timeLimitSelect =
-        getElement(
+    const timeElement =
+        document.getElementById(
             "timeLimit"
         );
 
-    const answerTypeSelect =
-        getElement(
+    const answerTypeElement =
+        document.getElementById(
             "answerType"
         );
 
-
     if (
-        !gradeSelect ||
-        !questionCountSelect ||
-        !timeLimitSelect
+        !gradeElement ||
+        !countElement ||
+        !timeElement ||
+        !answerTypeElement
     ) {
 
-        console.error(
-            "Practice setup elements are missing."
-        );
-
         return;
-    }
 
+    }
 
     const grade =
         parseInt(
-            gradeSelect.value,
+            gradeElement.value,
             10
         );
-
 
     const count =
         parseInt(
-            questionCountSelect.value,
+            countElement.value,
             10
         );
-
 
     const minutes =
         parseInt(
-            timeLimitSelect.value,
+            timeElement.value,
             10
         );
 
-
     const answerType =
-        answerTypeSelect
-            ? answerTypeSelect.value
-            : "mixed";
-
-
-    if (
-        !grade ||
-        !count
-    ) {
-
-        alert(
-            "Please choose a grade and question count."
-        );
-
-        return;
-    }
-
+        answerTypeElement.value;
 
     questions = [];
 
@@ -2197,7 +1853,6 @@ function startTest() {
 
     currentTestStart =
         new Date();
-
 
     for (
         let i = 0;
@@ -2215,17 +1870,22 @@ function startTest() {
 
     }
 
-
     hideAllScreens();
 
-    showElement(
-        "testScreen"
-    );
+    const testScreen =
+        document.getElementById(
+            "testScreen"
+        );
 
+    if (testScreen) {
 
-    if (
-        minutes > 0
-    ) {
+        testScreen.classList.remove(
+            "hidden"
+        );
+
+    }
+
+    if (minutes > 0) {
 
         remainingSeconds =
             minutes * 60;
@@ -2239,13 +1899,25 @@ function startTest() {
             testTimer
         );
 
-        setText(
-            "timer",
-            "⏱ No Timer"
-        );
+        remainingSeconds = 0;
+
+        const timer =
+            document.getElementById(
+                "timer"
+            );
+
+        if (timer) {
+
+            timer.textContent =
+                "⏱ No Timer";
+
+            timer.classList.remove(
+                "warning"
+            );
+
+        }
 
     }
-
 
     showQuestion();
 
@@ -2262,9 +1934,7 @@ function startTimer() {
         testTimer
     );
 
-
     updateTimerDisplay();
-
 
     testTimer =
         setInterval(
@@ -2274,7 +1944,6 @@ function startTimer() {
 
                 updateTimerDisplay();
 
-
                 if (
                     remainingSeconds <= 0
                 ) {
@@ -2283,11 +1952,9 @@ function startTimer() {
                         testTimer
                     );
 
-
                     alert(
                         "⏰ Time is up!"
                     );
-
 
                     finishTest();
 
@@ -2307,15 +1974,15 @@ function startTimer() {
 function updateTimerDisplay() {
 
     const timer =
-        getElement(
+        document.getElementById(
             "timer"
         );
 
-
     if (!timer) {
-        return;
-    }
 
+        return;
+
+    }
 
     if (
         remainingSeconds <= 0
@@ -2325,18 +1992,16 @@ function updateTimerDisplay() {
             "⏰ 0:00";
 
         return;
-    }
 
+    }
 
     const minutes =
         Math.floor(
             remainingSeconds / 60
         );
 
-
     const seconds =
         remainingSeconds % 60;
-
 
     timer.textContent =
         "⏱ " +
@@ -2347,7 +2012,6 @@ function updateTimerDisplay() {
                 2,
                 "0"
             );
-
 
     if (
         remainingSeconds <= 60
@@ -2382,7 +2046,6 @@ function generateQuestion(
     let actualTopic =
         topic;
 
-
     if (
         topic === "mixed"
     ) {
@@ -2391,7 +2054,6 @@ function generateQuestion(
             getAvailableTopics(
                 grade
             );
-
 
         actualTopic =
             topics[
@@ -2403,9 +2065,7 @@ function generateQuestion(
 
     }
 
-
     let question;
-
 
     switch (actualTopic) {
 
@@ -2418,7 +2078,6 @@ function generateQuestion(
 
             break;
 
-
         case "subtraction":
 
             question =
@@ -2427,7 +2086,6 @@ function generateQuestion(
                 );
 
             break;
-
 
         case "multiplication":
 
@@ -2438,7 +2096,6 @@ function generateQuestion(
 
             break;
 
-
         case "division":
 
             question =
@@ -2447,7 +2104,6 @@ function generateQuestion(
                 );
 
             break;
-
 
         case "fractions":
 
@@ -2458,7 +2114,6 @@ function generateQuestion(
 
             break;
 
-
         case "decimals":
 
             question =
@@ -2467,7 +2122,6 @@ function generateQuestion(
                 );
 
             break;
-
 
         case "word":
 
@@ -2478,7 +2132,6 @@ function generateQuestion(
 
             break;
 
-
         case "time":
 
             question =
@@ -2487,7 +2140,6 @@ function generateQuestion(
                 );
 
             break;
-
 
         case "comparison":
 
@@ -2498,7 +2150,6 @@ function generateQuestion(
 
             break;
 
-
         default:
 
             question =
@@ -2506,8 +2157,13 @@ function generateQuestion(
                     grade
                 );
 
+            actualTopic =
+                "addition";
+
     }
 
+    question.topicKey =
+        actualTopic;
 
     if (
         answerType === "choice"
@@ -2534,7 +2190,6 @@ function generateQuestion(
 
     }
 
-
     return question;
 
 }
@@ -2551,28 +2206,31 @@ function showQuestion() {
             currentQuestion
         ];
 
-
     if (!q) {
+
         return;
+
     }
 
-
-    setText(
-        "progressText",
-        "Question " +
-        (
-            currentQuestion + 1
-        ) +
-        " of " +
-        questions.length
-    );
-
+    const progressText =
+        document.getElementById(
+            "progressText"
+        );
 
     const progressBar =
-        getElement(
+        document.getElementById(
             "progressBar"
         );
 
+    if (progressText) {
+
+        progressText.textContent =
+            "Question " +
+            (currentQuestion + 1) +
+            " of " +
+            questions.length;
+
+    }
 
     if (progressBar) {
 
@@ -2583,35 +2241,28 @@ function showQuestion() {
                 ) /
                 questions.length *
                 100
-            ) +
-            "%";
+            ) + "%";
 
     }
 
-
     const container =
-        getElement(
+        document.getElementById(
             "questionContainer"
         );
 
-
     if (!container) {
-        return;
-    }
 
+        return;
+
+    }
 
     let html = `
 
         <div class="question-number">
-
-            ${escapeHTML(
-                q.type
-            )}
-
+            ${escapeHTML(q.type)}
         </div>
 
     `;
-
 
     if (
         q.type === "Time"
@@ -2625,17 +2276,13 @@ function showQuestion() {
 
     }
 
-
     html += `
 
         <div class="question">
-
             ${q.question}
-
         </div>
 
     `;
-
 
     if (
         q.answerMode === "choice"
@@ -2644,9 +2291,7 @@ function showQuestion() {
         html += `
 
             <div class="answer-mode-label">
-
                 Choose the correct answer
-
             </div>
 
         `;
@@ -2657,15 +2302,12 @@ function showQuestion() {
         html += `
 
             <div class="answer-mode-label">
-
                 Type your answer below
-
             </div>
 
         `;
 
     }
-
 
     if (
         q.answerMode === "choice" &&
@@ -2675,40 +2317,36 @@ function showQuestion() {
         html +=
             `<div class="answer-grid">`;
 
+        q.options.forEach(
+            (option) => {
 
-        q.options.forEach(option => {
+                const selected =
+                    String(
+                        answers[
+                            currentQuestion
+                        ]
+                    ) ===
+                    String(option)
+                        ? "selected"
+                        : "";
 
-            const selected =
-                String(
-                    answers[
-                        currentQuestion
-                    ]
-                ) ===
-                String(option)
-                    ? "selected"
-                    : "";
+                html += `
 
+                    <button
+                        type="button"
+                        class="answer-btn ${selected}"
+                        onclick="selectAnswer(
+                            this,
+                            '${escapeString(option)}'
+                        )"
+                    >
+                        ${escapeHTML(option)}
+                    </button>
 
-            html += `
+                `;
 
-                <button
-                    type="button"
-                    class="answer-btn ${selected}"
-                    data-answer="${escapeHTML(
-                        option
-                    )}"
-                >
-
-                    ${escapeHTML(
-                        option
-                    )}
-
-                </button>
-
-            `;
-
-        });
-
+            }
+        );
 
         html +=
             `</div>`;
@@ -2721,7 +2359,6 @@ function showQuestion() {
                 currentQuestion
             ] || "";
 
-
         html += `
 
             <div class="text-answer">
@@ -2729,9 +2366,7 @@ function showQuestion() {
                 <input
                     type="text"
                     id="textAnswer"
-                    value="${escapeHTML(
-                        existing
-                    )}"
+                    value="${escapeHTML(existing)}"
                     placeholder="Type your answer"
                     autocomplete="off"
                 >
@@ -2742,48 +2377,17 @@ function showQuestion() {
 
     }
 
-
     container.innerHTML =
         html;
 
-
-    // -------------------------------------------------
-    // ANSWER BUTTONS
-    // -------------------------------------------------
-
-    container
-        .querySelectorAll(".answer-btn")
-        .forEach(button => {
-
-            button.addEventListener(
-                "click",
-                () => {
-
-                    selectAnswer(
-                        button,
-                        button.dataset.answer
-                    );
-
-                }
-            );
-
-        });
-
-
-    // -------------------------------------------------
-    // TEXT ANSWER
-    // -------------------------------------------------
-
     const input =
-        getElement(
+        document.getElementById(
             "textAnswer"
         );
-
 
     if (input) {
 
         input.focus();
-
 
         input.addEventListener(
             "input",
@@ -2797,16 +2401,13 @@ function showQuestion() {
             }
         );
 
-
         input.addEventListener(
             "keydown",
-            event => {
+            (event) => {
 
                 if (
                     event.key === "Enter"
                 ) {
-
-                    event.preventDefault();
 
                     nextQuestion();
 
@@ -2821,7 +2422,7 @@ function showQuestion() {
 
 
 // =====================================================
-// SELECT ANSWER
+// SELECT MULTIPLE CHOICE ANSWER
 // =====================================================
 
 function selectAnswer(
@@ -2833,19 +2434,23 @@ function selectAnswer(
         .querySelectorAll(
             ".answer-btn"
         )
-        .forEach(btn => {
+        .forEach(
+            (btn) => {
 
-            btn.classList.remove(
-                "selected"
-            );
+                btn.classList.remove(
+                    "selected"
+                );
 
-        });
+            }
+        );
 
+    if (button) {
 
-    button.classList.add(
-        "selected"
-    );
+        button.classList.add(
+            "selected"
+        );
 
+    }
 
     answers[
         currentQuestion
@@ -2862,10 +2467,9 @@ function selectAnswer(
 function saveTextAnswer() {
 
     const input =
-        getElement(
+        document.getElementById(
             "textAnswer"
         );
-
 
     if (input) {
 
@@ -2886,7 +2490,6 @@ function saveTextAnswer() {
 function nextQuestion() {
 
     saveTextAnswer();
-
 
     if (
         currentQuestion <
@@ -2915,7 +2518,6 @@ function previousQuestion() {
 
     saveTextAnswer();
 
-
     if (
         currentQuestion > 0
     ) {
@@ -2935,213 +2537,181 @@ function previousQuestion() {
 
 async function finishTest() {
 
-    if (isFinishingTest) {
+    saveTextAnswer();
+
+    clearInterval(
+        testTimer
+    );
+
+    if (
+        !questions.length
+    ) {
+
         return;
+
     }
 
+    let correct = 0;
 
-    if (!questions.length) {
-        return;
-    }
+    questions.forEach(
+        (q, index) => {
 
+            if (
+                isCorrectAnswer(
+                    answers[index],
+                    q.answer
+                )
+            ) {
 
-    isFinishingTest = true;
-
-
-    try {
-
-        saveTextAnswer();
-
-        clearInterval(
-            testTimer
-        );
-
-
-        let correct = 0;
-
-
-        questions.forEach(
-            (q, index) => {
-
-                if (
-                    isCorrectAnswer(
-                        answers[index],
-                        q.answer
-                    )
-                ) {
-
-                    correct++;
-
-                }
+                correct++;
 
             }
+
+        }
+    );
+
+    const percentage =
+        Math.round(
+            correct /
+            questions.length *
+            100
         );
 
+    const gradeElement =
+        document.getElementById(
+            "gradeSelect"
+        );
 
-        const percentage =
-            Math.round(
-                correct /
-                questions.length *
-                100
-            );
+    const grade =
+        gradeElement
+            ? parseInt(
+                gradeElement.value,
+                10
+            )
+            : currentStudent.grade;
 
+    const topicName =
+        getTestTopicName();
 
-        if (!currentStudent) {
+    const testRecord = {
 
-            showLoginScreen();
+        id:
+            Date.now().toString(),
 
-            return;
-        }
+        date:
+            new Date().toISOString(),
 
+        grade:
+            grade,
 
-        const gradeSelect =
-            getElement(
-                "gradeSelect"
-            );
+        topic:
+            topicName,
 
+        topicKey:
+            selectedTopic,
 
-        const grade =
-            gradeSelect
-                ? parseInt(
-                    gradeSelect.value,
-                    10
-                )
-                : currentStudent.grade;
+        correct:
+            correct,
 
+        totalQuestions:
+            questions.length,
 
-        const topicName =
-            getTestTopicName();
+        percentage:
+            percentage
 
+    };
 
-        const testRecord = {
-
-            id:
-                Date.now().toString(),
-
-            date:
-                new Date().toISOString(),
-
-            grade:
-                grade,
-
-            topic:
-                topicName,
-
-            correct:
-                correct,
-
-            totalQuestions:
-                questions.length,
-
-            percentage:
-                percentage
-
-        };
-
+    try {
 
         await saveTestResult(
             testRecord
         );
 
-
-        // -------------------------------------------------
-        // SHOW RESULT
-        // -------------------------------------------------
-
-        hideAllScreens();
-
-        showElement(
-            "resultScreen"
-        );
-
-
-        setText(
-            "scorePercent",
-            percentage + "%"
-        );
-
-
-        let message;
-
-
-        if (
-            percentage >= 90
-        ) {
-
-            message =
-                "🏆 Amazing! You are a Math Superstar!";
-
-        }
-        else if (
-            percentage >= 75
-        ) {
-
-            message =
-                "🌟 Great Job! Keep practicing!";
-
-        }
-        else if (
-            percentage >= 60
-        ) {
-
-            message =
-                "👍 Good Work! You are improving!";
-
-        }
-        else {
-
-            message =
-                "💪 Keep practicing. You can do it!";
-
-        }
-
-
-        setText(
-            "resultMessage",
-            message
-        );
-
-
-        setText(
-            "resultDetails",
-            "You got " +
-            correct +
-            " out of " +
-            questions.length +
-            " questions correct."
-        );
-
-
-        setText(
-            "resultBadge",
-            getAchievement(
-                percentage
-            )
-        );
-
-
-        createReview();
-
-
     }
     catch (error) {
 
         console.error(
-            "Finish test error:",
+            "Unable to save test:",
             error
         );
 
+    }
 
-        alert(
-            "There was a problem saving your test. Please try again."
+    hideAllScreens();
+
+    const resultScreen =
+        document.getElementById(
+            "resultScreen"
+        );
+
+    if (resultScreen) {
+
+        resultScreen.classList.remove(
+            "hidden"
         );
 
     }
-    finally {
 
-        isFinishingTest = false;
+    setText(
+        "scorePercent",
+        percentage + "%"
+    );
+
+    let message;
+
+    if (
+        percentage >= 90
+    ) {
+
+        message =
+            "🏆 Amazing! You are a Math Superstar!";
 
     }
+    else if (
+        percentage >= 75
+    ) {
+
+        message =
+            "🌟 Great Job! Keep practicing!";
+
+    }
+    else if (
+        percentage >= 60
+    ) {
+
+        message =
+            "👍 Good Work! You are improving!";
+
+    }
+    else {
+
+        message =
+            "💪 Keep practicing. You can do it!";
+
+    }
+
+    setText(
+        "resultMessage",
+        message
+    );
+
+    setText(
+        "resultDetails",
+        "You got " +
+        correct +
+        " out of " +
+        questions.length +
+        " questions correct."
+    );
+
+    setText(
+        "resultBadge",
+        getAchievement(
+            percentage
+        )
+    );
+
+    createReview();
 
 }
 
@@ -3154,24 +2724,28 @@ async function saveTestResult(
     testRecord
 ) {
 
-    if (!currentStudent) {
-        return;
-    }
+    if (
+        !auth.currentUser ||
+        !currentStudent
+    ) {
 
+        throw new Error(
+            "No authenticated student."
+        );
+
+    }
 
     const studentRef =
         doc(
             db,
             "students",
-            currentStudent.uid
+            auth.currentUser.uid
         );
-
 
     const snapshot =
         await getDoc(
             studentRef
         );
-
 
     if (!snapshot.exists()) {
 
@@ -3181,68 +2755,46 @@ async function saveTestResult(
 
     }
 
-
     const student =
         snapshot.data();
-
-
-    // -------------------------------------------------
-    // TEST HISTORY
-    // -------------------------------------------------
-
-    const testsHistory =
-        Array.isArray(
-            student.testsHistory
-        )
-            ? student.testsHistory
-                .slice()
-            : [];
-
-
-    testsHistory.push(
-        testRecord
-    );
-
-
-    // -------------------------------------------------
-    // STATISTICS
-    // -------------------------------------------------
 
     const oldStats =
         student.statistics || {};
 
+    const oldTopics =
+        student.topics || {};
 
-    const oldTests =
-        Number(
-            oldStats.tests
-        ) || 0;
-
-
-    const oldCorrect =
-        Number(
-            oldStats.correct
-        ) || 0;
-
+    const oldHistory =
+        Array.isArray(
+            student.testsHistory
+        )
+            ? student.testsHistory
+            : [];
 
     const oldQuestions =
         Number(
             oldStats.questions
         ) || 0;
 
-
-    const newTests =
-        oldTests + 1;
-
-
-    const newCorrect =
-        oldCorrect +
-        testRecord.correct;
-
+    const oldCorrect =
+        Number(
+            oldStats.correct
+        ) || 0;
 
     const newQuestions =
         oldQuestions +
         testRecord.totalQuestions;
 
+    const newCorrect =
+        oldCorrect +
+        testRecord.correct;
+
+    const newTests =
+        (
+            Number(
+                oldStats.tests
+            ) || 0
+        ) + 1;
 
     const newAccuracy =
         newQuestions > 0
@@ -3253,70 +2805,75 @@ async function saveTestResult(
             )
             : 0;
 
-
-    // -------------------------------------------------
-    // TOPIC
-    // -------------------------------------------------
-
     const topicKey =
-        getTopicKey(
-            selectedTopic
-        );
-
-
-    const topics =
-        student.topics || {};
-
+        testRecord.topicKey;
 
     const oldTopic =
-        topics[topicKey] || {};
+        oldTopics[
+            topicKey
+        ] || {
 
+            correct: 0,
+
+            questions: 0,
+
+            accuracy: 0
+
+        };
 
     const topicCorrect =
-        Number(
-            oldTopic.correct
-        ) || 0;
-
-
-    const topicQuestions =
-        Number(
-            oldTopic.questions
-        ) || 0;
-
-
-    const updatedTopicQuestions =
-        topicQuestions +
-        testRecord.totalQuestions;
-
-
-    const updatedTopicCorrect =
-        topicCorrect +
+        (
+            Number(
+                oldTopic.correct
+            ) || 0
+        ) +
         testRecord.correct;
 
+    const topicQuestions =
+        (
+            Number(
+                oldTopic.questions
+            ) || 0
+        ) +
+        testRecord.totalQuestions;
 
-    topics[topicKey] = {
+    const topicAccuracy =
+        topicQuestions > 0
+            ? Math.round(
+                topicCorrect /
+                topicQuestions *
+                100
+            )
+            : 0;
 
-        correct:
-            updatedTopicCorrect,
+    const updatedTopics = {
 
-        questions:
-            updatedTopicQuestions,
+        ...oldTopics,
 
-        accuracy:
-            updatedTopicQuestions > 0
-                ? Math.round(
-                    updatedTopicCorrect /
-                    updatedTopicQuestions *
-                    100
-                )
-                : 0
+        [topicKey]: {
+
+            correct:
+                topicCorrect,
+
+            questions:
+                topicQuestions,
+
+            accuracy:
+                topicAccuracy
+
+        }
 
     };
 
+    const updatedHistory =
+        [
+            ...oldHistory,
+            testRecord
+        ];
 
-    // -------------------------------------------------
-    // UPDATE FIRESTORE
-    // -------------------------------------------------
+    // Keep history manageable.
+    const limitedHistory =
+        updatedHistory.slice(-100);
 
     await updateDoc(
         studentRef,
@@ -3339,10 +2896,10 @@ async function saveTestResult(
             },
 
             topics:
-                topics,
+                updatedTopics,
 
             testsHistory:
-                testsHistory,
+                limitedHistory,
 
             updatedAt:
                 serverTimestamp()
@@ -3350,15 +2907,10 @@ async function saveTestResult(
         }
     );
 
-
-    // -------------------------------------------------
-    // UPDATE LOCAL CURRENT STUDENT
-    // -------------------------------------------------
-
     currentStudent = {
 
         uid:
-            currentStudent.uid,
+            auth.currentUser.uid,
 
         ...student,
 
@@ -3379,32 +2931,12 @@ async function saveTestResult(
         },
 
         topics:
-            topics,
+            updatedTopics,
 
         testsHistory:
-            testsHistory
+            limitedHistory
 
     };
-
-}
-
-
-// =====================================================
-// TOPIC KEY
-// =====================================================
-
-function getTopicKey(topic) {
-
-    if (
-        topic === "mixed"
-    ) {
-
-        return "mixed";
-
-    }
-
-
-    return topic || "addition";
 
 }
 
@@ -3422,7 +2954,6 @@ function getTestTopicName() {
         return "Mixed Practice";
 
     }
-
 
     const names = {
 
@@ -3455,7 +2986,6 @@ function getTestTopicName() {
 
     };
 
-
     return (
         names[
             selectedTopic
@@ -3487,14 +3017,12 @@ function isCorrectAnswer(
 
     }
 
-
     const user =
         String(
             userAnswer
         )
             .trim()
             .toLowerCase();
-
 
     const correct =
         String(
@@ -3503,18 +3031,19 @@ function isCorrectAnswer(
             .trim()
             .toLowerCase();
 
-
     const userNumber =
         Number(user);
-
 
     const correctNumber =
         Number(correct);
 
-
     if (
-        !Number.isNaN(userNumber) &&
-        !Number.isNaN(correctNumber) &&
+        !Number.isNaN(
+            userNumber
+        ) &&
+        !Number.isNaN(
+            correctNumber
+        ) &&
         user !== ""
     ) {
 
@@ -3527,32 +3056,32 @@ function isCorrectAnswer(
 
     }
 
-
-    return user === correct;
+    return (
+        user === correct
+    );
 
 }
 
 
 // =====================================================
-// REVIEW
+// CREATE REVIEW
 // =====================================================
 
 function createReview() {
 
     const container =
-        getElement(
+        document.getElementById(
             "reviewContainer"
         );
 
-
     if (!container) {
-        return;
-    }
 
+        return;
+
+    }
 
     container.innerHTML =
         "";
-
 
     questions.forEach(
         (q, index) => {
@@ -3561,19 +3090,16 @@ function createReview() {
                 answers[index] ||
                 "No Answer";
 
-
             const correct =
                 isCorrectAnswer(
                     userAnswer,
                     q.answer
                 );
 
-
             const div =
                 document.createElement(
                     "div"
                 );
-
 
             div.className =
                 "review-item " +
@@ -3582,7 +3108,6 @@ function createReview() {
                         ? "correct"
                         : "incorrect"
                 );
-
 
             div.innerHTML = `
 
@@ -3635,7 +3160,6 @@ function createReview() {
 
             `;
 
-
             container.appendChild(
                 div
             );
@@ -3661,15 +3185,18 @@ function getAvailableTopics(
         return [
 
             "addition",
+
             "subtraction",
+
             "time",
+
             "comparison",
+
             "word"
 
         ];
 
     }
-
 
     if (
         grade === 2
@@ -3678,17 +3205,22 @@ function getAvailableTopics(
         return [
 
             "addition",
+
             "subtraction",
+
             "multiplication",
+
             "division",
+
             "time",
+
             "comparison",
+
             "word"
 
         ];
 
     }
-
 
     if (
         grade === 3
@@ -3697,29 +3229,43 @@ function getAvailableTopics(
         return [
 
             "addition",
+
             "subtraction",
+
             "multiplication",
+
             "division",
+
             "fractions",
+
             "time",
+
             "word",
+
             "comparison"
 
         ];
 
     }
 
-
     return [
 
         "addition",
+
         "subtraction",
+
         "multiplication",
+
         "division",
+
         "fractions",
+
         "decimals",
+
         "time",
+
         "word",
+
         "comparison"
 
     ];
@@ -3737,25 +3283,33 @@ function additionQuestion(
 
     let max;
 
-
-    if (grade === 1)
+    if (
+        grade === 1
+    )
         max = 20;
 
-    else if (grade === 2)
+    else if (
+        grade === 2
+    )
         max = 100;
 
-    else if (grade === 3)
+    else if (
+        grade === 3
+    )
         max = 1000;
 
-    else if (grade === 4)
+    else if (
+        grade === 4
+    )
         max = 10000;
 
-    else if (grade === 5)
+    else if (
+        grade === 5
+    )
         max = 100000;
 
     else
         max = 1000000;
-
 
     const a =
         randomInt(
@@ -3763,17 +3317,14 @@ function additionQuestion(
             max
         );
 
-
     const b =
         randomInt(
             1,
             max
         );
 
-
     const answer =
         a + b;
-
 
     return {
 
@@ -3806,25 +3357,33 @@ function subtractionQuestion(
 
     let max;
 
-
-    if (grade === 1)
+    if (
+        grade === 1
+    )
         max = 20;
 
-    else if (grade === 2)
+    else if (
+        grade === 2
+    )
         max = 100;
 
-    else if (grade === 3)
+    else if (
+        grade === 3
+    )
         max = 1000;
 
-    else if (grade === 4)
+    else if (
+        grade === 4
+    )
         max = 10000;
 
-    else if (grade === 5)
+    else if (
+        grade === 5
+    )
         max = 100000;
 
     else
         max = 1000000;
-
 
     const a =
         randomInt(
@@ -3832,17 +3391,14 @@ function subtractionQuestion(
             max
         );
 
-
     const b =
         randomInt(
             1,
             a
         );
 
-
     const answer =
         a - b;
-
 
     return {
 
@@ -3874,34 +3430,44 @@ function multiplicationQuestion(
 ) {
 
     let maxA;
+
     let maxB;
 
-
-    if (grade === 1) {
+    if (
+        grade === 1
+    ) {
 
         maxA = 5;
         maxB = 5;
 
     }
-    else if (grade === 2) {
+    else if (
+        grade === 2
+    ) {
 
         maxA = 10;
         maxB = 10;
 
     }
-    else if (grade === 3) {
+    else if (
+        grade === 3
+    ) {
 
         maxA = 12;
         maxB = 12;
 
     }
-    else if (grade === 4) {
+    else if (
+        grade === 4
+    ) {
 
         maxA = 20;
         maxB = 20;
 
     }
-    else if (grade === 5) {
+    else if (
+        grade === 5
+    ) {
 
         maxA = 50;
         maxB = 20;
@@ -3914,13 +3480,11 @@ function multiplicationQuestion(
 
     }
 
-
     const a =
         randomInt(
             1,
             maxA
         );
-
 
     const b =
         randomInt(
@@ -3928,10 +3492,8 @@ function multiplicationQuestion(
             maxB
         );
 
-
     const answer =
         a * b;
-
 
     return {
 
@@ -3964,7 +3526,6 @@ function divisionQuestion(
 
     let divisorMax;
 
-
     if (
         grade <= 2
     ) {
@@ -3992,13 +3553,11 @@ function divisionQuestion(
 
     }
 
-
     const divisor =
         randomInt(
             1,
             divisorMax
         );
-
 
     const answer =
         randomInt(
@@ -4006,10 +3565,9 @@ function divisionQuestion(
             divisorMax
         );
 
-
     const dividend =
-        divisor * answer;
-
+        divisor *
+        answer;
 
     return {
 
@@ -4048,13 +3606,11 @@ function fractionQuestion(
                 : 8
         );
 
-
     const numerator =
         randomInt(
             1,
             denominator - 1
         );
-
 
     if (
         grade <= 4
@@ -4088,20 +3644,17 @@ function fractionQuestion(
 
     }
 
-
     const n2 =
         randomInt(
             1,
             9
         );
 
-
     const d2 =
         randomInt(
             2,
             10
         );
-
 
     const value =
         (
@@ -4113,12 +3666,10 @@ function fractionQuestion(
             d2
         );
 
-
     const answer =
         Math.round(
             value * 100
         ) / 100;
-
 
     return {
 
@@ -4158,7 +3709,6 @@ function decimalQuestion(
                 : 999
         ) / 10;
 
-
     const b =
         randomInt(
             1,
@@ -4167,12 +3717,12 @@ function decimalQuestion(
                 : 999
         ) / 10;
 
-
     const answer =
         Math.round(
-            (a + b) * 100
+            (
+                a + b
+            ) * 100
         ) / 100;
-
 
     return {
 
@@ -4206,15 +3756,20 @@ function wordQuestion(
     const names = [
 
         "Emma",
+
         "Liam",
+
         "Noah",
+
         "Mia",
+
         "Ava",
+
         "Lucas",
+
         "Sophia"
 
     ];
-
 
     const name =
         names[
@@ -4224,19 +3779,19 @@ function wordQuestion(
             )
         ];
 
-
     const operation =
         randomInt(
             1,
             4
         );
 
-
     let a;
-    let b;
-    let answer;
-    let question;
 
+    let b;
+
+    let answer;
+
+    let question;
 
     if (
         operation === 1
@@ -4250,7 +3805,6 @@ function wordQuestion(
                     : 500
             );
 
-
         b =
             randomInt(
                 1,
@@ -4259,10 +3813,8 @@ function wordQuestion(
                     : 300
             );
 
-
         answer =
             a + b;
-
 
         question =
             `${name} has ${a} apples. ` +
@@ -4282,17 +3834,14 @@ function wordQuestion(
                     : 500
             );
 
-
         b =
             randomInt(
                 1,
                 a
             );
 
-
         answer =
             a - b;
-
 
         question =
             `${name} has ${a} stickers. ` +
@@ -4312,7 +3861,6 @@ function wordQuestion(
                     : 20
             );
 
-
         b =
             randomInt(
                 2,
@@ -4321,10 +3869,8 @@ function wordQuestion(
                     : 20
             );
 
-
         answer =
             a * b;
-
 
         question =
             `There are ${a} boxes with ${b} toys ` +
@@ -4342,7 +3888,6 @@ function wordQuestion(
                     : 20
             );
 
-
         answer =
             randomInt(
                 2,
@@ -4351,10 +3896,8 @@ function wordQuestion(
                     : 30
             );
 
-
         a =
             b * answer;
-
 
         question =
             `${a} candies are shared equally among ` +
@@ -4362,7 +3905,6 @@ function wordQuestion(
             `each child get?`;
 
     }
-
 
     return {
 
@@ -4386,7 +3928,7 @@ function wordQuestion(
 
 
 // =====================================================
-// TIME QUESTION
+// TIME
 // =====================================================
 
 function timeQuestion(
@@ -4399,21 +3941,23 @@ function timeQuestion(
             12
         );
 
-
     let minute;
-
 
     if (
         grade <= 2
     ) {
 
         const values = [
-            0,
-            15,
-            30,
-            45
-        ];
 
+            0,
+
+            15,
+
+            30,
+
+            45
+
+        ];
 
         minute =
             values[
@@ -4434,13 +3978,11 @@ function timeQuestion(
 
     }
 
-
     const answer =
         formatTime(
             hour,
             minute
         );
-
 
     return {
 
@@ -4505,17 +4047,14 @@ function createClockHTML(
     const minuteAngle =
         minute * 6;
 
-
     const hourAngle =
         (
             hour % 12
         ) * 30 +
         minute * 0.5;
 
-
     let numbers =
         "";
-
 
     for (
         let i = 1;
@@ -4534,7 +4073,6 @@ function createClockHTML(
         `;
 
     }
-
 
     return `
 
@@ -4588,15 +4126,20 @@ function makeTimeOptions(
             minute
         );
 
-
     const options = [
+
         correct
+
     ];
 
+    let safety = 0;
 
     while (
-        options.length < 4
+        options.length < 4 &&
+        safety < 100
     ) {
+
+        safety++;
 
         const h =
             randomInt(
@@ -4604,20 +4147,17 @@ function makeTimeOptions(
                 12
             );
 
-
         const m =
             randomInt(
                 0,
                 11
             ) * 5;
 
-
         const value =
             formatTime(
                 h,
                 m
             );
-
 
         if (
             !options.includes(
@@ -4632,7 +4172,6 @@ function makeTimeOptions(
         }
 
     }
-
 
     return shuffle(
         options
@@ -4652,14 +4191,13 @@ function makeNumberOptions(
     const numeric =
         Number(answer);
 
-
     const options = [
+
         numeric
+
     ];
 
-
     let safety = 0;
-
 
     while (
         options.length < 4 &&
@@ -4668,9 +4206,7 @@ function makeNumberOptions(
 
         safety++;
 
-
         let difference;
-
 
         if (
             Math.abs(
@@ -4702,7 +4238,6 @@ function makeNumberOptions(
 
         }
 
-
         const value =
             numeric +
             (
@@ -4710,7 +4245,6 @@ function makeNumberOptions(
                     ? -difference
                     : difference
             );
-
 
         if (
             value >= 0 &&
@@ -4726,7 +4260,6 @@ function makeNumberOptions(
         }
 
     }
-
 
     return shuffle(
         options.map(
@@ -4746,7 +4279,6 @@ function comparisonQuestion(
 ) {
 
     let max;
-
 
     if (
         grade <= 2
@@ -4768,13 +4300,11 @@ function comparisonQuestion(
 
     }
 
-
     const a =
         randomInt(
             1,
             max
         );
-
 
     const b =
         randomInt(
@@ -4782,9 +4312,7 @@ function comparisonQuestion(
             max
         );
 
-
     let answer;
-
 
     if (
         a > b
@@ -4806,7 +4334,6 @@ function comparisonQuestion(
 
     }
 
-
     return {
 
         type:
@@ -4819,9 +4346,13 @@ function comparisonQuestion(
             answer,
 
         options: [
+
             ">",
+
             "<",
+
             "="
+
         ]
 
     };
@@ -4835,10 +4366,33 @@ function comparisonQuestion(
 
 function shuffle(array) {
 
-    return array.sort(
-        () =>
-            Math.random() - 0.5
-    );
+    const copy =
+        [...array];
+
+    for (
+        let i = copy.length - 1;
+        i > 0;
+        i--
+    ) {
+
+        const j =
+            Math.floor(
+                Math.random() *
+                (i + 1)
+            );
+
+        [
+            copy[i],
+            copy[j]
+        ] =
+        [
+            copy[j],
+            copy[i]
+        ];
+
+    }
+
+    return copy;
 
 }
 
@@ -4878,7 +4432,6 @@ function getAchievement(
 
     }
 
-
     if (
         percentage >= 90
     ) {
@@ -4886,7 +4439,6 @@ function getAchievement(
         return "🌟 Math Superstar!";
 
     }
-
 
     if (
         percentage >= 80
@@ -4896,7 +4448,6 @@ function getAchievement(
 
     }
 
-
     if (
         percentage >= 70
     ) {
@@ -4905,7 +4456,6 @@ function getAchievement(
 
     }
 
-
     if (
         percentage >= 60
     ) {
@@ -4913,7 +4463,6 @@ function getAchievement(
         return "🥉 Keep Going!";
 
     }
-
 
     return "💪 Practice Makes Progress!";
 
@@ -4962,9 +4511,10 @@ function getTopicEmoji(
 
     };
 
-
     return (
-        emojis[topic] ||
+        emojis[
+            topic
+        ] ||
         "📚"
     );
 
@@ -4987,7 +4537,6 @@ function getScoreColor(
 
     }
 
-
     if (
         score >= 70
     ) {
@@ -4996,7 +4545,6 @@ function getScoreColor(
 
     }
 
-
     if (
         score >= 50
     ) {
@@ -5004,7 +4552,6 @@ function getScoreColor(
         return "#f59e0b";
 
     }
-
 
     return "#ef4444";
 
@@ -5016,36 +4563,13 @@ function getScoreColor(
 // =====================================================
 
 function formatDate(
-    dateValue
+    dateString
 ) {
 
-    if (!dateValue) {
-        return "";
-    }
-
-
-    let date;
-
-
-    // Firebase Timestamp
-    if (
-        typeof dateValue.toDate ===
-        "function"
-    ) {
-
-        date =
-            dateValue.toDate();
-
-    }
-    else {
-
-        date =
-            new Date(
-                dateValue
-            );
-
-    }
-
+    const date =
+        new Date(
+            dateString
+        );
 
     if (
         Number.isNaN(
@@ -5056,7 +4580,6 @@ function formatDate(
         return "";
 
     }
-
 
     return date.toLocaleDateString(
         undefined,
@@ -5073,6 +4596,30 @@ function formatDate(
 
         }
     );
+
+}
+
+
+// =====================================================
+// SET TEXT SAFELY
+// =====================================================
+
+function setText(
+    elementId,
+    value
+) {
+
+    const element =
+        document.getElementById(
+            elementId
+        );
+
+    if (element) {
+
+        element.textContent =
+            value;
+
+    }
 
 }
 
@@ -5113,6 +4660,29 @@ function escapeHTML(
 
 
 // =====================================================
+// STRING ESCAPE FOR BUTTONS
+// =====================================================
+
+function escapeString(
+    value
+) {
+
+    return String(
+        value
+    )
+        .replace(
+            /\\/g,
+            "\\\\"
+        )
+        .replace(
+            /'/g,
+            "\\'"
+        );
+
+}
+
+
+// =====================================================
 // LOGIN ERROR
 // =====================================================
 
@@ -5120,73 +4690,75 @@ function showLoginError(
     message
 ) {
 
-    showError(
-        "loginError",
-        message
+    const error =
+        document.getElementById(
+            "loginError"
+        );
+
+    if (!error) {
+
+        return;
+
+    }
+
+    error.textContent =
+        message;
+
+    error.classList.remove(
+        "hidden"
     );
 
 }
 
+
+// =====================================================
+// CLEAR LOGIN ERROR
+// =====================================================
 
 function clearLoginError() {
 
-    clearError(
-        "loginError"
-    );
-
-}
-
-
-// =====================================================
-// REGISTER ERROR
-// =====================================================
-
-function showRegisterError(
-    message
-) {
-
-    showError(
-        "registerError",
-        message
-    );
-
-}
-
-
-function clearRegisterError() {
-
-    clearError(
-        "registerError"
-    );
-
-}
-
-
-// =====================================================
-// GENERIC ERROR
-// =====================================================
-
-function showError(
-    elementId,
-    message
-) {
-
-    const element =
-        getElement(
-            elementId
+    const error =
+        document.getElementById(
+            "loginError"
         );
 
+    if (error) {
 
-    if (!element) {
-        return;
+        error.textContent =
+            "";
+
+        error.classList.add(
+            "hidden"
+        );
+
     }
 
+}
 
-    element.textContent =
+
+// =====================================================
+// PROFILE ERROR
+// =====================================================
+
+function showProfileError(
+    message
+) {
+
+    const error =
+        document.getElementById(
+            "profileError"
+        );
+
+    if (!error) {
+
+        return;
+
+    }
+
+    error.textContent =
         message;
 
-
-    element.classList.remove(
+    error.classList.remove(
         "hidden"
     );
 
@@ -5194,55 +4766,80 @@ function showError(
 
 
 // =====================================================
-// CLEAR ERROR
+// CLEAR PROFILE ERROR
 // =====================================================
 
-function clearError(
-    elementId
-) {
+function clearProfileError() {
 
-    const element =
-        getElement(
-            elementId
+    const error =
+        document.getElementById(
+            "profileError"
         );
 
+    if (error) {
 
-    if (!element) {
-        return;
+        error.textContent =
+            "";
+
+        error.classList.add(
+            "hidden"
+        );
+
     }
 
-
-    element.textContent =
-        "";
-
-
-    element.classList.add(
-        "hidden"
-    );
-
 }
+
 
 // =====================================================
 // GLOBAL HTML HANDLERS
 // =====================================================
-// app.js is an ES module, so functions are not automatically
-// available to inline onclick="" handlers in index.html.
+// IMPORTANT:
+// app.js is loaded as type="module".
+// Inline onclick="" attributes in index.html
+// therefore need these functions attached to window.
+// =====================================================
 
-window.showCreateProfile = showCreateProfile;
-window.showLogin = showLogin;
-window.showDashboard = showDashboard;
-window.showPracticeSetup = showPracticeSetup;
-window.showProgress = showProgress;
-window.showProfile = showProfile;
+window.showCreateProfile =
+    showCreateProfile;
 
-window.createStudentProfile = createStudentProfile;
-window.loginStudent = loginStudent;
-window.logoutStudent = logoutStudent;
+window.showLogin =
+    showLogin;
 
-window.selectAvatar = selectAvatar;
-window.selectAnswer = selectAnswer;
+window.showDashboard =
+    showDashboard;
 
-window.startTest = startTest;
-window.nextQuestion = nextQuestion;
-window.previousQuestion = previousQuestion;
-window.finishTest = finishTest;
+window.showPracticeSetup =
+    showPracticeSetup;
+
+window.showProgress =
+    showProgress;
+
+window.showProfile =
+    showProfile;
+
+window.createStudentProfile =
+    createStudentProfile;
+
+window.loginStudent =
+    loginStudent;
+
+window.logoutStudent =
+    logoutStudent;
+
+window.selectAvatar =
+    selectAvatar;
+
+window.startTest =
+    startTest;
+
+window.selectAnswer =
+    selectAnswer;
+
+window.nextQuestion =
+    nextQuestion;
+
+window.previousQuestion =
+    previousQuestion;
+
+window.finishTest =
+    finishTest;
