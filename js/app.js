@@ -1,7 +1,6 @@
-```javascript
 /* =====================================================
    MATH ADVENTURE
-   Student Profile + Quiz System
+   STUDENT PROFILE + MATH PRACTICE
 ===================================================== */
 
 
@@ -10,12 +9,6 @@
 ===================================================== */
 
 let selectedTopic = "mixed";
-
-let selectedAvatar = "🧑‍🎓";
-
-let selectedGrade = null;
-
-let studentProfile = null;
 
 let questions = [];
 
@@ -27,44 +20,44 @@ let testTimer = null;
 
 let remainingSeconds = 0;
 
+let selectedAvatar = "😊";
 
-/* =====================================================
-   STORAGE KEY
-===================================================== */
-
-const PROFILE_STORAGE_KEY =
-    "mathAdventureStudentProfile";
+let studentProfile = null;
 
 
 /* =====================================================
-   INITIALIZE
+   INITIALIZE APP
 ===================================================== */
 
 document.addEventListener(
     "DOMContentLoaded",
     function () {
 
-        initializeProfile();
+        setupTopicButtons();
 
-        initializeTopicButtons();
+        setupAvatarButtons();
 
-        initializeAvatarButtons();
+        loadStudentProfile();
 
-        initializeGradeButtons();
+        setupGradeSync();
+
+        console.log(
+            "Math Adventure loaded successfully."
+        );
 
     }
 );
 
 
 /* =====================================================
-   PROFILE INITIALIZATION
+   STUDENT PROFILE
 ===================================================== */
 
-function initializeProfile() {
+function loadStudentProfile() {
 
     const savedProfile =
         localStorage.getItem(
-            PROFILE_STORAGE_KEY
+            "mathAdventureStudent"
         );
 
 
@@ -77,26 +70,15 @@ function initializeProfile() {
                     savedProfile
                 );
 
+            showMainApp();
 
-            selectedAvatar =
-                studentProfile.avatar ||
-                "🧑‍🎓";
-
-
-            selectedGrade =
-                parseInt(
-                    studentProfile.grade
-                );
-
-
-            showSetupScreen();
+            updateStudentUI();
 
         }
-
         catch (error) {
 
             console.error(
-                "Could not load student profile:",
+                "Unable to load student profile.",
                 error
             );
 
@@ -105,7 +87,6 @@ function initializeProfile() {
         }
 
     }
-
     else {
 
         showProfileScreen();
@@ -116,58 +97,53 @@ function initializeProfile() {
 
 
 /* =====================================================
-   PROFILE SCREEN
+   SHOW PROFILE SCREEN
 ===================================================== */
 
 function showProfileScreen() {
 
-    clearInterval(testTimer);
+    document
+        .getElementById(
+            "profileScreen"
+        )
+        .classList.remove(
+            "hidden"
+        );
 
 
     document
-        .getElementById("setupScreen")
-        .classList.add("hidden");
+        .getElementById(
+            "mainApp"
+        )
+        .classList.add(
+            "hidden"
+        );
+
+}
+
+
+/* =====================================================
+   SHOW MAIN APP
+===================================================== */
+
+function showMainApp() {
+
+    document
+        .getElementById(
+            "profileScreen"
+        )
+        .classList.add(
+            "hidden"
+        );
 
 
     document
-        .getElementById("testScreen")
-        .classList.add("hidden");
-
-
-    document
-        .getElementById("resultScreen")
-        .classList.add("hidden");
-
-
-    document
-        .getElementById("profileScreen")
-        .classList.remove("hidden");
-
-
-    if (studentProfile) {
-
-        document
-            .getElementById("studentName")
-            .value =
-            studentProfile.name || "";
-
-
-        selectedAvatar =
-            studentProfile.avatar ||
-            "🧑‍🎓";
-
-
-        selectedGrade =
-            parseInt(
-                studentProfile.grade
-            );
-
-
-        updateAvatarSelection();
-
-        updateGradeSelection();
-
-    }
+        .getElementById(
+            "mainApp"
+        )
+        .classList.remove(
+            "hidden"
+        );
 
 }
 
@@ -176,137 +152,43 @@ function showProfileScreen() {
    AVATAR BUTTONS
 ===================================================== */
 
-function initializeAvatarButtons() {
+function setupAvatarButtons() {
 
     document
-        .querySelectorAll(".avatar-btn")
+        .querySelectorAll(
+            ".avatar-option"
+        )
         .forEach(
             function (button) {
 
                 button.addEventListener(
                     "click",
                     function () {
+
+                        document
+                            .querySelectorAll(
+                                ".avatar-option"
+                            )
+                            .forEach(
+                                function (btn) {
+
+                                    btn.classList.remove(
+                                        "selected"
+                                    );
+
+                                }
+                            );
+
+
+                        this.classList.add(
+                            "selected"
+                        );
+
 
                         selectedAvatar =
                             this.dataset.avatar;
 
-
-                        document
-                            .querySelectorAll(
-                                ".avatar-btn"
-                            )
-                            .forEach(
-                                function (btn) {
-
-                                    btn.classList.remove(
-                                        "selected"
-                                    );
-
-                                }
-                            );
-
-
-                        this.classList.add(
-                            "selected"
-                        );
-
                     }
-                );
-
-            }
-        );
-
-}
-
-
-/* =====================================================
-   UPDATE AVATAR SELECTION
-===================================================== */
-
-function updateAvatarSelection() {
-
-    document
-        .querySelectorAll(".avatar-btn")
-        .forEach(
-            function (button) {
-
-                button.classList.toggle(
-                    "selected",
-                    button.dataset.avatar ===
-                    selectedAvatar
-                );
-
-            }
-        );
-
-}
-
-
-/* =====================================================
-   GRADE BUTTONS
-===================================================== */
-
-function initializeGradeButtons() {
-
-    document
-        .querySelectorAll(".grade-btn")
-        .forEach(
-            function (button) {
-
-                button.addEventListener(
-                    "click",
-                    function () {
-
-                        selectedGrade =
-                            parseInt(
-                                this.dataset.grade
-                            );
-
-
-                        document
-                            .querySelectorAll(
-                                ".grade-btn"
-                            )
-                            .forEach(
-                                function (btn) {
-
-                                    btn.classList.remove(
-                                        "selected"
-                                    );
-
-                                }
-                            );
-
-
-                        this.classList.add(
-                            "selected"
-                        );
-
-                    }
-                );
-
-            }
-        );
-
-}
-
-
-/* =====================================================
-   UPDATE GRADE SELECTION
-===================================================== */
-
-function updateGradeSelection() {
-
-    document
-        .querySelectorAll(".grade-btn")
-        .forEach(
-            function (button) {
-
-                button.classList.toggle(
-                    "selected",
-                    parseInt(
-                        button.dataset.grade
-                    ) === selectedGrade
                 );
 
             }
@@ -327,8 +209,10 @@ function saveProfile() {
         );
 
 
-    const name =
-        nameInput.value.trim();
+    const gradeInput =
+        document.getElementById(
+            "studentGrade"
+        );
 
 
     const error =
@@ -337,87 +221,155 @@ function saveProfile() {
         );
 
 
-    if (
-        name === "" ||
-        !selectedGrade
-    ) {
+    const name =
+        nameInput.value.trim();
+
+
+    const grade =
+        gradeInput.value;
+
+
+    error.textContent = "";
+
+
+    if (!name) {
 
         error.textContent =
-            "Please enter your name and choose a grade.";
+            "Please enter the student's name.";
 
-        error.classList.remove(
-            "hidden"
-        );
+        nameInput.focus();
 
         return;
 
     }
 
 
-    error.classList.add(
-        "hidden"
-    );
+    if (!grade) {
+
+        error.textContent =
+            "Please select a grade.";
+
+        gradeInput.focus();
+
+        return;
+
+    }
 
 
     studentProfile = {
 
         name: name,
 
-        grade: selectedGrade,
+        grade: parseInt(
+            grade
+        ),
 
-        avatar: selectedAvatar,
-
-        createdAt:
-            studentProfile &&
-            studentProfile.createdAt
-                ? studentProfile.createdAt
-                : new Date().toISOString()
+        avatar: selectedAvatar
 
     };
 
 
     localStorage.setItem(
-        PROFILE_STORAGE_KEY,
+        "mathAdventureStudent",
         JSON.stringify(
             studentProfile
         )
     );
 
 
-    updateStudentSummary();
+    showMainApp();
 
-    showSetupScreen();
+    updateStudentUI();
 
 }
 
 
 /* =====================================================
-   SHOW SETUP SCREEN
+   UPDATE STUDENT UI
 ===================================================== */
 
-function showSetupScreen() {
+function updateStudentUI() {
+
+    if (!studentProfile) {
+        return;
+    }
+
+
+    const name =
+        studentProfile.name;
+
+
+    const grade =
+        studentProfile.grade;
+
+
+    const avatar =
+        studentProfile.avatar ||
+        "😊";
+
 
     document
-        .getElementById("profileScreen")
-        .classList.add("hidden");
+        .getElementById(
+            "headerAvatar"
+        )
+        .textContent =
+        avatar;
 
 
     document
-        .getElementById("testScreen")
-        .classList.add("hidden");
+        .getElementById(
+            "headerStudentName"
+        )
+        .textContent =
+        name;
 
 
     document
-        .getElementById("resultScreen")
-        .classList.add("hidden");
+        .getElementById(
+            "welcomeAvatar"
+        )
+        .textContent =
+        avatar;
 
 
     document
-        .getElementById("setupScreen")
-        .classList.remove("hidden");
+        .getElementById(
+            "welcomeName"
+        )
+        .textContent =
+        name;
 
 
-    updateStudentSummary();
+    document
+        .getElementById(
+            "welcomeGrade"
+        )
+        .textContent =
+        "Grade " + grade;
+
+
+    document
+        .getElementById(
+            "modalAvatar"
+        )
+        .textContent =
+        avatar;
+
+
+    document
+        .getElementById(
+            "modalStudentName"
+        )
+        .textContent =
+        name;
+
+
+    document
+        .getElementById(
+            "modalGrade"
+        )
+        .textContent =
+        "Grade " + grade;
 
 
     const gradeSelect =
@@ -426,10 +378,10 @@ function showSetupScreen() {
         );
 
 
-    if (selectedGrade) {
+    if (gradeSelect) {
 
         gradeSelect.value =
-            String(selectedGrade);
+            String(grade);
 
     }
 
@@ -437,40 +389,235 @@ function showSetupScreen() {
 
 
 /* =====================================================
-   UPDATE STUDENT SUMMARY
+   GRADE SYNC
 ===================================================== */
 
-function updateStudentSummary() {
+function setupGradeSync() {
 
-    if (!studentProfile) {
+    const gradeSelect =
+        document.getElementById(
+            "gradeSelect"
+        );
+
+
+    if (!gradeSelect) {
         return;
     }
 
 
-    document
-        .getElementById(
-            "studentAvatar"
-        )
-        .textContent =
-        studentProfile.avatar ||
-        "🧑‍🎓";
+    gradeSelect.addEventListener(
+        "change",
+        function () {
+
+            if (!studentProfile) {
+                return;
+            }
+
+
+            studentProfile.grade =
+                parseInt(
+                    this.value
+                );
+
+
+            localStorage.setItem(
+                "mathAdventureStudent",
+                JSON.stringify(
+                    studentProfile
+                )
+            );
+
+
+            updateStudentUI();
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   OPEN PROFILE
+===================================================== */
+
+function openProfile() {
+
+    if (!studentProfile) {
+
+        showProfileScreen();
+
+        return;
+
+    }
+
+
+    updateStudentUI();
 
 
     document
         .getElementById(
-            "studentDisplayName"
+            "profileModal"
         )
-        .textContent =
+        .classList.remove(
+            "hidden"
+        );
+
+}
+
+
+/* =====================================================
+   CLOSE PROFILE
+===================================================== */
+
+function closeProfile() {
+
+    document
+        .getElementById(
+            "profileModal"
+        )
+        .classList.add(
+            "hidden"
+        );
+
+}
+
+
+/* =====================================================
+   EDIT PROFILE
+===================================================== */
+
+function editProfile() {
+
+    closeProfile();
+
+
+    const nameInput =
+        document.getElementById(
+            "studentName"
+        );
+
+
+    const gradeInput =
+        document.getElementById(
+            "studentGrade"
+        );
+
+
+    nameInput.value =
         studentProfile.name;
 
 
+    gradeInput.value =
+        String(
+            studentProfile.grade
+        );
+
+
+    selectedAvatar =
+        studentProfile.avatar ||
+        "😊";
+
+
+    document
+        .querySelectorAll(
+            ".avatar-option"
+        )
+        .forEach(
+            function (button) {
+
+                button.classList.toggle(
+                    "selected",
+                    button.dataset.avatar ===
+                    selectedAvatar
+                );
+
+            }
+        );
+
+
     document
         .getElementById(
-            "studentDisplayGrade"
+            "profileError"
         )
-        .textContent =
-        "Grade " +
-        studentProfile.grade;
+        .textContent = "";
+
+
+    showProfileScreen();
+
+}
+
+
+/* =====================================================
+   LOGOUT / CLEAR PROFILE
+===================================================== */
+
+function logoutStudent() {
+
+    const confirmed =
+        confirm(
+            "Are you sure you want to clear this student profile?"
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    clearInterval(
+        testTimer
+    );
+
+
+    localStorage.removeItem(
+        "mathAdventureStudent"
+    );
+
+
+    studentProfile = null;
+
+    questions = [];
+
+    answers = [];
+
+    currentQuestion = 0;
+
+
+    closeProfile();
+
+    showProfileScreen();
+
+
+    document
+        .getElementById(
+            "studentName"
+        )
+        .value = "";
+
+
+    document
+        .getElementById(
+            "studentGrade"
+        )
+        .value = "";
+
+
+    selectedAvatar = "😊";
+
+
+    document
+        .querySelectorAll(
+            ".avatar-option"
+        )
+        .forEach(
+            function (button) {
+
+                button.classList.remove(
+                    "selected"
+                );
+
+            }
+        );
 
 }
 
@@ -479,10 +626,12 @@ function updateStudentSummary() {
    TOPIC BUTTONS
 ===================================================== */
 
-function initializeTopicButtons() {
+function setupTopicButtons() {
 
     document
-        .querySelectorAll(".topic-btn")
+        .querySelectorAll(
+            ".topic-btn"
+        )
         .forEach(
             function (button) {
 
@@ -566,29 +715,6 @@ function startTest() {
             .value;
 
 
-    /* SAVE SELECTED GRADE */
-
-    selectedGrade = grade;
-
-
-    if (studentProfile) {
-
-        studentProfile.grade =
-            grade;
-
-
-        localStorage.setItem(
-            PROFILE_STORAGE_KEY,
-            JSON.stringify(
-                studentProfile
-            )
-        );
-
-        updateStudentSummary();
-
-    }
-
-
     questions = [];
 
     answers = [];
@@ -648,7 +774,6 @@ function startTest() {
         startTimer();
 
     }
-
     else {
 
         clearInterval(
@@ -656,12 +781,19 @@ function startTest() {
         );
 
 
-        document
-            .getElementById(
+        const timer =
+            document.getElementById(
                 "timer"
-            )
-            .textContent =
+            );
+
+
+        timer.textContent =
             "⏱ No Timer";
+
+
+        timer.classList.remove(
+            "warning"
+        );
 
     }
 
@@ -773,7 +905,6 @@ function updateTimerDisplay() {
         );
 
     }
-
     else {
 
         timer.classList.remove(
@@ -933,7 +1064,6 @@ function generateQuestion(
             "choice";
 
     }
-
     else if (
         answerType === "blank"
     ) {
@@ -942,7 +1072,6 @@ function generateQuestion(
             "blank";
 
     }
-
     else {
 
         question.answerMode =
@@ -1012,8 +1141,6 @@ function showQuestion() {
     `;
 
 
-    /* CLOCK */
-
     if (
         q.type === "Time"
     ) {
@@ -1027,8 +1154,6 @@ function showQuestion() {
     }
 
 
-    /* QUESTION */
-
     html += `
 
         <div class="question">
@@ -1039,8 +1164,6 @@ function showQuestion() {
 
     `;
 
-
-    /* ANSWER MODE */
 
     if (
         q.answerMode === "choice"
@@ -1057,7 +1180,6 @@ function showQuestion() {
         `;
 
     }
-
     else {
 
         html += `
@@ -1072,8 +1194,6 @@ function showQuestion() {
 
     }
 
-
-    /* MULTIPLE CHOICE */
 
     if (
         q.answerMode === "choice" &&
@@ -1125,10 +1245,6 @@ function showQuestion() {
             `</div>`;
 
     }
-
-
-    /* FILL IN BLANK */
-
     else {
 
         const existing =
@@ -1165,8 +1281,6 @@ function showQuestion() {
     container.innerHTML =
         html;
 
-
-    /* INPUT */
 
     const input =
         document.getElementById(
@@ -1263,7 +1377,7 @@ function escapeHTML(value) {
 
 
 /* =====================================================
-   SELECT ANSWER
+   SELECT MULTIPLE CHOICE
 ===================================================== */
 
 function selectAnswer(
@@ -1341,7 +1455,6 @@ function nextQuestion() {
         showQuestion();
 
     }
-
     else {
 
         finishTest();
@@ -1380,7 +1493,6 @@ function previousQuestion() {
 function finishTest() {
 
     saveTextAnswer();
-
 
     clearInterval(
         testTimer
@@ -1442,29 +1554,6 @@ function finishTest() {
         percentage + "%";
 
 
-    if (studentProfile) {
-
-        document
-            .getElementById(
-                "resultStudentAvatar"
-            )
-            .textContent =
-            studentProfile.avatar ||
-            "🧑‍🎓";
-
-
-        document
-            .getElementById(
-                "resultStudentName"
-            )
-            .textContent =
-            studentProfile.name +
-            " • Grade " +
-            studentProfile.grade;
-
-    }
-
-
     let message;
 
 
@@ -1476,7 +1565,6 @@ function finishTest() {
             "🏆 Amazing! You are a Math Superstar!";
 
     }
-
     else if (
         percentage >= 75
     ) {
@@ -1485,7 +1573,6 @@ function finishTest() {
             "🌟 Great Job! Keep practicing!";
 
     }
-
     else if (
         percentage >= 60
     ) {
@@ -1494,7 +1581,6 @@ function finishTest() {
             "👍 Good Work! You are improving!";
 
     }
-
     else {
 
         message =
@@ -1643,7 +1729,6 @@ function createReview() {
 
                 </div>
 
-
                 <div>
 
                     Your answer:
@@ -1654,17 +1739,17 @@ function createReview() {
                             : "wrong-answer"
                     }">
 
-                        ${escapeHTML(userAnswer)}
+                        ${escapeHTML(
+                            userAnswer
+                        )}
 
                     </span>
 
                 </div>
 
-
                 ${
                     correct
                         ? ""
-
                         : `
 
                         <div>
@@ -1673,7 +1758,9 @@ function createReview() {
 
                             <span class="correct-answer">
 
-                                ${escapeHTML(q.answer)}
+                                ${escapeHTML(
+                                    q.answer
+                                )}
 
                             </span>
 
@@ -1731,9 +1818,6 @@ function newTest() {
         .classList.remove(
             "hidden"
         );
-
-
-    updateStudentSummary();
 
 }
 
@@ -1841,19 +1925,14 @@ function additionQuestion(
 
     if (grade === 1)
         max = 20;
-
     else if (grade === 2)
         max = 100;
-
     else if (grade === 3)
         max = 1000;
-
     else if (grade === 4)
         max = 10000;
-
     else if (grade === 5)
         max = 100000;
-
     else
         max = 1000000;
 
@@ -1908,19 +1987,14 @@ function subtractionQuestion(
 
     if (grade === 1)
         max = 20;
-
     else if (grade === 2)
         max = 100;
-
     else if (grade === 3)
         max = 1000;
-
     else if (grade === 4)
         max = 10000;
-
     else if (grade === 5)
         max = 100000;
-
     else
         max = 1000000;
 
@@ -1978,41 +2052,42 @@ function multiplicationQuestion(
     if (grade === 1) {
 
         maxA = 5;
+
         maxB = 5;
 
     }
-
     else if (grade === 2) {
 
         maxA = 10;
+
         maxB = 10;
 
     }
-
     else if (grade === 3) {
 
         maxA = 12;
+
         maxB = 12;
 
     }
-
     else if (grade === 4) {
 
         maxA = 20;
+
         maxB = 20;
 
     }
-
     else if (grade === 5) {
 
         maxA = 50;
+
         maxB = 20;
 
     }
-
     else {
 
         maxA = 100;
+
         maxB = 50;
 
     }
@@ -2073,7 +2148,6 @@ function divisionQuestion(
         divisorMax = 5;
 
     }
-
     else if (
         grade === 3
     ) {
@@ -2081,7 +2155,6 @@ function divisionQuestion(
         divisorMax = 10;
 
     }
-
     else if (
         grade <= 5
     ) {
@@ -2089,7 +2162,6 @@ function divisionQuestion(
         divisorMax = 20;
 
     }
-
     else {
 
         divisorMax = 50;
@@ -2174,10 +2246,15 @@ function fractionQuestion(
                 `${numerator}/${denominator}`,
 
             options: [
+
                 `${numerator}/${denominator}`,
+
                 `${numerator + 1}/${denominator}`,
+
                 `${numerator}/${denominator + 1}`,
+
                 `${denominator}/${numerator}`
+
             ]
 
         };
@@ -2201,7 +2278,9 @@ function fractionQuestion(
 
     const value =
         (
-            numerator / denominator +
+            numerator / denominator
+        ) +
+        (
             n2 / d2
         );
 
@@ -2294,11 +2373,17 @@ function wordQuestion(
     const names = [
 
         "Emma",
+
         "Liam",
+
         "Noah",
+
         "Mia",
+
         "Ava",
+
         "Lucas",
+
         "Sophia"
 
     ];
@@ -2358,7 +2443,8 @@ function wordQuestion(
         question =
             `${name} has ${a} apples. ` +
             `A friend gives ${b} more apples. ` +
-            `How many apples does ${name} have now?`;
+            `How many apples does ${name} ` +
+            `have now?`;
 
     }
 
@@ -2518,7 +2604,6 @@ function timeQuestion(
             ];
 
     }
-
     else {
 
         minute =
@@ -2633,7 +2718,6 @@ function createClockHTML(
 
                 ${numbers}
 
-
                 <div
                     class="hand hour-hand"
                     style="
@@ -2654,7 +2738,9 @@ function createClockHTML(
                 ></div>
 
 
-                <div class="clock-center"></div>
+                <div
+                    class="clock-center"
+                ></div>
 
             </div>
 
@@ -2681,8 +2767,9 @@ function makeTimeOptions(
         );
 
 
-    const options =
-        [correct];
+    const options = [
+        correct
+    ];
 
 
     while (
@@ -2744,8 +2831,9 @@ function makeNumberOptions(
         Number(answer);
 
 
-    const options =
-        [numeric];
+    const options = [
+        numeric
+    ];
 
 
     let safety = 0;
@@ -2773,7 +2861,6 @@ function makeNumberOptions(
                 );
 
         }
-
         else {
 
             difference =
@@ -2844,7 +2931,6 @@ function comparisonQuestion(
         max = 50;
 
     }
-
     else if (
         grade <= 4
     ) {
@@ -2852,7 +2938,6 @@ function comparisonQuestion(
         max = 1000;
 
     }
-
     else {
 
         max = 100000;
@@ -2884,7 +2969,6 @@ function comparisonQuestion(
         answer = ">";
 
     }
-
     else if (
         a < b
     ) {
@@ -2892,7 +2976,6 @@ function comparisonQuestion(
         answer = "<";
 
     }
-
     else {
 
         answer = "=";
@@ -2910,9 +2993,13 @@ function comparisonQuestion(
         answer: answer,
 
         options: [
+
             ">",
+
             "<",
+
             "="
+
         ]
 
     };
@@ -2931,19 +3018,11 @@ function shuffle(
     return array.sort(
         function () {
 
-            return Math.random() - .5;
+            return (
+                Math.random() - .5
+            );
 
         }
     );
 
 }
-
-
-/* =====================================================
-   INITIALIZE LOG
-===================================================== */
-
-console.log(
-    "Math Adventure loaded successfully."
-);
-```
