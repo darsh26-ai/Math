@@ -138,9 +138,9 @@ select {
 }
 
 .topic-btn.selected {
-  background:#4f8cff;
-  color:white;
-  border-color:#4f8cff;
+  background: linear-gradient(135deg, #4f8cff, #7657e8);
+  color: white;
+  border-color: transparent;
 }
 
 /* ===================================================== 
@@ -153,7 +153,7 @@ select {
   padding:16px;
   margin-top:25px;
   border-radius:12px;
-  background-color: #FFD218;
+  background: linear-gradient(135deg, #ffd84d, #ffbf3f);
   color:black;
   font-size:18px;
   font-weight:bold;
