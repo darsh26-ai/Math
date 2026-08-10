@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 
@@ -8,16 +9,6 @@
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0"
-    >
-
-    <meta
-        name="theme-color"
-        content="#4f8cff"
-    >
-
-    <meta
-        name="description"
-        content="Math Adventure - Fun math practice for Grades 1 to 7"
     >
 
     <title>Math Adventure - Grades 1 to 7</title>
@@ -32,9 +23,16 @@
         href="manifest.json"
     >
 
+    <meta
+        name="theme-color"
+        content="#4f8cff"
+    >
+
 </head>
 
+
 <body>
+
 
 <!-- =====================================================
      HEADER
@@ -54,42 +52,18 @@
 
         </div>
 
-        <div
-            id="headerProfile"
-            class="header-profile hidden"
+        <button
+            id="changeProfileButton"
+            class="profile-header-btn"
+            onclick="showProfileScreen()"
         >
-
-            <div
-                id="headerAvatar"
-                class="header-avatar"
-            >
-                😊
-            </div>
-
-            <div class="header-student-info">
-
-                <strong id="headerStudentName">
-                    Student
-                </strong>
-
-                <span id="headerStudentGrade">
-                    Grade 1
-                </span>
-
-            </div>
-
-            <button
-                class="logout-btn"
-                onclick="logoutStudent()"
-            >
-                🚪
-            </button>
-
-        </div>
+            👤 Profile
+        </button>
 
     </div>
 
 </header>
+
 
 
 <!-- =====================================================
@@ -108,31 +82,30 @@
     class="card profile-card"
 >
 
+
     <div class="profile-welcome">
 
-        <div class="welcome-icon">
-            👋
+        <div class="profile-icon">
+            🧑‍🎓
         </div>
 
-        <h2 id="profileTitle">
+        <h2>
             Welcome to Math Adventure!
         </h2>
 
-        <p id="profileSubtitle">
-            Create your student profile to begin.
+        <p>
+            Create your student profile to get started.
         </p>
 
     </div>
 
 
-    <!-- NAME -->
+
+    <!-- STUDENT NAME -->
 
     <div class="profile-section">
 
-        <label
-            for="studentName"
-            class="profile-label"
-        >
+        <label for="studentName">
             👤 Student Name
         </label>
 
@@ -140,7 +113,7 @@
             type="text"
             id="studentName"
             class="profile-input"
-            placeholder="Enter student's name"
+            placeholder="Enter your name"
             maxlength="30"
             autocomplete="off"
         >
@@ -148,13 +121,15 @@
     </div>
 
 
+
     <!-- AVATAR -->
 
     <div class="profile-section">
 
-        <label class="profile-label">
+        <label>
             🎨 Choose Your Avatar
         </label>
+
 
         <div
             id="avatarGrid"
@@ -162,278 +137,176 @@
         >
 
             <button
+                type="button"
                 class="avatar-btn selected"
-                data-avatar="🦊"
-                onclick="selectAvatar(this)"
+                data-avatar="🧑‍🎓"
             >
-                🦊
+                🧑‍🎓
             </button>
 
             <button
+                type="button"
                 class="avatar-btn"
-                data-avatar="🐼"
-                onclick="selectAvatar(this)"
+                data-avatar="👦"
             >
-                🐼
+                👦
             </button>
 
             <button
+                type="button"
                 class="avatar-btn"
-                data-avatar="🐯"
-                onclick="selectAvatar(this)"
+                data-avatar="👧"
             >
-                🐯
+                👧
             </button>
 
             <button
+                type="button"
                 class="avatar-btn"
-                data-avatar="🐸"
-                onclick="selectAvatar(this)"
+                data-avatar="🦸"
             >
-                🐸
+                🦸
             </button>
 
             <button
+                type="button"
                 class="avatar-btn"
-                data-avatar="🐨"
-                onclick="selectAvatar(this)"
+                data-avatar="🦸‍♀️"
             >
-                🐨
+                🦸‍♀️
             </button>
 
             <button
+                type="button"
+                class="avatar-btn"
+                data-avatar="🧙"
+            >
+                🧙
+            </button>
+
+            <button
+                type="button"
                 class="avatar-btn"
                 data-avatar="🦄"
-                onclick="selectAvatar(this)"
             >
                 🦄
             </button>
 
             <button
+                type="button"
                 class="avatar-btn"
                 data-avatar="🐼"
-                onclick="selectAvatar(this)"
             >
                 🐼
-            </button>
-
-            <button
-                class="avatar-btn"
-                data-avatar="🦁"
-                onclick="selectAvatar(this)"
-            >
-                🦁
-            </button>
-
-            <button
-                class="avatar-btn"
-                data-avatar="🐰"
-                onclick="selectAvatar(this)"
-            >
-                🐰
-            </button>
-
-            <button
-                class="avatar-btn"
-                data-avatar="🐵"
-                onclick="selectAvatar(this)"
-            >
-                🐵
-            </button>
-
-            <button
-                class="avatar-btn"
-                data-avatar="🐻"
-                onclick="selectAvatar(this)"
-            >
-                🐻
-            </button>
-
-            <button
-                class="avatar-btn"
-                data-avatar="🐲"
-                onclick="selectAvatar(this)"
-            >
-                🐲
             </button>
 
         </div>
 
     </div>
+
 
 
     <!-- GRADE -->
 
     <div class="profile-section">
 
-        <label
-            for="profileGrade"
-            class="profile-label"
-        >
+        <label for="profileGrade">
             📚 Choose Your Grade
         </label>
 
-        <select
-            id="profileGrade"
-            class="profile-input"
+
+        <div
+            id="gradeCards"
+            class="grade-grid"
         >
 
-            <option value="1">
-                Grade 1
-            </option>
+            <button
+                type="button"
+                class="grade-btn"
+                data-grade="1"
+            >
+                <span>1</span>
+                <small>Grade 1</small>
+            </button>
 
-            <option value="2">
-                Grade 2
-            </option>
+            <button
+                type="button"
+                class="grade-btn"
+                data-grade="2"
+            >
+                <span>2</span>
+                <small>Grade 2</small>
+            </button>
 
-            <option value="3">
-                Grade 3
-            </option>
+            <button
+                type="button"
+                class="grade-btn"
+                data-grade="3"
+            >
+                <span>3</span>
+                <small>Grade 3</small>
+            </button>
 
-            <option value="4">
-                Grade 4
-            </option>
+            <button
+                type="button"
+                class="grade-btn"
+                data-grade="4"
+            >
+                <span>4</span>
+                <small>Grade 4</small>
+            </button>
 
-            <option value="5">
-                Grade 5
-            </option>
+            <button
+                type="button"
+                class="grade-btn"
+                data-grade="5"
+            >
+                <span>5</span>
+                <small>Grade 5</small>
+            </button>
 
-            <option value="6">
-                Grade 6
-            </option>
+            <button
+                type="button"
+                class="grade-btn"
+                data-grade="6"
+            >
+                <span>6</span>
+                <small>Grade 6</small>
+            </button>
 
-            <option value="7">
-                Grade 7
-            </option>
+            <button
+                type="button"
+                class="grade-btn"
+                data-grade="7"
+            >
+                <span>7</span>
+                <small>Grade 7</small>
+            </button>
 
-        </select>
+        </div>
 
+    </div>
+
+
+
+    <div
+        id="profileError"
+        class="profile-error hidden"
+    >
+        Please enter your name and choose a grade.
     </div>
 
 
     <button
         class="main-btn profile-start-btn"
-        onclick="saveStudentProfile()"
+        onclick="saveProfile()"
     >
-        🚀 Create My Profile
+        🚀 Start Math Adventure
     </button>
 
-
-    <p
-        id="profileError"
-        class="profile-error"
-    ></p>
 
 </div>
 
-
-<!-- =====================================================
-     STUDENT DASHBOARD
-===================================================== -->
-
-<div
-    id="dashboardScreen"
-    class="card dashboard-card hidden"
->
-
-    <div class="dashboard-top">
-
-        <div class="dashboard-avatar">
-            <span id="dashboardAvatar">
-                🦊
-            </span>
-        </div>
-
-        <div class="dashboard-info">
-
-            <h2>
-                Welcome,
-                <span id="dashboardName">
-                    Student
-                </span>
-               ! 👋
-            </h2>
-
-            <p id="dashboardGrade">
-                Grade 1
-            </p>
-
-        </div>
-
-    </div>
-
-
-    <div class="dashboard-stats">
-
-        <div class="stat-box">
-
-            <div class="stat-icon">
-                📝
-            </div>
-
-            <strong id="testsCompleted">
-                0
-            </strong>
-
-            <span>
-                Tests
-            </span>
-
-        </div>
-
-
-        <div class="stat-box">
-
-            <div class="stat-icon">
-                🎯
-            </div>
-
-            <strong id="questionsAnswered">
-                0
-            </strong>
-
-            <span>
-                Questions
-            </span>
-
-        </div>
-
-
-        <div class="stat-box">
-
-            <div class="stat-icon">
-                ⭐
-            </div>
-
-            <strong id="bestScore">
-                0%
-            </strong>
-
-            <span>
-                Best Score
-            </span>
-
-        </div>
-
-    </div>
-
-
-    <button
-        class="main-btn"
-        onclick="showPracticeScreen()"
-    >
-        🚀 Start Math Practice
-    </button>
-
-
-    <button
-        class="secondary-btn"
-        onclick="editStudentProfile()"
-    >
-        ✏️ Edit Profile
-    </button>
-
-</div>
 
 
 <!-- =====================================================
@@ -445,31 +318,48 @@
     class="card hidden"
 >
 
-    <h2 class="setup-title">
-        🎯 Choose Your Math Practice
-    </h2>
 
+    <!-- PROFILE SUMMARY -->
 
-    <div class="student-mini-profile">
+    <div class="student-summary">
 
-        <div id="setupAvatar">
-            🦊
+        <div
+            id="studentAvatar"
+            class="student-avatar"
+        >
+            🧑‍🎓
         </div>
 
-        <div>
+        <div class="student-summary-info">
 
-            <strong id="setupStudentName">
+            <strong id="studentDisplayName">
                 Student
             </strong>
 
-            <span id="setupStudentGrade">
+            <span id="studentDisplayGrade">
                 Grade 1
             </span>
 
         </div>
 
+        <button
+            class="small-profile-btn"
+            onclick="showProfileScreen()"
+        >
+            ✏️ Change
+        </button>
+
     </div>
 
+
+
+    <h2 class="setup-title">
+        🎯 Choose Your Math Practice
+    </h2>
+
+
+
+    <!-- OPTIONS -->
 
     <div class="option-grid">
 
@@ -517,6 +407,7 @@
         </div>
 
 
+
         <!-- QUESTIONS -->
 
         <div class="option">
@@ -549,6 +440,7 @@
             </select>
 
         </div>
+
 
 
         <!-- TIMER -->
@@ -589,6 +481,7 @@
         </div>
 
 
+
         <!-- ANSWER TYPE -->
 
         <div class="option">
@@ -617,6 +510,9 @@
 
     </div>
 
+
+
+    <!-- TOPICS -->
 
     <h3 class="topic-heading">
         📖 Choose a Topic
@@ -698,6 +594,7 @@
     </div>
 
 
+
     <button
         class="main-btn"
         onclick="startTest()"
@@ -705,15 +602,8 @@
         🚀 Start Math Test
     </button>
 
-
-    <button
-        class="secondary-btn"
-        onclick="showDashboard()"
-    >
-        ⬅ Back to Profile
-    </button>
-
 </div>
+
 
 
 <!-- =====================================================
@@ -725,7 +615,9 @@
     class="card hidden"
 >
 
+
     <div class="test-header">
+
 
         <div class="progress-area">
 
@@ -755,12 +647,15 @@
             ⏱ 10:00
         </div>
 
+
     </div>
+
 
 
     <div
         id="questionContainer"
     ></div>
+
 
 
     <div class="navigation">
@@ -781,7 +676,9 @@
 
     </div>
 
+
 </div>
+
 
 
 <!-- =====================================================
@@ -793,11 +690,29 @@
     class="card hidden"
 >
 
+
     <div class="result">
+
+
+        <div
+            id="resultStudentAvatar"
+            class="result-avatar"
+        >
+            🧑‍🎓
+        </div>
+
 
         <h2>
             🎉 Test Complete!
         </h2>
+
+
+        <div
+            id="resultStudentName"
+            class="result-student-name"
+        >
+            Great Job!
+        </div>
 
 
         <div class="score-circle">
@@ -838,14 +753,8 @@
         </button>
 
 
-        <button
-            class="secondary-btn"
-            onclick="showDashboard()"
-        >
-            🏠 Student Profile
-        </button>
-
     </div>
+
 
 
     <div class="review">
@@ -860,10 +769,12 @@
 
     </div>
 
+
 </div>
 
 
 </div>
+
 
 
 <!-- =====================================================
@@ -871,6 +782,7 @@
 ===================================================== -->
 
 <script src="js/app.js"></script>
+
 
 
 <!-- =====================================================
@@ -910,6 +822,8 @@ if ("serviceWorker" in navigator) {
 
 </script>
 
+
 </body>
 
 </html>
+```
