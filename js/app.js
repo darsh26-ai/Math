@@ -5046,23 +5046,16 @@ document
     );
 
 // =====================================================
-// MAKE FUNCTIONS AVAILABLE TO HTML onclick="" HANDLERS
+// MAKE FUNCTIONS AVAILABLE TO HTML onclick EVENTS
 // =====================================================
 
 window.showCreateProfile = showCreateProfile;
-window.createStudentProfile = createStudentProfile;
 window.showLogin = showLogin;
 window.loginStudent = loginStudent;
-window.logoutStudent = logoutStudent;
+window.createStudentProfile = createStudentProfile;
 window.selectAvatar = selectAvatar;
-
+window.logoutStudent = logoutStudent;
 window.showDashboard = showDashboard;
-window.showPracticeSetup = showPracticeSetup;
 window.showProgress = showProgress;
 window.showProfile = showProfile;
-
 window.startTest = startTest;
-window.showQuestion = showQuestion;
-window.submitAnswer = submitAnswer;
-window.nextQuestion = nextQuestion;
-window.finishTest = finishTest;
