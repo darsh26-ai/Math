@@ -5221,3 +5221,28 @@ function clearError(
     );
 
 }
+
+// =====================================================
+// GLOBAL HTML HANDLERS
+// =====================================================
+// app.js is an ES module, so functions are not automatically
+// available to inline onclick="" handlers in index.html.
+
+window.showCreateProfile = showCreateProfile;
+window.showLogin = showLogin;
+window.showDashboard = showDashboard;
+window.showPracticeSetup = showPracticeSetup;
+window.showProgress = showProgress;
+window.showProfile = showProfile;
+
+window.createStudentProfile = createStudentProfile;
+window.loginStudent = loginStudent;
+window.logoutStudent = logoutStudent;
+
+window.selectAvatar = selectAvatar;
+window.selectAnswer = selectAnswer;
+
+window.startTest = startTest;
+window.nextQuestion = nextQuestion;
+window.previousQuestion = previousQuestion;
+window.finishTest = finishTest;
