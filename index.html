@@ -1,518 +1,188 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+    <head>
+        <meta charset="UTF-8" />
 
-<head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <meta charset="UTF-8">
+        <title>Math Adventure - Grades 1 to 7</title>
 
-    <!-- Mobile / Tablet / Desktop -->
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+        <link rel="stylesheet" href="css/style.css" />
+    </head>
 
-    <title>Math Learning Center</title>
+    <body>
+        <!-- =====================================================
+     HEADER
+===================================================== -->
 
-    <!-- ================================
-         STYLES
-    ================================= -->
+        <header>
+            <h1>🧮 Math Adventure</h1>
 
-    <link
-        rel="stylesheet"
-        href="css/style.css"
-    >
+            <p>Fun Math Practice for Grades 1–7 ⭐</p>
+        </header>
 
-</head>
+        <div class="container">
+            <!-- =====================================================
+     SETUP SCREEN
+===================================================== -->
 
+            <div id="setupScreen" class="card">
+                <h2 class="setup-title">🎯 Choose Your Math Practice</h2>
 
-<body>
+                <div class="option-grid">
+                    <!-- GRADE -->
 
+                    <div class="option">
+                        <label>📚 Grade</label>
 
-<!-- =========================================================
-     MAIN APPLICATION
-========================================================= -->
+                        <select id="gradeSelect">
+                            <option value="1">Grade 1</option>
 
-<main id="app">
+                            <option value="2">Grade 2</option>
 
+                            <option value="3">Grade 3</option>
 
-    <!-- =====================================================
-         HOME PAGE
-    ====================================================== -->
+                            <option value="4">Grade 4</option>
 
-    <section id="homePage">
+                            <option value="5">Grade 5</option>
 
-        <h2>Select Grade</h2>
+                            <option value="6">Grade 6</option>
 
-        <!--
-            Grades are created automatically
-            by app.js using mathData.
-        -->
+                            <option value="7">Grade 7</option>
+                        </select>
+                    </div>
 
-        <div
-            id="gradeGrid"
-            class="gradeGrid">
+                    <!-- QUESTIONS -->
+
+                    <div class="option">
+                        <label>🔢 Number of Questions</label>
+
+                        <select id="questionCount">
+                            <option value="5">5 Questions</option>
+
+                            <option value="10" selected>10 Questions</option>
+
+                            <option value="15">15 Questions</option>
+
+                            <option value="20">20 Questions</option>
+                        </select>
+                    </div>
+
+                    <!-- TIMER -->
+
+                    <div class="option">
+                        <label>⏱ Test Time</label>
+
+                        <select id="timeLimit">
+                            <option value="0">No Timer</option>
+
+                            <option value="5">5 Minutes</option>
+
+                            <option value="10" selected>10 Minutes</option>
+
+                            <option value="15">15 Minutes</option>
+
+                            <option value="20">20 Minutes</option>
+                        </select>
+                    </div>
+
+                    <!-- ANSWER TYPE -->
+
+                    <div class="option">
+                        <label>✏️ Answer Type</label>
+
+                        <select id="answerType">
+                            <option value="choice">🔘 Multiple Choice</option>
+
+                            <option value="blank">✏️ Fill in the Blank</option>
+
+                            <option value="mixed">🎲 Mixed</option>
+                        </select>
+                    </div>
+                </div>
+
+                <h3 class="topic-heading">📖 Choose a Topic</h3>
+
+                <div class="topic-grid">
+                    <button class="topic-btn selected" data-topic="mixed">🧩 Mixed Practice</button>
+
+                    <button class="topic-btn" data-topic="addition">➕ Addition</button>
+
+                    <button class="topic-btn" data-topic="subtraction">➖ Subtraction</button>
+
+                    <button class="topic-btn" data-topic="multiplication">✖️ Multiplication</button>
+
+                    <button class="topic-btn" data-topic="division">➗ Division</button>
+
+                    <button class="topic-btn" data-topic="fractions">🍕 Fractions</button>
+
+                    <button class="topic-btn" data-topic="decimals">🔢 Decimals</button>
+
+                    <button class="topic-btn" data-topic="word">📖 Word Problems</button>
+
+                    <button class="topic-btn" data-topic="time">🕐 Time</button>
+
+                    <button class="topic-btn" data-topic="comparison">⚖️ Compare</button>
+                </div>
+
+                <button class="main-btn" onclick="startTest()">🚀 Start Math Test</button>
+            </div>
+
+            <!-- =====================================================
+     TEST SCREEN
+===================================================== -->
+
+            <div id="testScreen" class="card hidden">
+                <div class="test-header">
+                    <div class="progress-area">
+                        <div class="progress-text" id="progressText">Question 1 of 10</div>
+
+                        <div class="progress">
+                            <div id="progressBar" class="progress-bar"></div>
+                        </div>
+                    </div>
+
+                    <div id="timer" class="timer">⏱ 10:00</div>
+                </div>
+
+                <div id="questionContainer"></div>
+
+                <div class="navigation">
+                    <button class="nav-btn previous" onclick="previousQuestion()">⬅ Previous</button>
+
+                    <button class="nav-btn next" onclick="nextQuestion()">Next ➡</button>
+                </div>
+            </div>
+
+            <!-- =====================================================
+     RESULT SCREEN
+===================================================== -->
+
+            <div id="resultScreen" class="card hidden">
+                <div class="result">
+                    <h2>🎉 Test Complete!</h2>
+
+                    <div class="score-circle">
+                        <div class="score-number" id="scorePercent">0%</div>
+
+                        <div>Score</div>
+                    </div>
+
+                    <div class="result-message" id="resultMessage">Great Job!</div>
+
+                    <div class="result-details" id="resultDetails"></div>
+
+                    <button class="main-btn" onclick="newTest()">🔄 Start New Test</button>
+                </div>
+
+                <div class="review">
+                    <h2>📝 Review Your Answers</h2>
+
+                    <div id="reviewContainer"></div>
+                </div>
+            </div>
         </div>
 
-    </section>
-
-
-
-    <!-- =====================================================
-         TOPIC PAGE
-    ====================================================== -->
-
-    <section
-        id="topicPage"
-        class="hidden">
-
-        <button
-            class="backButton"
-            type="button">
-
-            ⬅ Back
-
-        </button>
-
-
-        <h2 id="gradeTitle"></h2>
-
-
-        <!--
-            Topics are created automatically
-            by app.js.
-        -->
-
-        <div
-            id="topicGrid"
-            class="topicGrid">
-        </div>
-
-    </section>
-
-
-
-    <!-- =====================================================
-         SETTINGS PAGE
-    ====================================================== -->
-
-    <section
-        id="settingsPage"
-        class="hidden">
-
-
-        <!-- Back -->
-
-        <button
-            class="backButton"
-            type="button">
-
-            ⬅ Back
-
-        </button>
-
-
-        <h2>
-            Quiz Settings
-        </h2>
-
-
-        <div class="settings">
-
-
-            <!-- =============================================
-                 GRADE
-            ============================================== -->
-
-            <label for="gradeSelect">
-
-                Grade
-
-                <select id="gradeSelect">
-
-                    <option value="1">
-                        Grade 1
-                    </option>
-
-                    <option value="2">
-                        Grade 2
-                    </option>
-
-                    <option value="3">
-                        Grade 3
-                    </option>
-
-                    <option value="4">
-                        Grade 4
-                    </option>
-
-                    <option value="5">
-                        Grade 5
-                    </option>
-
-                    <option value="6">
-                        Grade 6
-                    </option>
-
-                    <option value="7">
-                        Grade 7
-                    </option>
-
-                </select>
-
-            </label>
-
-
-
-            <!-- =============================================
-                 DIFFICULTY
-            ============================================== -->
-
-            <label for="difficulty">
-
-                Difficulty
-
-                <select id="difficulty">
-
-                    <option value="Easy">
-                        Easy
-                    </option>
-
-                    <option value="Medium">
-                        Medium
-                    </option>
-
-                    <option value="Hard">
-                        Hard
-                    </option>
-
-                </select>
-
-            </label>
-
-
-
-            <!-- =============================================
-                 QUESTION COUNT
-            ============================================== -->
-
-            <label for="questionCount">
-
-                Questions
-
-                <select id="questionCount">
-
-                    <option value="5">
-                        5
-                    </option>
-
-                    <option
-                        value="10"
-                        selected>
-
-                        10
-
-                    </option>
-
-                    <option value="20">
-                        20
-                    </option>
-
-                    <option value="30">
-                        30
-                    </option>
-
-                    <option value="40">
-                        40
-                    </option>
-
-                    <option value="50">
-                        50
-                    </option>
-
-                    <option value="100">
-                        100
-                    </option>
-
-                </select>
-
-            </label>
-
-
-
-            <!-- =============================================
-                 TIMER
-            ============================================== -->
-
-            <label for="timer">
-
-                Timer
-
-                <select id="timer">
-
-                    <option value="0">
-                        No Timer
-                    </option>
-
-                    <option value="30">
-                        30 Seconds
-                    </option>
-
-                    <option value="60">
-                        1 Minute
-                    </option>
-
-                    <option value="120">
-                        2 Minutes
-                    </option>
-
-                    <option value="300">
-                        5 Minutes
-                    </option>
-
-                </select>
-
-            </label>
-
-
-
-            <!-- =============================================
-                 MODE BUTTONS
-            ============================================== -->
-
-            <div class="buttons">
-
-
-                <button
-                    id="practiceBtn"
-                    type="button">
-
-                    Practice Mode
-
-                </button>
-
-
-                <button
-                    id="quizBtn"
-                    type="button">
-
-                    Quiz Mode
-
-                </button>
-
-
-            </div>
-
-
-        </div>
-
-    </section>
-
-
-
-    <!-- =====================================================
-         QUIZ PAGE
-    ====================================================== -->
-
-    <section
-        id="quizPage"
-        class="hidden">
-
-
-        <!-- =============================================
-             QUIZ HEADER
-        ============================================== -->
-
-        <div class="quizHeader">
-
-
-            <!-- Question Progress -->
-
-            <div id="progressText">
-
-                Question
-
-            </div>
-
-
-            <!-- Timer -->
-
-            <div id="timerDisplay">
-
-                00:00
-
-            </div>
-
-
-        </div>
-
-
-
-        <!-- =============================================
-             QUESTION AREA
-        ============================================== -->
-
-        <div id="questionArea">
-
-
-            <!-- =========================================
-                 QUESTION TEXT
-            ========================================== -->
-
-            <div
-                id="questionBox"
-                class="questionBox">
-            </div>
-
-
-
-            <!-- =========================================
-                 CLOCK
-                 
-                 Used for time / clock questions.
-            ========================================== -->
-
-            <div
-                id="clockContainer"
-                class="clockContainer">
-            </div>
-
-
-
-            <!-- =========================================
-                 ANSWER OPTIONS
-            ========================================== -->
-
-            <div
-                id="optionsBox"
-                class="optionsBox">
-            </div>
-
-
-
-            <!-- =========================================
-                 RESULT / FEEDBACK
-            ========================================== -->
-
-            <div
-                id="resultBox"
-                class="resultBox">
-            </div>
-
-
-        </div>
-
-
-
-        <!-- =============================================
-             NEXT BUTTON
-        ============================================== -->
-
-        <button
-            id="nextButton"
-            type="button">
-
-            Next →
-
-        </button>
-
-
-    </section>
-
-
-
-    <!-- =====================================================
-         RESULTS PAGE
-    ====================================================== -->
-
-    <section
-        id="resultsPage"
-        class="hidden">
-
-
-        <h2>
-            Quiz Complete
-        </h2>
-
-
-        <!-- Score -->
-
-        <div id="scoreBox"></div>
-
-
-
-        <!-- =============================================
-             PLAY AGAIN
-        ============================================== -->
-
-        <button
-            id="restartButton"
-            type="button">
-
-            Play Again
-
-        </button>
-
-
-
-        <!-- =============================================
-             HOME
-        ============================================== -->
-
-        <button
-            id="homeButton"
-            type="button">
-
-            Home
-
-        </button>
-
-
-    </section>
-
-
-
-    <!-- =====================================================
-         STATS / PROGRESS PAGE
-    ====================================================== -->
-
-    <section
-        id="statsPage"
-        class="hidden">
-
-
-        <h2>
-            Progress
-        </h2>
-
-
-        <div id="statsContainer"></div>
-
-
-    </section>
-
-
-</main>
-
-
-
-<!-- =========================================================
-     JAVASCRIPT FILES
-
-     IMPORTANT:
-     data.js MUST load before app.js.
-     progress.js contains the statistics functions.
-     app.js controls the main application.
-========================================================= -->
-
-<!-- Scripts (ordered by dependency) -->
-<script src="js/data.js"></script>
-<script src="js/storage.js"></script>
-<script src="js/utils.js"></script>
-<script src="js/generator.js"></script>
-<script src="js/quiz.js"></script>
-<script src="js/progress.js"></script>
-<script src="js/ui.js"></script>
-<script src="js/app.js"></script>
-
-</body>
+        <script src="js/app.js"></script>
+    </body>
 </html>
