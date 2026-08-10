@@ -1,12 +1,8 @@
-/* =========================================================
-   MATH ADVENTURE
-   Firebase Authentication + Firestore
-   Student Login + Dashboard + Progress + Math Engine
-   ========================================================= */
-
-/* =========================================================
-   FIREBASE IMPORTS
-   ========================================================= */
+// =====================================================
+// MATH ADVENTURE
+// Firebase Student Login + Dashboard + Progress
+// Math Practice Engine
+// =====================================================
 
 import {
     auth,
@@ -22,102 +18,150 @@ import {
     serverTimestamp
 } from "./firebase.js";
 
-
-/* =========================================================
-   GLOBAL STATE
-   ========================================================= */
-
-let currentStudent = null;
+// =====================================================
+// GLOBAL VARIABLES
+// =====================================================
 
 let selectedTopic = "mixed";
-
 let selectedAvatar = "🧑‍🚀";
 
 let questions = [];
-
 let answers = [];
-
 let currentQuestion = 0;
 
 let testTimer = null;
-
 let remainingSeconds = 0;
-
 let currentTestStart = null;
 
-
-/* =========================================================
-   INITIALIZE
-   ========================================================= */
-
-document.addEventListener("DOMContentLoaded", initializeApp);
+let currentStudent = null;
+let isFinishingTest = false;
 
 
-function initializeApp() {
+// =====================================================
+// INITIALIZE APP
+// =====================================================
+
+document.addEventListener("DOMContentLoaded", () => {
 
     setupTopicButtons();
-
     setupAvatarButtons();
-
-    setupAuthButtons();
-
-    setupNavigationButtons();
-
-    setupPracticeButtons();
-
-    setupKeyboardShortcuts();
+    setupEventListeners();
 
     console.log("Math Adventure loaded successfully.");
-}
+
+});
 
 
-/* =========================================================
-   DOM HELPERS
-   ========================================================= */
+// =====================================================
+// DOM HELPER
+// =====================================================
 
 function getElement(id) {
-
     return document.getElementById(id);
-
 }
 
-
 function setText(id, value) {
-
     const element = getElement(id);
 
     if (element) {
         element.textContent = value;
     }
-
 }
 
-
 function showElement(id) {
-
     const element = getElement(id);
 
     if (element) {
         element.classList.remove("hidden");
     }
-
 }
 
-
 function hideElement(id) {
-
     const element = getElement(id);
 
     if (element) {
         element.classList.add("hidden");
     }
+}
+
+
+// =====================================================
+// AUTH STATE
+// =====================================================
+
+onAuthStateChanged(auth, async (user) => {
+
+    if (!user) {
+
+        currentStudent = null;
+
+        clearInterval(testTimer);
+
+        showLoginScreen();
+
+        return;
+    }
+
+    await loadCurrentStudent(user.uid);
+
+});
+
+
+// =====================================================
+// LOAD CURRENT STUDENT
+// =====================================================
+
+async function loadCurrentStudent(uid) {
+
+    try {
+
+        const snapshot = await getDoc(
+            doc(
+                db,
+                "students",
+                uid
+            )
+        );
+
+        if (!snapshot.exists()) {
+
+            console.error(
+                "Student profile not found."
+            );
+
+            await signOut(auth);
+
+            return;
+        }
+
+        currentStudent = {
+            uid: uid,
+            ...snapshot.data()
+        };
+
+        showDashboard();
+
+    }
+    catch (error) {
+
+        console.error(
+            "Error loading student profile:",
+            error
+        );
+
+        showError(
+            "loginError",
+            "Unable to load your student profile."
+        );
+
+    }
 
 }
 
 
-/* =========================================================
-   SCREEN MANAGEMENT
-   ========================================================= */
+// =====================================================
+// SCREEN MANAGEMENT
+// =====================================================
 
 function hideAllScreens() {
 
@@ -140,9 +184,11 @@ function hideAllScreens() {
 }
 
 
-function showLoginScreen() {
+// =====================================================
+// SHOW LOGIN
+// =====================================================
 
-    clearInterval(testTimer);
+function showLoginScreen() {
 
     hideAllScreens();
 
@@ -152,6 +198,10 @@ function showLoginScreen() {
 
 }
 
+
+// =====================================================
+// SHOW REGISTER
+// =====================================================
 
 function showRegisterScreen() {
 
@@ -164,10 +214,16 @@ function showRegisterScreen() {
 }
 
 
+// =====================================================
+// SHOW DASHBOARD
+// =====================================================
+
 function showDashboard() {
 
     if (!currentStudent) {
+
         showLoginScreen();
+
         return;
     }
 
@@ -182,10 +238,16 @@ function showDashboard() {
 }
 
 
+// =====================================================
+// SHOW PRACTICE SETUP
+// =====================================================
+
 function showPracticeSetup() {
 
     if (!currentStudent) {
+
         showLoginScreen();
+
         return;
     }
 
@@ -197,6 +259,10 @@ function showPracticeSetup() {
 
 }
 
+
+// =====================================================
+// SHOW PROFILE
+// =====================================================
 
 function showProfile() {
 
@@ -218,17 +284,23 @@ function showProfile() {
 
         populateProfileForm();
 
-        showElement("registerScreen");
+        showRegisterScreen();
 
     }
 
 }
 
 
+// =====================================================
+// SHOW PROGRESS
+// =====================================================
+
 function showProgress() {
 
     if (!currentStudent) {
+
         showLoginScreen();
+
         return;
     }
 
@@ -241,81 +313,351 @@ function showProgress() {
 }
 
 
-/* =========================================================
-   ERROR HANDLING
-   ========================================================= */
+// =====================================================
+// HEADER
+// =====================================================
 
-function showError(elementId, message) {
+function updateHeader() {
 
-    const element = getElement(elementId);
+    const headerStudent =
+        getElement("headerStudent");
 
-    if (!element) {
+    if (!headerStudent) {
         return;
     }
 
-    element.textContent = message;
+    if (!currentStudent) {
 
-    element.classList.remove("hidden");
+        headerStudent.classList.add("hidden");
+
+        return;
+    }
+
+    headerStudent.classList.remove("hidden");
+
+    setText(
+        "headerAvatar",
+        currentStudent.avatar || "🧑‍🚀"
+    );
+
+    setText(
+        "headerStudentName",
+        currentStudent.name || "Student"
+    );
 
 }
 
 
-function clearError(elementId) {
+// =====================================================
+// SETUP EVENT LISTENERS
+// =====================================================
 
-    const element = getElement(elementId);
+function setupEventListeners() {
 
-    if (!element) {
-        return;
+    const showRegisterButton =
+        getElement("showRegisterButton");
+
+    if (showRegisterButton) {
+
+        showRegisterButton.addEventListener(
+            "click",
+            showRegisterScreen
+        );
+
     }
 
-    element.textContent = "";
 
-    element.classList.add("hidden");
+    const backToLoginButton =
+        getElement("backToLoginButton");
+
+    if (backToLoginButton) {
+
+        backToLoginButton.addEventListener(
+            "click",
+            showLoginScreen
+        );
+
+    }
+
+
+    const registerButton =
+        getElement("registerButton");
+
+    if (registerButton) {
+
+        registerButton.addEventListener(
+            "click",
+            createStudent
+        );
+
+    }
+
+
+    const loginButton =
+        getElement("loginButton");
+
+    if (loginButton) {
+
+        loginButton.addEventListener(
+            "click",
+            loginStudent
+        );
+
+    }
+
+
+    const logoutButton =
+        getElement("logoutButton");
+
+    if (logoutButton) {
+
+        logoutButton.addEventListener(
+            "click",
+            logoutStudent
+        );
+
+    }
+
+
+    const startPracticeButton =
+        getElement("startPracticeButton");
+
+    if (startPracticeButton) {
+
+        startPracticeButton.addEventListener(
+            "click",
+            showPracticeSetup
+        );
+
+    }
+
+
+    const backDashboardButton =
+        getElement("backDashboardButton");
+
+    if (backDashboardButton) {
+
+        backDashboardButton.addEventListener(
+            "click",
+            showDashboard
+        );
+
+    }
+
+
+    const resultDashboardButton =
+        getElement("resultDashboardButton");
+
+    if (resultDashboardButton) {
+
+        resultDashboardButton.addEventListener(
+            "click",
+            showDashboard
+        );
+
+    }
+
+
+    const profileButton =
+        getElement("profileButton");
+
+    if (profileButton) {
+
+        profileButton.addEventListener(
+            "click",
+            showProfile
+        );
+
+    }
+
+
+    const progressButton =
+        getElement("progressButton");
+
+    if (progressButton) {
+
+        progressButton.addEventListener(
+            "click",
+            showProgress
+        );
+
+    }
+
+
+    const startTestButton =
+        getElement("startTestButton");
+
+    if (startTestButton) {
+
+        startTestButton.addEventListener(
+            "click",
+            startTest
+        );
+
+    }
+
+
+    const nextQuestionButton =
+        getElement("nextQuestionButton");
+
+    if (nextQuestionButton) {
+
+        nextQuestionButton.addEventListener(
+            "click",
+            nextQuestion
+        );
+
+    }
+
+
+    const previousQuestionButton =
+        getElement("previousQuestionButton");
+
+    if (previousQuestionButton) {
+
+        previousQuestionButton.addEventListener(
+            "click",
+            previousQuestion
+        );
+
+    }
+
+
+    const finishTestButton =
+        getElement("finishTestButton");
+
+    if (finishTestButton) {
+
+        finishTestButton.addEventListener(
+            "click",
+            finishTest
+        );
+
+    }
 
 }
 
 
-/* =========================================================
-   FIREBASE AUTHENTICATION
-   ========================================================= */
+// =====================================================
+// AVATAR SELECTION
+// =====================================================
 
-/*
-   Firebase Authentication uses email/password.
+function setupAvatarButtons() {
 
-   Students only enter:
-       Name
-       6-digit PIN
+    document
+        .querySelectorAll(".avatar-btn")
+        .forEach(button => {
 
-   We internally convert the name to:
-       normalizedname@mathadventure.app
-*/
+            button.addEventListener(
+                "click",
+                () => {
+
+                    document
+                        .querySelectorAll(".avatar-btn")
+                        .forEach(btn => {
+
+                            btn.classList.remove(
+                                "selected"
+                            );
+
+                        });
+
+                    button.classList.add(
+                        "selected"
+                    );
+
+                    selectedAvatar =
+                        button.dataset.avatar ||
+                        button.textContent.trim();
+
+                }
+            );
+
+        });
+
+}
+
+
+// =====================================================
+// TOPIC BUTTONS
+// =====================================================
+
+function setupTopicButtons() {
+
+    document
+        .querySelectorAll(".topic-btn")
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    document
+                        .querySelectorAll(".topic-btn")
+                        .forEach(btn => {
+
+                            btn.classList.remove(
+                                "selected"
+                            );
+
+                        });
+
+                    button.classList.add(
+                        "selected"
+                    );
+
+                    selectedTopic =
+                        button.dataset.topic ||
+                        "mixed";
+
+                }
+            );
+
+        });
+
+}
+
+
+// =====================================================
+// CREATE INTERNAL FIREBASE EMAIL
+// =====================================================
 
 function createStudentEmail(name) {
 
-    const normalizedName =
-        String(name)
+    const cleanName =
+        name
             .trim()
             .toLowerCase()
             .replace(/[^a-z0-9]/g, "");
 
-    return `${normalizedName}@mathadventure.app`;
+    return (
+        cleanName +
+        "@mathadventure.app"
+    );
 
 }
 
 
-/* =========================================================
-   CREATE STUDENT
-   ========================================================= */
+// =====================================================
+// CREATE STUDENT
+// =====================================================
 
 async function createStudent() {
 
     clearError("registerError");
 
-    const nameElement = getElement("registerName");
-    const gradeElement = getElement("registerGrade");
-    const pinElement = getElement("registerPin");
+    const nameElement =
+        getElement("registerName");
+
+    const gradeElement =
+        getElement("registerGrade");
+
+    const pinElement =
+        getElement("registerPin");
+
     const confirmPinElement =
         getElement("registerPinConfirm");
+
 
     if (
         !nameElement ||
@@ -326,11 +668,10 @@ async function createStudent() {
 
         showError(
             "registerError",
-            "Registration form could not be found."
+            "Registration form is incomplete."
         );
 
         return;
-
     }
 
 
@@ -350,9 +691,9 @@ async function createStudent() {
         confirmPinElement.value.trim();
 
 
-    /* -----------------------------------------------------
-       VALIDATION
-       ----------------------------------------------------- */
+    // -------------------------------------------------
+    // VALIDATION
+    // -------------------------------------------------
 
     if (!name) {
 
@@ -362,7 +703,6 @@ async function createStudent() {
         );
 
         return;
-
     }
 
 
@@ -374,7 +714,6 @@ async function createStudent() {
         );
 
         return;
-
     }
 
 
@@ -386,11 +725,10 @@ async function createStudent() {
 
         showError(
             "registerError",
-            "Please select a grade."
+            "Please select a valid grade."
         );
 
         return;
-
     }
 
 
@@ -402,7 +740,6 @@ async function createStudent() {
         );
 
         return;
-
     }
 
 
@@ -414,7 +751,6 @@ async function createStudent() {
         );
 
         return;
-
     }
 
 
@@ -438,9 +774,9 @@ async function createStudent() {
 
     try {
 
-        /* -------------------------------------------------
-           CREATE FIREBASE AUTH ACCOUNT
-           ------------------------------------------------- */
+        // -------------------------------------------------
+        // CREATE FIREBASE AUTH ACCOUNT
+        // -------------------------------------------------
 
         const userCredential =
             await createUserWithEmailAndPassword(
@@ -454,20 +790,20 @@ async function createStudent() {
             userCredential.user;
 
 
-        /* -------------------------------------------------
-           CREATE FIRESTORE PROFILE
-           ------------------------------------------------- */
+        // -------------------------------------------------
+        // CREATE FIRESTORE PROFILE
+        // -------------------------------------------------
 
         const profile = {
 
-            name,
+            name: name,
 
-            grade,
+            grade: grade,
 
             avatar:
                 selectedAvatar || "🧑‍🚀",
 
-            email,
+            email: email,
 
             createdAt:
                 serverTimestamp(),
@@ -566,16 +902,7 @@ async function createStudent() {
         };
 
 
-        /* -------------------------------------------------
-           CLEAR FORM
-           ------------------------------------------------- */
-
         clearRegistrationForm();
-
-
-        /* -------------------------------------------------
-           OPEN DASHBOARD
-           ------------------------------------------------- */
 
         showDashboard();
 
@@ -588,9 +915,51 @@ async function createStudent() {
         );
 
 
+        let message =
+            "Unable to create profile.";
+
+
+        if (
+            error.code ===
+            "auth/email-already-in-use"
+        ) {
+
+            message =
+                "A student with this name already exists. Please login.";
+
+        }
+        else if (
+            error.code ===
+            "auth/weak-password"
+        ) {
+
+            message =
+                "PIN must contain at least 6 characters.";
+
+        }
+        else if (
+            error.code ===
+            "auth/invalid-email"
+        ) {
+
+            message =
+                "The student name cannot be used for login.";
+
+        }
+        else if (
+            error.code ===
+            "auth/network-request-failed"
+        ) {
+
+            message =
+                "Network error. Please check your internet connection.";
+
+        }
+
+
         showError(
             "registerError",
-            getFirebaseAuthErrorMessage(error)
+            message
         );
 
     }
@@ -610,9 +979,9 @@ async function createStudent() {
 }
 
 
-/* =========================================================
-   LOGIN
-   ========================================================= */
+// =====================================================
+// LOGIN
+// =====================================================
 
 async function loginStudent() {
 
@@ -625,15 +994,17 @@ async function loginStudent() {
         getElement("loginPin");
 
 
-    if (!nameElement || !pinElement) {
+    if (
+        !nameElement ||
+        !pinElement
+    ) {
 
         showError(
             "loginError",
-            "Login form could not be found."
+            "Login form is incomplete."
         );
 
         return;
-
     }
 
 
@@ -652,7 +1023,6 @@ async function loginStudent() {
         );
 
         return;
-
     }
 
 
@@ -664,7 +1034,6 @@ async function loginStudent() {
         );
 
         return;
-
     }
 
 
@@ -694,6 +1063,9 @@ async function loginStudent() {
             pin
         );
 
+        nameElement.value = "";
+        pinElement.value = "";
+
     }
     catch (error) {
 
@@ -703,9 +1075,24 @@ async function loginStudent() {
         );
 
 
+        let message =
+            "Incorrect student name or PIN.";
+
+
+        if (
+            error.code ===
+            "auth/too-many-requests"
+        ) {
+
+            message =
+                "Too many login attempts. Please try again later.";
+
+        }
+
+
         showError(
             "loginError",
-            getFirebaseLoginErrorMessage(error)
+            message
         );
 
     }
@@ -725,213 +1112,23 @@ async function loginStudent() {
 }
 
 
-/* =========================================================
-   FIREBASE ERROR MESSAGES
-   ========================================================= */
-
-function getFirebaseAuthErrorMessage(error) {
-
-    switch (error.code) {
-
-        case "auth/email-already-in-use":
-
-            return (
-                "A student with this name already exists. " +
-                "Please use Login."
-            );
-
-        case "auth/weak-password":
-
-            return (
-                "Please use a 6-digit PIN."
-            );
-
-        case "auth/invalid-email":
-
-            return (
-                "The student name could not be used."
-            );
-
-        default:
-
-            return (
-                "Unable to create the student profile. " +
-                "Please try again."
-            );
-
-    }
-
-}
-
-
-function getFirebaseLoginErrorMessage(error) {
-
-    switch (error.code) {
-
-        case "auth/user-not-found":
-
-        case "auth/wrong-password":
-
-        case "auth/invalid-credential":
-
-            return (
-                "Incorrect student name or PIN."
-            );
-
-        case "auth/too-many-requests":
-
-            return (
-                "Too many login attempts. Please try again later."
-            );
-
-        default:
-
-            return (
-                "Unable to log in. Please try again."
-            );
-
-    }
-
-}
-
-
-/* =========================================================
-   AUTH STATE
-   ========================================================= */
-
-onAuthStateChanged(
-    auth,
-    async user => {
-
-        if (!user) {
-
-            currentStudent = null;
-
-            showLoginScreen();
-
-            return;
-
-        }
-
-
-        try {
-
-            await loadCurrentStudent(user.uid);
-
-
-            if (!currentStudent) {
-
-                await signOut(auth);
-
-                showLoginScreen();
-
-                return;
-
-            }
-
-
-            showDashboard();
-
-        }
-        catch (error) {
-
-            console.error(
-                "Loading student profile:",
-                error
-            );
-
-
-            showError(
-                "loginError",
-                "Unable to load your student profile."
-            );
-
-        }
-
-    }
-);
-
-
-/* =========================================================
-   LOAD CURRENT STUDENT
-   ========================================================= */
-
-async function loadCurrentStudent(uid) {
-
-    const snapshot =
-        await getDoc(
-            doc(
-                db,
-                "students",
-                uid
-            )
-        );
-
-
-    if (!snapshot.exists()) {
-
-        currentStudent = null;
-
-        return null;
-
-    }
-
-
-    currentStudent = {
-
-        uid,
-
-        ...snapshot.data()
-
-    };
-
-
-    return currentStudent;
-
-}
-
-
-/* =========================================================
-   REFRESH STUDENT
-   ========================================================= */
-
-async function refreshCurrentStudent() {
-
-    if (!auth.currentUser) {
-
-        currentStudent = null;
-
-        return null;
-
-    }
-
-
-    return loadCurrentStudent(
-        auth.currentUser.uid
-    );
-
-}
-
-
-/* =========================================================
-   LOGOUT
-   ========================================================= */
+// =====================================================
+// LOGOUT
+// =====================================================
 
 async function logoutStudent() {
 
-    clearInterval(testTimer);
-
-    questions = [];
-
-    answers = [];
-
-    currentQuestion = 0;
-
     try {
 
-        await signOut(auth);
+        clearInterval(testTimer);
 
-        currentStudent = null;
+        questions = [];
+
+        answers = [];
+
+        currentQuestion = 0;
+
+        await signOut(auth);
 
     }
     catch (error) {
@@ -946,235 +1143,41 @@ async function logoutStudent() {
 }
 
 
-/* =========================================================
-   HEADER
-   ========================================================= */
+// =====================================================
+// CLEAR REGISTRATION FORM
+// =====================================================
 
-function updateHeader() {
+function clearRegistrationForm() {
 
-    const student =
-        currentStudent;
+    const fields = [
+        "registerName",
+        "registerPin",
+        "registerPinConfirm"
+    ];
 
+    fields.forEach(id => {
 
-    const headerStudent =
-        getElement("headerStudent");
+        const element =
+            getElement(id);
 
+        if (element) {
+            element.value = "";
+        }
 
-    if (!headerStudent) {
-        return;
-    }
-
-
-    if (!student) {
-
-        headerStudent.classList.add(
-            "hidden"
-        );
-
-        return;
-
-    }
-
-
-    headerStudent.classList.remove(
-        "hidden"
-    );
-
-
-    setText(
-        "headerAvatar",
-        student.avatar || "🧑‍🚀"
-    );
-
-
-    setText(
-        "headerStudentName",
-        student.name || ""
-    );
+    });
 
 }
 
 
-/* =========================================================
-   DASHBOARD
-   ========================================================= */
-
-function updateDashboard() {
-
-    if (!currentStudent) {
-        return;
-    }
-
-
-    const student =
-        currentStudent;
-
-
-    const stats =
-        calculateStudentStats(
-            student
-        );
-
-
-    /* -----------------------------------------------------
-       MAIN PROFILE
-       ----------------------------------------------------- */
-
-    setText(
-        "dashboardAvatar",
-        student.avatar || "🧑‍🚀"
-    );
-
-
-    setText(
-        "dashboardName",
-        student.name
-    );
-
-
-    setText(
-        "dashboardGrade",
-        `Grade ${student.grade}`
-    );
-
-
-    /* -----------------------------------------------------
-       SUPPORT BOTH OLD AND NEW STAT IDs
-       ----------------------------------------------------- */
-
-    setText(
-        "testsCompleted",
-        stats.tests
-    );
-
-    setText(
-        "averageScore",
-        `${stats.average}%`
-    );
-
-    setText(
-        "bestScore",
-        `${stats.best}%`
-    );
-
-    setText(
-        "questionsAnswered",
-        stats.questions
-    );
-
-
-    setText(
-        "statTests",
-        stats.tests
-    );
-
-    setText(
-        "statCorrect",
-        stats.correct
-    );
-
-    setText(
-        "statAccuracy",
-        `${stats.average}%`
-    );
-
-
-    setText(
-        "overallProgressText",
-        `${stats.average}%`
-    );
-
-
-    const progressBar =
-        getElement(
-            "overallProgressBar"
-        );
-
-
-    if (progressBar) {
-
-        progressBar.style.width =
-            `${stats.average}%`;
-
-    }
-
-
-    updateHeader();
-
-    renderRecentTests(student);
-
-}
-
-
-/* =========================================================
-   PROFILE SCREEN
-   ========================================================= */
-
-function updateProfileScreen() {
-
-    if (!currentStudent) {
-        return;
-    }
-
-
-    const student =
-        currentStudent;
-
-
-    const stats =
-        calculateStudentStats(
-            student
-        );
-
-
-    setText(
-        "profileViewAvatar",
-        student.avatar || "🧑‍🚀"
-    );
-
-
-    setText(
-        "profileViewName",
-        student.name
-    );
-
-
-    setText(
-        "profileViewGrade",
-        `Grade ${student.grade}`
-    );
-
-
-    setText(
-        "profileTests",
-        stats.tests
-    );
-
-
-    setText(
-        "profileAverage",
-        `${stats.average}%`
-    );
-
-
-    setText(
-        "profileBest",
-        `${stats.best}%`
-    );
-
-}
-
-
-/* =========================================================
-   POPULATE PROFILE FORM
-   ========================================================= */
+// =====================================================
+// PROFILE FORM
+// =====================================================
 
 function populateProfileForm() {
 
     if (!currentStudent) {
         return;
     }
-
 
     const name =
         getElement("registerName");
@@ -1195,151 +1198,350 @@ function populateProfileForm() {
 
         grade.value =
             String(
-                currentStudent.grade || ""
+                currentStudent.grade || 1
             );
 
     }
 
+}
 
-    selectAvatarByValue(
-        currentStudent.avatar
+
+// =====================================================
+// DASHBOARD
+// =====================================================
+
+async function updateDashboard() {
+
+    if (!currentStudent) {
+        return;
+    }
+
+
+    // Refresh from Firestore
+    try {
+
+        const snapshot =
+            await getDoc(
+                doc(
+                    db,
+                    "students",
+                    currentStudent.uid
+                )
+            );
+
+
+        if (snapshot.exists()) {
+
+            currentStudent = {
+
+                uid:
+                    currentStudent.uid,
+
+                ...snapshot.data()
+
+            };
+
+        }
+
+    }
+    catch (error) {
+
+        console.error(
+            "Dashboard refresh error:",
+            error
+        );
+
+    }
+
+
+    const student =
+        currentStudent;
+
+
+    setText(
+        "dashboardAvatar",
+        student.avatar || "🧑‍🚀"
+    );
+
+
+    setText(
+        "dashboardName",
+        student.name || "Student"
+    );
+
+
+    setText(
+        "dashboardGrade",
+        "Grade " +
+        (student.grade || "")
+    );
+
+
+    setText(
+        "profileName",
+        student.name || "Student"
+    );
+
+
+    setText(
+        "profileGrade",
+        "Grade " +
+        (student.grade || "")
+    );
+
+
+    updateHeader();
+
+
+    const stats =
+        student.statistics || {};
+
+
+    const tests =
+        Number(stats.tests) || 0;
+
+    const correct =
+        Number(stats.correct) || 0;
+
+    const questions =
+        Number(stats.questions) || 0;
+
+
+    const accuracy =
+        questions > 0
+            ? Math.round(
+                correct /
+                questions *
+                100
+            )
+            : 0;
+
+
+    setText(
+        "testsCompleted",
+        tests
+    );
+
+    setText(
+        "statTests",
+        tests
+    );
+
+
+    setText(
+        "questionsAnswered",
+        questions
+    );
+
+
+    setText(
+        "statCorrect",
+        correct
+    );
+
+
+    setText(
+        "averageScore",
+        accuracy + "%"
+    );
+
+
+    setText(
+        "statAccuracy",
+        accuracy + "%"
+    );
+
+
+    setText(
+        "bestScore",
+        calculateBestScore(
+            student
+        ) + "%"
+    );
+
+
+    setText(
+        "overallProgressText",
+        accuracy + "%"
+    );
+
+
+    const progressBar =
+        getElement(
+            "overallProgressBar"
+        );
+
+
+    if (progressBar) {
+
+        progressBar.style.width =
+            accuracy + "%";
+
+    }
+
+
+    const topics =
+        student.topics || {};
+
+
+    updateTopicProgress(
+        "addition",
+        topics.addition
+    );
+
+    updateTopicProgress(
+        "subtraction",
+        topics.subtraction
+    );
+
+    updateTopicProgress(
+        "multiplication",
+        topics.multiplication
+    );
+
+    updateTopicProgress(
+        "division",
+        topics.division
+    );
+
+    updateTopicProgress(
+        "fractions",
+        topics.fractions
+    );
+
+    updateTopicProgress(
+        "decimals",
+        topics.decimals
+    );
+
+    updateTopicProgress(
+        "word",
+        topics.word
+    );
+
+    updateTopicProgress(
+        "time",
+        topics.time
+    );
+
+    updateTopicProgress(
+        "comparison",
+        topics.comparison
+    );
+
+
+    renderRecentTests(
+        student
     );
 
 }
 
 
-/* =========================================================
-   CALCULATE STATISTICS
-   ========================================================= */
+// =====================================================
+// CALCULATE BEST SCORE
+// =====================================================
 
-function calculateStudentStats(student) {
+function calculateBestScore(student) {
 
     const tests =
-        Array.isArray(
-            student?.testsHistory
-        )
-            ? student.testsHistory
-            : [];
+        student.testsHistory || [];
 
 
-    const firebaseStats =
-        student?.statistics || {};
-
-
-    if (tests.length === 0) {
-
-        return {
-
-            tests:
-                Number(
-                    firebaseStats.tests
-                ) || 0,
-
-            average:
-                Number(
-                    firebaseStats.accuracy
-                ) || 0,
-
-            best:
-                0,
-
-            questions:
-                Number(
-                    firebaseStats.questions
-                ) || 0,
-
-            correct:
-                Number(
-                    firebaseStats.correct
-                ) || 0
-
-        };
-
+    if (!tests.length) {
+        return 0;
     }
 
 
-    const scores =
-        tests.map(
+    return Math.max(
+        ...tests.map(
             test =>
                 Number(
                     test.percentage
                 ) || 0
-        );
-
-
-    const totalScore =
-        scores.reduce(
-            (sum, score) =>
-                sum + score,
-            0
-        );
-
-
-    const average =
-        Math.round(
-            totalScore /
-            scores.length
-        );
-
-
-    const best =
-        Math.max(
-            ...scores
-        );
-
-
-    const questions =
-        tests.reduce(
-            (sum, test) =>
-                sum +
-                (
-                    Number(
-                        test.totalQuestions
-                    ) || 0
-                ),
-            0
-        );
-
-
-    const correct =
-        tests.reduce(
-            (sum, test) =>
-                sum +
-                (
-                    Number(
-                        test.correct
-                    ) || 0
-                ),
-            0
-        );
-
-
-    return {
-
-        tests:
-            tests.length,
-
-        average,
-
-        best,
-
-        questions,
-
-        correct
-
-    };
+        )
+    );
 
 }
 
 
-/* =========================================================
-   RECENT TESTS
-   ========================================================= */
+// =====================================================
+// UPDATE TOPIC PROGRESS
+// =====================================================
+
+function updateTopicProgress(
+    topic,
+    data
+) {
+
+    if (!data) {
+        data = {};
+    }
+
+
+    const questions =
+        Number(
+            data.questions
+        ) || 0;
+
+
+    const correct =
+        Number(
+            data.correct
+        ) || 0;
+
+
+    const percentage =
+        questions > 0
+            ? Math.round(
+                correct /
+                questions *
+                100
+            )
+            : 0;
+
+
+    const bar =
+        getElement(
+            topic +
+            "Progress"
+        );
+
+
+    const label =
+        getElement(
+            topic +
+            "Percent"
+        );
+
+
+    if (bar) {
+
+        bar.style.width =
+            percentage + "%";
+
+    }
+
+
+    if (label) {
+
+        label.textContent =
+            percentage + "%";
+
+    }
+
+}
+
+
+// =====================================================
+// RECENT TESTS
+// =====================================================
 
 function renderRecentTests(student) {
 
     const container =
-        getElement("recentTests");
+        getElement(
+            "recentTests"
+        );
 
 
     if (!container) {
@@ -1348,14 +1550,10 @@ function renderRecentTests(student) {
 
 
     const tests =
-        Array.isArray(
-            student.testsHistory
-        )
-            ? student.testsHistory
-            : [];
+        student.testsHistory || [];
 
 
-    if (tests.length === 0) {
+    if (!tests.length) {
 
         container.innerHTML = `
 
@@ -1378,7 +1576,6 @@ function renderRecentTests(student) {
         `;
 
         return;
-
     }
 
 
@@ -1393,12 +1590,7 @@ function renderRecentTests(student) {
         recent
             .map(test => {
 
-                const topic =
-                    test.topic ||
-                    "Mixed Practice";
-
-
-                const percentage =
+                const score =
                     Number(
                         test.percentage
                     ) || 0;
@@ -1411,24 +1603,45 @@ function renderRecentTests(student) {
                         <div class="recent-test-left">
 
                             <strong>
-                                ${escapeHTML(topic)}
+                                ${getTopicEmoji(
+                                    test.topic
+                                )}
+
+                                ${escapeHTML(
+                                    test.topic ||
+                                    "Practice"
+                                )}
                             </strong>
 
                             <small>
-                                Grade ${escapeHTML(test.grade)}
+                                Grade
+                                ${escapeHTML(
+                                    test.grade
+                                )}
                                 •
-                                ${escapeHTML(test.correct)}
-                                /
-                                ${escapeHTML(test.totalQuestions)}
+                                ${escapeHTML(
+                                    test.correct
+                                )}/${escapeHTML(
+                                    test.totalQuestions
+                                )}
                                 correct
                                 •
-                                ${formatDate(test.date)}
+                                ${formatDate(
+                                    test.date
+                                )}
                             </small>
 
                         </div>
 
-                        <div class="test-score">
-                            ${percentage}%
+                        <div
+                            class="test-score"
+                            style="
+                                color:${getScoreColor(
+                                    score
+                                )}
+                            "
+                        >
+                            ${score}%
                         </div>
 
                     </div>
@@ -1441,9 +1654,86 @@ function renderRecentTests(student) {
 }
 
 
-/* =========================================================
-   PROGRESS SCREEN
-   ========================================================= */
+// =====================================================
+// PROFILE SCREEN
+// =====================================================
+
+function updateProfileScreen() {
+
+    if (!currentStudent) {
+        return;
+    }
+
+
+    const student =
+        currentStudent;
+
+
+    setText(
+        "profileViewAvatar",
+        student.avatar || "🧑‍🚀"
+    );
+
+
+    setText(
+        "profileViewName",
+        student.name || "Student"
+    );
+
+
+    setText(
+        "profileViewGrade",
+        "Grade " +
+        (student.grade || "")
+    );
+
+
+    const stats =
+        student.statistics || {};
+
+
+    const questions =
+        Number(stats.questions) || 0;
+
+    const correct =
+        Number(stats.correct) || 0;
+
+
+    const accuracy =
+        questions > 0
+            ? Math.round(
+                correct /
+                questions *
+                100
+            )
+            : 0;
+
+
+    setText(
+        "profileTests",
+        Number(stats.tests) || 0
+    );
+
+
+    setText(
+        "profileAverage",
+        accuracy + "%"
+    );
+
+
+    setText(
+        "profileBest",
+        calculateBestScore(
+            student
+        ) + "%"
+    );
+
+}
+
+
+// =====================================================
+// PROGRESS SCREEN
+// =====================================================
 
 function updateProgressScreen() {
 
@@ -1452,53 +1742,72 @@ function updateProgressScreen() {
     }
 
 
+    const student =
+        currentStudent;
+
+
     const stats =
-        calculateStudentStats(
-            currentStudent
-        );
+        student.statistics || {};
+
+
+    const questions =
+        Number(stats.questions) || 0;
+
+    const correct =
+        Number(stats.correct) || 0;
+
+
+    const accuracy =
+        questions > 0
+            ? Math.round(
+                correct /
+                questions *
+                100
+            )
+            : 0;
 
 
     setText(
         "progressAvatar",
-        currentStudent.avatar || "🧑‍🚀"
+        student.avatar || "🧑‍🚀"
     );
 
 
     setText(
         "progressOverall",
-        `${stats.average}%`
+        accuracy + "%"
     );
 
 
-    const progressBar =
+    const bar =
         getElement(
             "overallProgressBar"
         );
 
 
-    if (progressBar) {
+    if (bar) {
 
-        progressBar.style.width =
-            `${stats.average}%`;
+        bar.style.width =
+            accuracy + "%";
 
     }
 
 
     renderTopicPerformance(
-        currentStudent
+        student
     );
 
 
     renderTestHistory(
-        currentStudent
+        student
     );
 
 }
 
 
-/* =========================================================
-   TOPIC PERFORMANCE
-   ========================================================= */
+// =====================================================
+// TOPIC PERFORMANCE
+// =====================================================
 
 function renderTopicPerformance(student) {
 
@@ -1513,15 +1822,53 @@ function renderTopicPerformance(student) {
     }
 
 
-    const tests =
-        Array.isArray(
-            student.testsHistory
+    const topics =
+        student.topics || {};
+
+
+    const topicNames = {
+
+        addition:
+            "Addition",
+
+        subtraction:
+            "Subtraction",
+
+        multiplication:
+            "Multiplication",
+
+        division:
+            "Division",
+
+        fractions:
+            "Fractions",
+
+        decimals:
+            "Decimals",
+
+        word:
+            "Word Problems",
+
+        time:
+            "Time",
+
+        comparison:
+            "Compare Numbers"
+
+    };
+
+
+    const available =
+        Object.keys(
+            topicNames
         )
-            ? student.testsHistory
-            : [];
+        .filter(
+            topic =>
+                topics[topic]
+        );
 
 
-    if (tests.length === 0) {
+    if (!available.length) {
 
         container.innerHTML = `
 
@@ -1535,95 +1882,85 @@ function renderTopicPerformance(student) {
         `;
 
         return;
-
     }
 
 
-    const topicData = {};
-
-
-    tests.forEach(test => {
-
-        const topic =
-            test.topic ||
-            "Mixed Practice";
-
-
-        if (!topicData[topic]) {
-
-            topicData[topic] = {
-
-                total: 0,
-
-                score: 0
-
-            };
-
-        }
-
-
-        topicData[topic].total++;
-
-        topicData[topic].score +=
-            Number(
-                test.percentage
-            ) || 0;
-
-    });
-
-
     container.innerHTML =
-        Object.entries(topicData)
-            .map(
-                ([topic, data]) => {
+        available
+            .map(topic => {
 
-                    const average =
-                        Math.round(
-                            data.score /
-                            data.total
-                        );
+                const data =
+                    topics[topic] || {};
 
 
-                    return `
+                const total =
+                    Number(
+                        data.questions
+                    ) || 0;
 
-                        <div class="topic-row">
 
-                            <div class="topic-row-header">
+                const correct =
+                    Number(
+                        data.correct
+                    ) || 0;
 
-                                <span>
-                                    ${getTopicEmoji(topic)}
-                                    ${escapeHTML(topic)}
-                                </span>
 
-                                <span>
-                                    ${average}%
-                                </span>
+                const percentage =
+                    total > 0
+                        ? Math.round(
+                            correct /
+                            total *
+                            100
+                        )
+                        : 0;
 
-                            </div>
 
-                            <div class="topic-bar">
+                return `
 
-                                <div
-                                    class="topic-bar-fill"
-                                    style="width:${average}%"
-                                ></div>
+                    <div class="topic-row">
 
-                            </div>
+                        <div class="topic-row-header">
+
+                            <span>
+                                ${getTopicEmoji(
+                                    topicNames[topic]
+                                )}
+
+                                ${escapeHTML(
+                                    topicNames[topic]
+                                )}
+                            </span>
+
+                            <span>
+                                ${percentage}%
+                            </span>
 
                         </div>
 
-                    `;
+                        <div class="topic-bar">
 
-                }
-            )
+                            <div
+                                class="topic-bar-fill"
+                                style="
+                                    width:${percentage}%
+                                "
+                            ></div>
+
+                        </div>
+
+                    </div>
+
+                `;
+
+            })
             .join("");
 
 }
 
 
-/* =========================================================
-   TEST HISTORY
-   ========================================================= */
+// =====================================================
+// TEST HISTORY
+// =====================================================
 
 function renderTestHistory(student) {
 
@@ -1639,14 +1976,10 @@ function renderTestHistory(student) {
 
 
     const tests =
-        Array.isArray(
-            student.testsHistory
-        )
-            ? student.testsHistory
-            : [];
+        student.testsHistory || [];
 
 
-    if (tests.length === 0) {
+    if (!tests.length) {
 
         container.innerHTML = `
 
@@ -1657,7 +1990,6 @@ function renderTestHistory(student) {
         `;
 
         return;
-
     }
 
 
@@ -1680,26 +2012,51 @@ function renderTestHistory(student) {
                         <div class="history-main">
 
                             <strong>
-                                ${getTopicEmoji(test.topic)}
-                                ${escapeHTML(test.topic)}
+
+                                ${getTopicEmoji(
+                                    test.topic
+                                )}
+
+                                ${escapeHTML(
+                                    test.topic
+                                )}
+
                             </strong>
 
                             <small>
-                                Grade ${escapeHTML(test.grade)}
+
+                                Grade
+                                ${escapeHTML(
+                                    test.grade
+                                )}
+
                                 •
-                                ${escapeHTML(test.correct)}
-                                /
-                                ${escapeHTML(test.totalQuestions)}
+
+                                ${escapeHTML(
+                                    test.correct
+                                )}/${escapeHTML(
+                                    test.totalQuestions
+                                )}
+
                                 correct
+
                                 •
-                                ${formatDate(test.date)}
+
+                                ${formatDate(
+                                    test.date
+                                )}
+
                             </small>
 
                         </div>
 
                         <div
                             class="history-score"
-                            style="color:${getScoreColor(score)}"
+                            style="
+                                color:${getScoreColor(
+                                    score
+                                )}
+                            "
                         >
                             ${score}%
                         </div>
@@ -1714,9 +2071,9 @@ function renderTestHistory(student) {
 }
 
 
-/* =========================================================
-   PRACTICE SETUP
-   ========================================================= */
+// =====================================================
+// SET GRADE FROM PROFILE
+// =====================================================
 
 function setGradeFromProfile() {
 
@@ -1743,427 +2100,9 @@ function setGradeFromProfile() {
 }
 
 
-/* =========================================================
-   TOPIC BUTTONS
-   ========================================================= */
-
-function setupTopicButtons() {
-
-    document
-        .querySelectorAll(
-            ".topic-btn"
-        )
-        .forEach(button => {
-
-            button.addEventListener(
-                "click",
-                function () {
-
-                    document
-                        .querySelectorAll(
-                            ".topic-btn"
-                        )
-                        .forEach(btn => {
-
-                            btn.classList.remove(
-                                "selected"
-                            );
-
-                        });
-
-
-                    this.classList.add(
-                        "selected"
-                    );
-
-
-                    selectedTopic =
-                        this.dataset.topic ||
-                        "mixed";
-
-                }
-            );
-
-        });
-
-}
-
-
-/* =========================================================
-   AVATAR BUTTONS
-   ========================================================= */
-
-function setupAvatarButtons() {
-
-    document
-        .querySelectorAll(
-            ".avatar-btn"
-        )
-        .forEach(button => {
-
-            button.addEventListener(
-                "click",
-                function () {
-
-                    document
-                        .querySelectorAll(
-                            ".avatar-btn"
-                        )
-                        .forEach(btn => {
-
-                            btn.classList.remove(
-                                "selected"
-                            );
-
-                        });
-
-
-                    this.classList.add(
-                        "selected"
-                    );
-
-
-                    selectedAvatar =
-                        this.dataset.avatar ||
-                        "🧑‍🚀";
-
-                }
-            );
-
-        });
-
-}
-
-
-/* =========================================================
-   SELECT AVATAR PROGRAMMATICALLY
-   ========================================================= */
-
-function selectAvatarByValue(avatar) {
-
-    if (!avatar) {
-        return;
-    }
-
-
-    const button =
-        document.querySelector(
-            `.avatar-btn[data-avatar="${CSS.escape(avatar)}"]`
-        );
-
-
-    if (button) {
-
-        document
-            .querySelectorAll(
-                ".avatar-btn"
-            )
-            .forEach(btn => {
-
-                btn.classList.remove(
-                    "selected"
-                );
-
-            });
-
-
-        button.classList.add(
-            "selected"
-        );
-
-
-        selectedAvatar =
-            avatar;
-
-    }
-
-}
-
-
-/* =========================================================
-   AUTH BUTTONS
-   ========================================================= */
-
-function setupAuthButtons() {
-
-    const loginButton =
-        getElement("loginButton");
-
-
-    if (loginButton) {
-
-        loginButton.addEventListener(
-            "click",
-            loginStudent
-        );
-
-    }
-
-
-    const registerButton =
-        getElement("registerButton");
-
-
-    if (registerButton) {
-
-        registerButton.addEventListener(
-            "click",
-            createStudent
-        );
-
-    }
-
-
-    const showRegisterButton =
-        getElement(
-            "showRegisterButton"
-        );
-
-
-    if (showRegisterButton) {
-
-        showRegisterButton.addEventListener(
-            "click",
-            showRegisterScreen
-        );
-
-    }
-
-
-    const backToLoginButton =
-        getElement(
-            "backToLoginButton"
-        );
-
-
-    if (backToLoginButton) {
-
-        backToLoginButton.addEventListener(
-            "click",
-            showLoginScreen
-        );
-
-    }
-
-
-    const logoutButton =
-        getElement(
-            "logoutButton"
-        );
-
-
-    if (logoutButton) {
-
-        logoutButton.addEventListener(
-            "click",
-            logoutStudent
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   NAVIGATION BUTTONS
-   ========================================================= */
-
-function setupNavigationButtons() {
-
-    const dashboardButton =
-        getElement(
-            "backDashboardButton"
-        );
-
-
-    if (dashboardButton) {
-
-        dashboardButton.addEventListener(
-            "click",
-            showDashboard
-        );
-
-    }
-
-
-    const resultDashboardButton =
-        getElement(
-            "resultDashboardButton"
-        );
-
-
-    if (resultDashboardButton) {
-
-        resultDashboardButton.addEventListener(
-            "click",
-            showDashboard
-        );
-
-    }
-
-
-    const profileButton =
-        getElement(
-            "profileButton"
-        );
-
-
-    if (profileButton) {
-
-        profileButton.addEventListener(
-            "click",
-            showProfile
-        );
-
-    }
-
-
-    const progressButton =
-        getElement(
-            "progressButton"
-        );
-
-
-    if (progressButton) {
-
-        progressButton.addEventListener(
-            "click",
-            showProgress
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   PRACTICE BUTTONS
-   ========================================================= */
-
-function setupPracticeButtons() {
-
-    const startPracticeButton =
-        getElement(
-            "startPracticeButton"
-        );
-
-
-    if (startPracticeButton) {
-
-        startPracticeButton.addEventListener(
-            "click",
-            showPracticeSetup
-        );
-
-    }
-
-
-    const startTestButton =
-        getElement(
-            "startTestButton"
-        );
-
-
-    if (startTestButton) {
-
-        startTestButton.addEventListener(
-            "click",
-            startTest
-        );
-
-    }
-
-
-    const nextButton =
-        getElement(
-            "nextQuestionButton"
-        );
-
-
-    if (nextButton) {
-
-        nextButton.addEventListener(
-            "click",
-            nextQuestion
-        );
-
-    }
-
-
-    const previousButton =
-        getElement(
-            "previousQuestionButton"
-        );
-
-
-    if (previousButton) {
-
-        previousButton.addEventListener(
-            "click",
-            previousQuestion
-        );
-
-    }
-
-
-    const finishButton =
-        getElement(
-            "finishTestButton"
-        );
-
-
-    if (finishButton) {
-
-        finishButton.addEventListener(
-            "click",
-            finishTest
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   KEYBOARD SHORTCUTS
-   ========================================================= */
-
-function setupKeyboardShortcuts() {
-
-    document.addEventListener(
-        "keydown",
-        event => {
-
-            if (
-                event.key === "Enter" &&
-                getElement("loginScreen") &&
-                !getElement("loginScreen")
-                    .classList.contains("hidden")
-            ) {
-
-                const pin =
-                    getElement("loginPin");
-
-
-                if (
-                    document.activeElement === pin
-                ) {
-
-                    loginStudent();
-
-                }
-
-            }
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   START TEST
-   ========================================================= */
+// =====================================================
+// START TEST
+// =====================================================
 
 function startTest() {
 
@@ -2172,7 +2111,6 @@ function startTest() {
         showLoginScreen();
 
         return;
-
     }
 
 
@@ -2181,18 +2119,15 @@ function startTest() {
             "gradeSelect"
         );
 
-
     const questionCountSelect =
         getElement(
             "questionCount"
         );
 
-
     const timeLimitSelect =
         getElement(
             "timeLimit"
         );
-
 
     const answerTypeSelect =
         getElement(
@@ -2200,44 +2135,57 @@ function startTest() {
         );
 
 
+    if (
+        !gradeSelect ||
+        !questionCountSelect ||
+        !timeLimitSelect
+    ) {
+
+        console.error(
+            "Practice setup elements are missing."
+        );
+
+        return;
+    }
+
+
     const grade =
         parseInt(
-            gradeSelect?.value,
+            gradeSelect.value,
             10
         );
 
 
     const count =
         parseInt(
-            questionCountSelect?.value,
+            questionCountSelect.value,
             10
-        ) || 10;
+        );
 
 
     const minutes =
         parseInt(
-            timeLimitSelect?.value,
+            timeLimitSelect.value,
             10
-        ) || 0;
+        );
 
 
     const answerType =
-        answerTypeSelect?.value ||
-        "mixed";
+        answerTypeSelect
+            ? answerTypeSelect.value
+            : "mixed";
 
 
     if (
         !grade ||
-        grade < 1 ||
-        grade > 7
+        !count
     ) {
 
         alert(
-            "Please select a valid grade."
+            "Please choose a grade and question count."
         );
 
         return;
-
     }
 
 
@@ -2270,10 +2218,14 @@ function startTest() {
 
     hideAllScreens();
 
-    showElement("testScreen");
+    showElement(
+        "testScreen"
+    );
 
 
-    if (minutes > 0) {
+    if (
+        minutes > 0
+    ) {
 
         remainingSeconds =
             minutes * 60;
@@ -2300,9 +2252,9 @@ function startTest() {
 }
 
 
-/* =========================================================
-   TIMER
-   ========================================================= */
+// =====================================================
+// TIMER
+// =====================================================
 
 function startTimer() {
 
@@ -2348,6 +2300,10 @@ function startTimer() {
 }
 
 
+// =====================================================
+// UPDATE TIMER
+// =====================================================
+
 function updateTimerDisplay() {
 
     const timer =
@@ -2369,7 +2325,6 @@ function updateTimerDisplay() {
             "⏰ 0:00";
 
         return;
-
     }
 
 
@@ -2414,9 +2369,9 @@ function updateTimerDisplay() {
 }
 
 
-/* =========================================================
-   GENERATE QUESTION
-   ========================================================= */
+// =====================================================
+// GENERATE QUESTION
+// =====================================================
 
 function generateQuestion(
     grade,
@@ -2585,9 +2540,9 @@ function generateQuestion(
 }
 
 
-/* =========================================================
-   SHOW QUESTION
-   ========================================================= */
+// =====================================================
+// SHOW QUESTION
+// =====================================================
 
 function showQuestion() {
 
@@ -2604,7 +2559,12 @@ function showQuestion() {
 
     setText(
         "progressText",
-        `Question ${currentQuestion + 1} of ${questions.length}`
+        "Question " +
+        (
+            currentQuestion + 1
+        ) +
+        " of " +
+        questions.length
     );
 
 
@@ -2643,7 +2603,11 @@ function showQuestion() {
     let html = `
 
         <div class="question-number">
-            ${escapeHTML(q.type)}
+
+            ${escapeHTML(
+                q.type
+            )}
+
         </div>
 
     `;
@@ -2665,7 +2629,9 @@ function showQuestion() {
     html += `
 
         <div class="question">
+
             ${q.question}
+
         </div>
 
     `;
@@ -2678,7 +2644,9 @@ function showQuestion() {
         html += `
 
             <div class="answer-mode-label">
+
                 Choose the correct answer
+
             </div>
 
         `;
@@ -2689,7 +2657,9 @@ function showQuestion() {
         html += `
 
             <div class="answer-mode-label">
+
                 Type your answer below
+
             </div>
 
         `;
@@ -2699,41 +2669,45 @@ function showQuestion() {
 
     if (
         q.answerMode === "choice" &&
-        Array.isArray(q.options)
+        q.options
     ) {
 
         html +=
             `<div class="answer-grid">`;
 
 
-        q.options.forEach(
-            option => {
+        q.options.forEach(option => {
 
-                const selected =
-                    String(
-                        answers[
-                            currentQuestion
-                        ]
-                    ) ===
-                    String(option)
-                        ? "selected"
-                        : "";
+            const selected =
+                String(
+                    answers[
+                        currentQuestion
+                    ]
+                ) ===
+                String(option)
+                    ? "selected"
+                    : "";
 
 
-                html += `
+            html += `
 
-                    <button
-                        type="button"
-                        class="answer-btn ${selected}"
-                        data-answer="${escapeHTML(option)}"
-                    >
-                        ${escapeHTML(option)}
-                    </button>
+                <button
+                    type="button"
+                    class="answer-btn ${selected}"
+                    data-answer="${escapeHTML(
+                        option
+                    )}"
+                >
 
-                `;
+                    ${escapeHTML(
+                        option
+                    )}
 
-            }
-        );
+                </button>
+
+            `;
+
+        });
 
 
         html +=
@@ -2755,7 +2729,9 @@ function showQuestion() {
                 <input
                     type="text"
                     id="textAnswer"
-                    value="${escapeHTML(existing)}"
+                    value="${escapeHTML(
+                        existing
+                    )}"
                     placeholder="Type your answer"
                     autocomplete="off"
                 >
@@ -2771,14 +2747,12 @@ function showQuestion() {
         html;
 
 
-    /* -----------------------------------------------------
-       ANSWER BUTTON EVENTS
-       ----------------------------------------------------- */
+    // -------------------------------------------------
+    // ANSWER BUTTONS
+    // -------------------------------------------------
 
     container
-        .querySelectorAll(
-            ".answer-btn"
-        )
+        .querySelectorAll(".answer-btn")
         .forEach(button => {
 
             button.addEventListener(
@@ -2796,9 +2770,9 @@ function showQuestion() {
         });
 
 
-    /* -----------------------------------------------------
-       TEXT ANSWER
-       ----------------------------------------------------- */
+    // -------------------------------------------------
+    // TEXT ANSWER
+    // -------------------------------------------------
 
     const input =
         getElement(
@@ -2813,12 +2787,12 @@ function showQuestion() {
 
         input.addEventListener(
             "input",
-            function () {
+            () => {
 
                 answers[
                     currentQuestion
                 ] =
-                    this.value;
+                    input.value;
 
             }
         );
@@ -2826,7 +2800,7 @@ function showQuestion() {
 
         input.addEventListener(
             "keydown",
-            function (event) {
+            event => {
 
                 if (
                     event.key === "Enter"
@@ -2846,9 +2820,9 @@ function showQuestion() {
 }
 
 
-/* =========================================================
-   SELECT ANSWER
-   ========================================================= */
+// =====================================================
+// SELECT ANSWER
+// =====================================================
 
 function selectAnswer(
     button,
@@ -2881,9 +2855,9 @@ function selectAnswer(
 }
 
 
-/* =========================================================
-   SAVE TEXT ANSWER
-   ========================================================= */
+// =====================================================
+// SAVE TEXT ANSWER
+// =====================================================
 
 function saveTextAnswer() {
 
@@ -2905,9 +2879,9 @@ function saveTextAnswer() {
 }
 
 
-/* =========================================================
-   NEXT QUESTION
-   ========================================================= */
+// =====================================================
+// NEXT QUESTION
+// =====================================================
 
 function nextQuestion() {
 
@@ -2933,9 +2907,9 @@ function nextQuestion() {
 }
 
 
-/* =========================================================
-   PREVIOUS QUESTION
-   ========================================================= */
+// =====================================================
+// PREVIOUS QUESTION
+// =====================================================
 
 function previousQuestion() {
 
@@ -2955,150 +2929,233 @@ function previousQuestion() {
 }
 
 
-/* =========================================================
-   FINISH TEST
-   ========================================================= */
+// =====================================================
+// FINISH TEST
+// =====================================================
 
 async function finishTest() {
 
-    saveTextAnswer();
-
-    clearInterval(
-        testTimer
-    );
-
-
-    if (
-        !questions.length
-    ) {
-
+    if (isFinishingTest) {
         return;
-
     }
 
 
-    let correct = 0;
-
-
-    questions.forEach(
-        (question, index) => {
-
-            if (
-                isCorrectAnswer(
-                    answers[index],
-                    question.answer
-                )
-            ) {
-
-                correct++;
-
-            }
-
-        }
-    );
-
-
-    const percentage =
-        Math.round(
-            correct /
-            questions.length *
-            100
-        );
-
-
-    if (!currentStudent) {
-
-        showLoginScreen();
-
+    if (!questions.length) {
         return;
-
     }
 
 
-    const grade =
-        parseInt(
-            getElement(
-                "gradeSelect"
-            )?.value ||
-            currentStudent.grade,
-            10
-        );
-
-
-    const topicName =
-        getTestTopicName();
-
-
-    const testRecord = {
-
-        id:
-            Date.now().toString(),
-
-        date:
-            new Date().toISOString(),
-
-        grade,
-
-        topic:
-            topicName,
-
-        correct,
-
-        totalQuestions:
-            questions.length,
-
-        percentage
-
-    };
+    isFinishingTest = true;
 
 
     try {
+
+        saveTextAnswer();
+
+        clearInterval(
+            testTimer
+        );
+
+
+        let correct = 0;
+
+
+        questions.forEach(
+            (q, index) => {
+
+                if (
+                    isCorrectAnswer(
+                        answers[index],
+                        q.answer
+                    )
+                ) {
+
+                    correct++;
+
+                }
+
+            }
+        );
+
+
+        const percentage =
+            Math.round(
+                correct /
+                questions.length *
+                100
+            );
+
+
+        if (!currentStudent) {
+
+            showLoginScreen();
+
+            return;
+        }
+
+
+        const gradeSelect =
+            getElement(
+                "gradeSelect"
+            );
+
+
+        const grade =
+            gradeSelect
+                ? parseInt(
+                    gradeSelect.value,
+                    10
+                )
+                : currentStudent.grade;
+
+
+        const topicName =
+            getTestTopicName();
+
+
+        const testRecord = {
+
+            id:
+                Date.now().toString(),
+
+            date:
+                new Date().toISOString(),
+
+            grade:
+                grade,
+
+            topic:
+                topicName,
+
+            correct:
+                correct,
+
+            totalQuestions:
+                questions.length,
+
+            percentage:
+                percentage
+
+        };
+
 
         await saveTestResult(
             testRecord
         );
 
+
+        // -------------------------------------------------
+        // SHOW RESULT
+        // -------------------------------------------------
+
+        hideAllScreens();
+
+        showElement(
+            "resultScreen"
+        );
+
+
+        setText(
+            "scorePercent",
+            percentage + "%"
+        );
+
+
+        let message;
+
+
+        if (
+            percentage >= 90
+        ) {
+
+            message =
+                "🏆 Amazing! You are a Math Superstar!";
+
+        }
+        else if (
+            percentage >= 75
+        ) {
+
+            message =
+                "🌟 Great Job! Keep practicing!";
+
+        }
+        else if (
+            percentage >= 60
+        ) {
+
+            message =
+                "👍 Good Work! You are improving!";
+
+        }
+        else {
+
+            message =
+                "💪 Keep practicing. You can do it!";
+
+        }
+
+
+        setText(
+            "resultMessage",
+            message
+        );
+
+
+        setText(
+            "resultDetails",
+            "You got " +
+            correct +
+            " out of " +
+            questions.length +
+            " questions correct."
+        );
+
+
+        setText(
+            "resultBadge",
+            getAchievement(
+                percentage
+            )
+        );
+
+
+        createReview();
+
+
     }
     catch (error) {
 
         console.error(
-            "Could not save test:",
+            "Finish test error:",
             error
         );
 
 
         alert(
-            "Your test was completed, but we could not save the result. Please check your internet connection."
+            "There was a problem saving your test. Please try again."
         );
 
     }
+    finally {
 
+        isFinishingTest = false;
 
-    showResultScreen(
-        correct,
-        percentage
-    );
+    }
 
 }
 
 
-/* =========================================================
-   SAVE TEST RESULT TO FIRESTORE
-   ========================================================= */
+// =====================================================
+// SAVE TEST RESULT TO FIRESTORE
+// =====================================================
 
 async function saveTestResult(
     testRecord
 ) {
 
-    if (
-        !auth.currentUser ||
-        !currentStudent
-    ) {
-
-        throw new Error(
-            "No authenticated student."
-        );
-
+    if (!currentStudent) {
+        return;
     }
 
 
@@ -3106,7 +3163,7 @@ async function saveTestResult(
         doc(
             db,
             "students",
-            auth.currentUser.uid
+            currentStudent.uid
         );
 
 
@@ -3129,43 +3186,52 @@ async function saveTestResult(
         snapshot.data();
 
 
-    const previousTests =
+    // -------------------------------------------------
+    // TEST HISTORY
+    // -------------------------------------------------
+
+    const testsHistory =
         Array.isArray(
             student.testsHistory
         )
             ? student.testsHistory
+                .slice()
             : [];
 
 
-    const testsHistory = [
-        ...previousTests,
+    testsHistory.push(
         testRecord
-    ];
+    );
 
 
-    /* -----------------------------------------------------
-       UPDATE OVERALL STATISTICS
-       ----------------------------------------------------- */
+    // -------------------------------------------------
+    // STATISTICS
+    // -------------------------------------------------
 
-    const previousStats =
+    const oldStats =
         student.statistics || {};
 
 
-    const oldQuestions =
+    const oldTests =
         Number(
-            previousStats.questions
+            oldStats.tests
         ) || 0;
 
 
     const oldCorrect =
         Number(
-            previousStats.correct
+            oldStats.correct
         ) || 0;
 
 
-    const newQuestions =
-        oldQuestions +
-        testRecord.totalQuestions;
+    const oldQuestions =
+        Number(
+            oldStats.questions
+        ) || 0;
+
+
+    const newTests =
+        oldTests + 1;
 
 
     const newCorrect =
@@ -3173,7 +3239,12 @@ async function saveTestResult(
         testRecord.correct;
 
 
-    const accuracy =
+    const newQuestions =
+        oldQuestions +
+        testRecord.totalQuestions;
+
+
+    const newAccuracy =
         newQuestions > 0
             ? Math.round(
                 newCorrect /
@@ -3183,207 +3254,164 @@ async function saveTestResult(
             : 0;
 
 
-    const statistics = {
-
-        tests:
-            testsHistory.length,
-
-        correct:
-            newCorrect,
-
-        questions:
-            newQuestions,
-
-        accuracy
-
-    };
-
-
-    /* -----------------------------------------------------
-       UPDATE TOPIC STATISTICS
-       ----------------------------------------------------- */
-
-    const topics = {
-
-        ...(student.topics || {})
-
-    };
-
+    // -------------------------------------------------
+    // TOPIC
+    // -------------------------------------------------
 
     const topicKey =
-        getTopicKeyFromName(
-            testRecord.topic
+        getTopicKey(
+            selectedTopic
         );
 
 
-    if (!topics[topicKey]) {
-
-        topics[topicKey] = {
-
-            correct: 0,
-
-            questions: 0,
-
-            accuracy: 0
-
-        };
-
-    }
+    const topics =
+        student.topics || {};
 
 
-    topics[topicKey].correct =
-        (
-            Number(
-                topics[topicKey].correct
-            ) || 0
-        ) +
-        testRecord.correct;
+    const oldTopic =
+        topics[topicKey] || {};
 
 
-    topics[topicKey].questions =
-        (
-            Number(
-                topics[topicKey].questions
-            ) || 0
-        ) +
+    const topicCorrect =
+        Number(
+            oldTopic.correct
+        ) || 0;
+
+
+    const topicQuestions =
+        Number(
+            oldTopic.questions
+        ) || 0;
+
+
+    const updatedTopicQuestions =
+        topicQuestions +
         testRecord.totalQuestions;
 
 
-    topics[topicKey].accuracy =
-        topics[topicKey].questions > 0
-            ? Math.round(
-                topics[topicKey].correct /
-                topics[topicKey].questions *
-                100
-            )
-            : 0;
+    const updatedTopicCorrect =
+        topicCorrect +
+        testRecord.correct;
 
 
-    /* -----------------------------------------------------
-       UPDATE FIRESTORE
-       ----------------------------------------------------- */
+    topics[topicKey] = {
+
+        correct:
+            updatedTopicCorrect,
+
+        questions:
+            updatedTopicQuestions,
+
+        accuracy:
+            updatedTopicQuestions > 0
+                ? Math.round(
+                    updatedTopicCorrect /
+                    updatedTopicQuestions *
+                    100
+                )
+                : 0
+
+    };
+
+
+    // -------------------------------------------------
+    // UPDATE FIRESTORE
+    // -------------------------------------------------
 
     await updateDoc(
         studentRef,
         {
 
-            statistics,
+            statistics: {
 
-            topics,
+                tests:
+                    newTests,
 
-            testsHistory
+                correct:
+                    newCorrect,
+
+                questions:
+                    newQuestions,
+
+                accuracy:
+                    newAccuracy
+
+            },
+
+            topics:
+                topics,
+
+            testsHistory:
+                testsHistory,
+
+            updatedAt:
+                serverTimestamp()
 
         }
     );
 
 
-    /* -----------------------------------------------------
-       UPDATE LOCAL STATE
-       ----------------------------------------------------- */
+    // -------------------------------------------------
+    // UPDATE LOCAL CURRENT STUDENT
+    // -------------------------------------------------
 
     currentStudent = {
 
+        uid:
+            currentStudent.uid,
+
         ...student,
 
-        uid:
-            auth.currentUser.uid,
+        statistics: {
 
-        statistics,
+            tests:
+                newTests,
 
-        topics,
+            correct:
+                newCorrect,
 
-        testsHistory
+            questions:
+                newQuestions,
+
+            accuracy:
+                newAccuracy
+
+        },
+
+        topics:
+            topics,
+
+        testsHistory:
+            testsHistory
 
     };
 
 }
 
 
-/* =========================================================
-   RESULT SCREEN
-   ========================================================= */
+// =====================================================
+// TOPIC KEY
+// =====================================================
 
-function showResultScreen(
-    correct,
-    percentage
-) {
-
-    hideAllScreens();
-
-    showElement(
-        "resultScreen"
-    );
-
-
-    setText(
-        "scorePercent",
-        `${percentage}%`
-    );
-
-
-    let message;
-
+function getTopicKey(topic) {
 
     if (
-        percentage >= 90
+        topic === "mixed"
     ) {
 
-        message =
-            "🏆 Amazing! You are a Math Superstar!";
-
-    }
-    else if (
-        percentage >= 75
-    ) {
-
-        message =
-            "🌟 Great Job! Keep practicing!";
-
-    }
-    else if (
-        percentage >= 60
-    ) {
-
-        message =
-            "👍 Good Work! You are improving!";
-
-    }
-    else {
-
-        message =
-            "💪 Keep practicing. You can do it!";
+        return "mixed";
 
     }
 
 
-    setText(
-        "resultMessage",
-        message
-    );
-
-
-    setText(
-        "resultDetails",
-        `You got ${correct} out of ${questions.length} questions correct.`
-    );
-
-
-    setText(
-        "resultBadge",
-        getAchievement(
-            percentage
-        )
-    );
-
-
-    createReview();
+    return topic || "addition";
 
 }
 
 
-/* =========================================================
-   TEST TOPIC NAME
-   ========================================================= */
+// =====================================================
+// TEST TOPIC NAME
+// =====================================================
 
 function getTestTopicName() {
 
@@ -3438,60 +3466,9 @@ function getTestTopicName() {
 }
 
 
-/* =========================================================
-   TOPIC FIRESTORE KEY
-   ========================================================= */
-
-function getTopicKeyFromName(
-    topic
-) {
-
-    const keys = {
-
-        "Mixed Practice":
-            "mixed",
-
-        "Addition":
-            "addition",
-
-        "Subtraction":
-            "subtraction",
-
-        "Multiplication":
-            "multiplication",
-
-        "Division":
-            "division",
-
-        "Fractions":
-            "fractions",
-
-        "Decimals":
-            "decimals",
-
-        "Word Problems":
-            "word",
-
-        "Time":
-            "time",
-
-        "Compare Numbers":
-            "comparison"
-
-    };
-
-
-    return (
-        keys[topic] ||
-        "mixed"
-    );
-
-}
-
-
-/* =========================================================
-   CHECK ANSWER
-   ========================================================= */
+// =====================================================
+// CHECK ANSWER
+// =====================================================
 
 function isCorrectAnswer(
     userAnswer,
@@ -3545,8 +3522,7 @@ function isCorrectAnswer(
             Math.abs(
                 userNumber -
                 correctNumber
-            ) <
-            0.000001
+            ) < 0.000001
         );
 
     }
@@ -3557,9 +3533,9 @@ function isCorrectAnswer(
 }
 
 
-/* =========================================================
-   REVIEW
-   ========================================================= */
+// =====================================================
+// REVIEW
+// =====================================================
 
 function createReview() {
 
@@ -3579,23 +3555,17 @@ function createReview() {
 
 
     questions.forEach(
-        (question, index) => {
+        (q, index) => {
 
-            const rawUserAnswer =
-                answers[index];
-
-
-            const displayUserAnswer =
-                rawUserAnswer === undefined ||
-                rawUserAnswer === ""
-                    ? "No Answer"
-                    : rawUserAnswer;
+            const userAnswer =
+                answers[index] ||
+                "No Answer";
 
 
             const correct =
                 isCorrectAnswer(
-                    rawUserAnswer,
-                    question.answer
+                    userAnswer,
+                    q.answer
                 );
 
 
@@ -3619,7 +3589,7 @@ function createReview() {
                 <div class="review-question">
 
                     ${index + 1}.
-                    ${question.question}
+                    ${q.question}
 
                 </div>
 
@@ -3634,7 +3604,7 @@ function createReview() {
                     }">
 
                         ${escapeHTML(
-                            displayUserAnswer
+                            userAnswer
                         )}
 
                     </span>
@@ -3653,7 +3623,7 @@ function createReview() {
                             <span class="correct-answer">
 
                                 ${escapeHTML(
-                                    question.answer
+                                    q.answer
                                 )}
 
                             </span>
@@ -3676,9 +3646,9 @@ function createReview() {
 }
 
 
-/* =========================================================
-   AVAILABLE TOPICS
-   ========================================================= */
+// =====================================================
+// AVAILABLE TOPICS
+// =====================================================
 
 function getAvailableTopics(
     grade
@@ -3757,9 +3727,9 @@ function getAvailableTopics(
 }
 
 
-/* =========================================================
-   ADDITION
-   ========================================================= */
+// =====================================================
+// ADDITION
+// =====================================================
 
 function additionQuestion(
     grade
@@ -3770,14 +3740,19 @@ function additionQuestion(
 
     if (grade === 1)
         max = 20;
+
     else if (grade === 2)
         max = 100;
+
     else if (grade === 3)
         max = 1000;
+
     else if (grade === 4)
         max = 10000;
+
     else if (grade === 5)
         max = 100000;
+
     else
         max = 1000000;
 
@@ -3808,7 +3783,8 @@ function additionQuestion(
         question:
             `${a} + ${b} = ?`,
 
-        answer,
+        answer:
+            answer,
 
         options:
             makeNumberOptions(
@@ -3820,9 +3796,9 @@ function additionQuestion(
 }
 
 
-/* =========================================================
-   SUBTRACTION
-   ========================================================= */
+// =====================================================
+// SUBTRACTION
+// =====================================================
 
 function subtractionQuestion(
     grade
@@ -3833,14 +3809,19 @@ function subtractionQuestion(
 
     if (grade === 1)
         max = 20;
+
     else if (grade === 2)
         max = 100;
+
     else if (grade === 3)
         max = 1000;
+
     else if (grade === 4)
         max = 10000;
+
     else if (grade === 5)
         max = 100000;
+
     else
         max = 1000000;
 
@@ -3871,7 +3852,8 @@ function subtractionQuestion(
         question:
             `${a} − ${b} = ?`,
 
-        answer,
+        answer:
+            answer,
 
         options:
             makeNumberOptions(
@@ -3883,16 +3865,15 @@ function subtractionQuestion(
 }
 
 
-/* =========================================================
-   MULTIPLICATION
-   ========================================================= */
+// =====================================================
+// MULTIPLICATION
+// =====================================================
 
 function multiplicationQuestion(
     grade
 ) {
 
     let maxA;
-
     let maxB;
 
 
@@ -3960,7 +3941,8 @@ function multiplicationQuestion(
         question:
             `${a} × ${b} = ?`,
 
-        answer,
+        answer:
+            answer,
 
         options:
             makeNumberOptions(
@@ -3972,9 +3954,9 @@ function multiplicationQuestion(
 }
 
 
-/* =========================================================
-   DIVISION
-   ========================================================= */
+// =====================================================
+// DIVISION
+// =====================================================
 
 function divisionQuestion(
     grade
@@ -4037,7 +4019,8 @@ function divisionQuestion(
         question:
             `${dividend} ÷ ${divisor} = ?`,
 
-        answer,
+        answer:
+            answer,
 
         options:
             makeNumberOptions(
@@ -4049,9 +4032,9 @@ function divisionQuestion(
 }
 
 
-/* =========================================================
-   FRACTIONS
-   ========================================================= */
+// =====================================================
+// FRACTIONS
+// =====================================================
 
 function fractionQuestion(
     grade
@@ -4083,7 +4066,8 @@ function fractionQuestion(
                 "Fractions",
 
             question:
-                `Which fraction represents ${numerator} out of ${denominator}?`,
+                `Which fraction represents ` +
+                `${numerator} out of ${denominator}?`,
 
             answer:
                 `${numerator}/${denominator}`,
@@ -4142,9 +4126,11 @@ function fractionQuestion(
             "Fractions",
 
         question:
-            `${numerator}/${denominator} + ${n2}/${d2} ≈ ?`,
+            `${numerator}/${denominator} + ` +
+            `${n2}/${d2} ≈ ?`,
 
-        answer,
+        answer:
+            answer,
 
         options:
             makeNumberOptions(
@@ -4156,9 +4142,9 @@ function fractionQuestion(
 }
 
 
-/* =========================================================
-   DECIMALS
-   ========================================================= */
+// =====================================================
+// DECIMALS
+// =====================================================
 
 function decimalQuestion(
     grade
@@ -4184,9 +4170,7 @@ function decimalQuestion(
 
     const answer =
         Math.round(
-            (
-                a + b
-            ) * 100
+            (a + b) * 100
         ) / 100;
 
 
@@ -4198,7 +4182,8 @@ function decimalQuestion(
         question:
             `${a} + ${b} = ?`,
 
-        answer,
+        answer:
+            answer,
 
         options:
             makeNumberOptions(
@@ -4210,9 +4195,9 @@ function decimalQuestion(
 }
 
 
-/* =========================================================
-   WORD PROBLEM
-   ========================================================= */
+// =====================================================
+// WORD PROBLEM
+// =====================================================
 
 function wordQuestion(
     grade
@@ -4248,11 +4233,8 @@ function wordQuestion(
 
 
     let a;
-
     let b;
-
     let answer;
-
     let question;
 
 
@@ -4387,9 +4369,11 @@ function wordQuestion(
         type:
             "Word Problem",
 
-        question,
+        question:
+            question,
 
-        answer,
+        answer:
+            answer,
 
         options:
             makeNumberOptions(
@@ -4401,9 +4385,9 @@ function wordQuestion(
 }
 
 
-/* =========================================================
-   TIME
-   ========================================================= */
+// =====================================================
+// TIME QUESTION
+// =====================================================
 
 function timeQuestion(
     grade
@@ -4466,11 +4450,14 @@ function timeQuestion(
         question:
             "What time is shown on the clock?",
 
-        answer,
+        answer:
+            answer,
 
-        hour,
+        hour:
+            hour,
 
-        minute,
+        minute:
+            minute,
 
         options:
             makeTimeOptions(
@@ -4483,9 +4470,9 @@ function timeQuestion(
 }
 
 
-/* =========================================================
-   FORMAT TIME
-   ========================================================= */
+// =====================================================
+// FORMAT TIME
+// =====================================================
 
 function formatTime(
     hour,
@@ -4506,9 +4493,9 @@ function formatTime(
 }
 
 
-/* =========================================================
-   CLOCK HTML
-   ========================================================= */
+// =====================================================
+// CLOCK HTML
+// =====================================================
 
 function createClockHTML(
     hour,
@@ -4586,9 +4573,9 @@ function createClockHTML(
 }
 
 
-/* =========================================================
-   TIME OPTIONS
-   ========================================================= */
+// =====================================================
+// TIME OPTIONS
+// =====================================================
 
 function makeTimeOptions(
     hour,
@@ -4654,9 +4641,9 @@ function makeTimeOptions(
 }
 
 
-/* =========================================================
-   NUMBER OPTIONS
-   ========================================================= */
+// =====================================================
+// NUMBER OPTIONS
+// =====================================================
 
 function makeNumberOptions(
     answer
@@ -4750,9 +4737,9 @@ function makeNumberOptions(
 }
 
 
-/* =========================================================
-   COMPARISON
-   ========================================================= */
+// =====================================================
+// COMPARISON
+// =====================================================
 
 function comparisonQuestion(
     grade
@@ -4828,14 +4815,13 @@ function comparisonQuestion(
         question:
             `${a} &nbsp; ___ &nbsp; ${b}`,
 
-        answer,
+        answer:
+            answer,
 
         options: [
-
             ">",
             "<",
             "="
-
         ]
 
     };
@@ -4843,52 +4829,23 @@ function comparisonQuestion(
 }
 
 
-/* =========================================================
-   SHUFFLE
-   ========================================================= */
+// =====================================================
+// SHUFFLE
+// =====================================================
 
-function shuffle(
-    array
-) {
+function shuffle(array) {
 
-    const result =
-        [...array];
-
-
-    for (
-        let i =
-            result.length - 1;
-        i > 0;
-        i--
-    ) {
-
-        const j =
-            Math.floor(
-                Math.random() *
-                (i + 1)
-            );
-
-
-        [
-            result[i],
-            result[j]
-        ] =
-        [
-            result[j],
-            result[i]
-        ];
-
-    }
-
-
-    return result;
+    return array.sort(
+        () =>
+            Math.random() - 0.5
+    );
 
 }
 
 
-/* =========================================================
-   RANDOM NUMBER
-   ========================================================= */
+// =====================================================
+// RANDOM INTEGER
+// =====================================================
 
 function randomInt(
     min,
@@ -4905,9 +4862,9 @@ function randomInt(
 }
 
 
-/* =========================================================
-   ACHIEVEMENT
-   ========================================================= */
+// =====================================================
+// ACHIEVEMENT
+// =====================================================
 
 function getAchievement(
     percentage
@@ -4963,9 +4920,9 @@ function getAchievement(
 }
 
 
-/* =========================================================
-   TOPIC EMOJI
-   ========================================================= */
+// =====================================================
+// TOPIC EMOJI
+// =====================================================
 
 function getTopicEmoji(
     topic
@@ -5014,9 +4971,9 @@ function getTopicEmoji(
 }
 
 
-/* =========================================================
-   SCORE COLOR
-   ========================================================= */
+// =====================================================
+// SCORE COLOR
+// =====================================================
 
 function getScoreColor(
     score
@@ -5054,18 +5011,40 @@ function getScoreColor(
 }
 
 
-/* =========================================================
-   DATE FORMAT
-   ========================================================= */
+// =====================================================
+// DATE FORMAT
+// =====================================================
 
 function formatDate(
-    dateString
+    dateValue
 ) {
 
-    const date =
-        new Date(
-            dateString
-        );
+    if (!dateValue) {
+        return "";
+    }
+
+
+    let date;
+
+
+    // Firebase Timestamp
+    if (
+        typeof dateValue.toDate ===
+        "function"
+    ) {
+
+        date =
+            dateValue.toDate();
+
+    }
+    else {
+
+        date =
+            new Date(
+                dateValue
+            );
+
+    }
 
 
     if (
@@ -5098,9 +5077,9 @@ function formatDate(
 }
 
 
-/* =========================================================
-   HTML ESCAPE
-   ========================================================= */
+// =====================================================
+// HTML ESCAPE
+// =====================================================
 
 function escapeHTML(
     value
@@ -5133,89 +5112,112 @@ function escapeHTML(
 }
 
 
-/* =========================================================
-   CLEAR REGISTRATION FORM
-   ========================================================= */
+// =====================================================
+// LOGIN ERROR
+// =====================================================
 
-function clearRegistrationForm() {
+function showLoginError(
+    message
+) {
 
-    const fields = [
-
-        "registerName",
-        "registerPin",
-        "registerPinConfirm"
-
-    ];
-
-
-    fields.forEach(id => {
-
-        const element =
-            getElement(id);
-
-
-        if (element) {
-
-            element.value =
-                "";
-
-        }
-
-    });
+    showError(
+        "loginError",
+        message
+    );
 
 }
 
 
-/* =========================================================
-   EXPORT FUNCTIONS FOR INLINE HTML
-   =========================================================
+function clearLoginError() {
 
-   If your HTML currently uses things like:
+    clearError(
+        "loginError"
+    );
 
-       onclick="showDashboard()"
-       onclick="nextQuestion()"
+}
 
-   these assignments keep those buttons working.
-   ========================================================= */
 
-window.showLoginScreen =
-    showLoginScreen;
+// =====================================================
+// REGISTER ERROR
+// =====================================================
 
-window.showRegisterScreen =
-    showRegisterScreen;
+function showRegisterError(
+    message
+) {
 
-window.showDashboard =
-    showDashboard;
+    showError(
+        "registerError",
+        message
+    );
 
-window.showPracticeSetup =
-    showPracticeSetup;
+}
 
-window.showProfile =
-    showProfile;
 
-window.showProgress =
-    showProgress;
+function clearRegisterError() {
 
-window.loginStudent =
-    loginStudent;
+    clearError(
+        "registerError"
+    );
 
-window.createStudent =
-    createStudent;
+}
 
-window.logoutStudent =
-    logoutStudent;
 
-window.startTest =
-    startTest;
+// =====================================================
+// GENERIC ERROR
+// =====================================================
 
-window.nextQuestion =
-    nextQuestion;
+function showError(
+    elementId,
+    message
+) {
 
-window.previousQuestion =
-    previousQuestion;
+    const element =
+        getElement(
+            elementId
+        );
 
-window.finishTest =
-    finishTest;
 
-window.selectAnswer =
-    selectAnswer;
+    if (!element) {
+        return;
+    }
+
+
+    element.textContent =
+        message;
+
+
+    element.classList.remove(
+        "hidden"
+    );
+
+}
+
+
+// =====================================================
+// CLEAR ERROR
+// =====================================================
+
+function clearError(
+    elementId
+) {
+
+    const element =
+        getElement(
+            elementId
+        );
+
+
+    if (!element) {
+        return;
+    }
+
+
+    element.textContent =
+        "";
+
+
+    element.classList.add(
+        "hidden"
+    );
+
+}
