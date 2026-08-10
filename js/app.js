@@ -1,8 +1,18 @@
 /* =====================================================
+   MATH ADVENTURE
+   Student Profile + Quiz System
+===================================================== */
+
+
+/* =====================================================
    GLOBAL VARIABLES
 ===================================================== */
 
 let selectedTopic = "mixed";
+
+let selectedAvatar = "🦊";
+
+let studentProfile = null;
 
 let questions = [];
 
@@ -14,101 +24,808 @@ let testTimer = null;
 
 let remainingSeconds = 0;
 
-/* =====================================================
-   PROGRESS DATA
-===================================================== */
-
-let progressData = JSON.parse(
-    localStorage.getItem("mathAdventureProgress")
-) || {
-    testsCompleted: 0,
-    questionsAnswered: 0,
-    correctAnswers: 0,
-    topicStats: {},
-    recentTests: [],
-    lastPracticeDate: null,
-    streak: 0
-};
 
 /* =====================================================
-   TOPIC BUTTONS
+   STORAGE KEY
 ===================================================== */
 
-document
-.querySelectorAll(".topic-btn")
-.forEach(button => {
+const PROFILE_STORAGE_KEY =
+    "mathAdventureStudentProfile";
 
-    button.addEventListener(
-        "click",
-        function(){
 
-            document
-            .querySelectorAll(".topic-btn")
-            .forEach(btn => {
+/* =====================================================
+   INITIALIZE
+===================================================== */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        loadStudentProfile();
+
+        setupTopicButtons();
+
+        setupGradeChange();
+
+        console.log(
+            "Math Adventure loaded successfully."
+        );
+
+    }
+);
+
+
+/* =====================================================
+   LOAD STUDENT PROFILE
+===================================================== */
+
+function loadStudentProfile() {
+
+    const savedProfile =
+        localStorage.getItem(
+            PROFILE_STORAGE_KEY
+        );
+
+
+    if (savedProfile) {
+
+        try {
+
+            studentProfile =
+                JSON.parse(
+                    savedProfile
+                );
+
+            selectedAvatar =
+                studentProfile.avatar ||
+                "🦊";
+
+
+            showDashboard();
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Unable to load student profile:",
+                error
+            );
+
+            showProfileScreen();
+
+        }
+
+    }
+
+    else {
+
+        showProfileScreen();
+
+    }
+
+}
+
+
+/* =====================================================
+   SHOW PROFILE SCREEN
+===================================================== */
+
+function showProfileScreen() {
+
+    hideAllScreens();
+
+    document
+        .getElementById("profileScreen")
+        .classList.remove("hidden");
+
+}
+
+
+/* =====================================================
+   SHOW DASHBOARD
+===================================================== */
+
+function showDashboard() {
+
+    if (!studentProfile) {
+
+        showProfileScreen();
+
+        return;
+
+    }
+
+
+    hideAllScreens();
+
+
+    document
+        .getElementById("dashboardScreen")
+        .classList.remove("hidden");
+
+
+    updateStudentUI();
+
+    updateStatistics();
+
+}
+
+
+/* =====================================================
+   SHOW PRACTICE SCREEN
+===================================================== */
+
+function showPracticeScreen() {
+
+    hideAllScreens();
+
+
+    document
+        .getElementById("setupScreen")
+        .classList.remove("hidden");
+
+
+    updateStudentUI();
+
+
+    const gradeSelect =
+        document.getElementById(
+            "gradeSelect"
+        );
+
+
+    if (
+        studentProfile &&
+        gradeSelect
+    ) {
+
+        gradeSelect.value =
+            String(
+                studentProfile.grade
+            );
+
+    }
+
+}
+
+
+/* =====================================================
+   HIDE ALL SCREENS
+===================================================== */
+
+function hideAllScreens() {
+
+    const screens = [
+
+        "profileScreen",
+
+        "dashboardScreen",
+
+        "setupScreen",
+
+        "testScreen",
+
+        "resultScreen"
+
+    ];
+
+
+    screens.forEach(
+        function (id) {
+
+            const element =
+                document.getElementById(id);
+
+            if (element) {
+
+                element.classList.add(
+                    "hidden"
+                );
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   SELECT AVATAR
+===================================================== */
+
+function selectAvatar(button) {
+
+    document
+        .querySelectorAll(".avatar-btn")
+        .forEach(
+            function (btn) {
 
                 btn.classList.remove(
                     "selected"
                 );
 
-            });
+            }
+        );
 
 
-            this.classList.add(
-                "selected"
+    button.classList.add(
+        "selected"
+    );
+
+
+    selectedAvatar =
+        button.dataset.avatar;
+
+}
+
+
+/* =====================================================
+   SAVE STUDENT PROFILE
+===================================================== */
+
+function saveStudentProfile() {
+
+    const nameInput =
+        document.getElementById(
+            "studentName"
+        );
+
+
+    const gradeInput =
+        document.getElementById(
+            "profileGrade"
+        );
+
+
+    const error =
+        document.getElementById(
+            "profileError"
+        );
+
+
+    const name =
+        nameInput.value.trim();
+
+
+    const grade =
+        parseInt(
+            gradeInput.value
+        );
+
+
+    error.textContent = "";
+
+
+    if (!name) {
+
+        error.textContent =
+            "Please enter the student's name.";
+
+        nameInput.focus();
+
+        return;
+
+    }
+
+
+    if (
+        name.length < 2
+    ) {
+
+        error.textContent =
+            "Please enter at least 2 characters.";
+
+        nameInput.focus();
+
+        return;
+
+    }
+
+
+    studentProfile = {
+
+        name: name,
+
+        grade: grade,
+
+        avatar: selectedAvatar,
+
+        testsCompleted: 0,
+
+        questionsAnswered: 0,
+
+        bestScore: 0
+
+    };
+
+
+    localStorage.setItem(
+
+        PROFILE_STORAGE_KEY,
+
+        JSON.stringify(
+            studentProfile
+        )
+
+    );
+
+
+    showDashboard();
+
+}
+
+
+/* =====================================================
+   EDIT STUDENT PROFILE
+===================================================== */
+
+function editStudentProfile() {
+
+    if (!studentProfile) {
+
+        showProfileScreen();
+
+        return;
+
+    }
+
+
+    hideAllScreens();
+
+
+    document
+        .getElementById("profileScreen")
+        .classList.remove("hidden");
+
+
+    document
+        .getElementById("studentName")
+        .value =
+            studentProfile.name;
+
+
+    document
+        .getElementById("profileGrade")
+        .value =
+            String(
+                studentProfile.grade
             );
 
 
-            selectedTopic =
-                this.dataset.topic;
+    selectedAvatar =
+        studentProfile.avatar ||
+        "🦊";
+
+
+    document
+        .querySelectorAll(".avatar-btn")
+        .forEach(
+            function (button) {
+
+                button.classList.toggle(
+
+                    "selected",
+
+                    button.dataset.avatar ===
+                    selectedAvatar
+
+                );
+
+            }
+        );
+
+
+    document
+        .getElementById("profileTitle")
+        .textContent =
+            "✏️ Edit Your Profile";
+
+
+    document
+        .getElementById("profileSubtitle")
+        .textContent =
+            "Update your name, avatar, or grade.";
+
+
+    document
+        .querySelector(".profile-start-btn")
+        .textContent =
+            "💾 Save Profile";
+
+}
+
+
+/* =====================================================
+   LOGOUT
+===================================================== */
+
+function logoutStudent() {
+
+    const confirmed =
+        confirm(
+            "Do you want to switch student?"
+        );
+
+
+    if (!confirmed) {
+
+        return;
+
+    }
+
+
+    clearInterval(testTimer);
+
+
+    studentProfile = null;
+
+    localStorage.removeItem(
+        PROFILE_STORAGE_KEY
+    );
+
+
+    document
+        .getElementById("studentName")
+        .value = "";
+
+
+    document
+        .getElementById("profileGrade")
+        .value = "1";
+
+
+    selectedAvatar = "🦊";
+
+
+    document
+        .querySelectorAll(".avatar-btn")
+        .forEach(
+            function (button, index) {
+
+                button.classList.toggle(
+                    "selected",
+                    index === 0
+                );
+
+            }
+        );
+
+
+    document
+        .getElementById("profileTitle")
+        .textContent =
+            "Welcome to Math Adventure!";
+
+
+    document
+        .getElementById("profileSubtitle")
+        .textContent =
+            "Create your student profile to begin.";
+
+
+    document
+        .querySelector(".profile-start-btn")
+        .textContent =
+            "🚀 Create My Profile";
+
+
+    showProfileScreen();
+
+}
+
+
+/* =====================================================
+   UPDATE STUDENT UI
+===================================================== */
+
+function updateStudentUI() {
+
+    if (!studentProfile) {
+
+        return;
+
+    }
+
+
+    const name =
+        studentProfile.name;
+
+
+    const grade =
+        studentProfile.grade;
+
+
+    const avatar =
+        studentProfile.avatar ||
+        "🦊";
+
+
+    /* HEADER */
+
+    document
+        .getElementById(
+            "headerAvatar"
+        )
+        .textContent = avatar;
+
+
+    document
+        .getElementById(
+            "headerStudentName"
+        )
+        .textContent = name;
+
+
+    document
+        .getElementById(
+            "headerStudentGrade"
+        )
+        .textContent =
+            "Grade " + grade;
+
+
+    document
+        .getElementById(
+            "headerProfile"
+        )
+        .classList.remove(
+            "hidden"
+        );
+
+
+    /* DASHBOARD */
+
+    document
+        .getElementById(
+            "dashboardAvatar"
+        )
+        .textContent = avatar;
+
+
+    document
+        .getElementById(
+            "dashboardName"
+        )
+        .textContent = name;
+
+
+    document
+        .getElementById(
+            "dashboardGrade"
+        )
+        .textContent =
+            "📚 Grade " + grade;
+
+
+    /* SETUP */
+
+    document
+        .getElementById(
+            "setupAvatar"
+        )
+        .textContent = avatar;
+
+
+    document
+        .getElementById(
+            "setupStudentName"
+        )
+        .textContent = name;
+
+
+    document
+        .getElementById(
+            "setupStudentGrade"
+        )
+        .textContent =
+            "Grade " + grade;
+
+
+    const gradeSelect =
+        document.getElementById(
+            "gradeSelect"
+        );
+
+
+    if (gradeSelect) {
+
+        gradeSelect.value =
+            String(grade);
+
+    }
+
+}
+
+
+/* =====================================================
+   GRADE CHANGE
+===================================================== */
+
+function setupGradeChange() {
+
+    const gradeSelect =
+        document.getElementById(
+            "gradeSelect"
+        );
+
+
+    if (!gradeSelect) {
+
+        return;
+
+    }
+
+
+    gradeSelect.addEventListener(
+        "change",
+        function () {
+
+            if (
+                studentProfile
+            ) {
+
+                studentProfile.grade =
+                    parseInt(
+                        this.value
+                    );
+
+
+                localStorage.setItem(
+
+                    PROFILE_STORAGE_KEY,
+
+                    JSON.stringify(
+                        studentProfile
+                    )
+
+                );
+
+
+                updateStudentUI();
+
+            }
 
         }
     );
 
-});
+}
+
+
+/* =====================================================
+   STATISTICS
+===================================================== */
+
+function updateStatistics() {
+
+    if (!studentProfile) {
+
+        return;
+
+    }
+
+
+    document
+        .getElementById(
+            "testsCompleted"
+        )
+        .textContent =
+            studentProfile.testsCompleted ||
+            0;
+
+
+    document
+        .getElementById(
+            "questionsAnswered"
+        )
+        .textContent =
+            studentProfile.questionsAnswered ||
+            0;
+
+
+    document
+        .getElementById(
+            "bestScore"
+        )
+        .textContent =
+            (
+                studentProfile.bestScore ||
+                0
+            ) + "%";
+
+}
+
+
+/* =====================================================
+   TOPIC BUTTONS
+===================================================== */
+
+function setupTopicButtons() {
+
+    document
+        .querySelectorAll(".topic-btn")
+        .forEach(
+            function (button) {
+
+                button.addEventListener(
+                    "click",
+                    function () {
+
+                        document
+                            .querySelectorAll(
+                                ".topic-btn"
+                            )
+                            .forEach(
+                                function (btn) {
+
+                                    btn.classList.remove(
+                                        "selected"
+                                    );
+
+                                }
+                            );
+
+
+                        this.classList.add(
+                            "selected"
+                        );
+
+
+                        selectedTopic =
+                            this.dataset.topic;
+
+                    }
+                );
+
+            }
+        );
+
+}
 
 
 /* =====================================================
    START TEST
 ===================================================== */
 
-function startTest(){
+function startTest() {
 
     const grade =
         parseInt(
             document
-            .getElementById(
-                "gradeSelect"
-            )
-            .value
+                .getElementById(
+                    "gradeSelect"
+                )
+                .value
         );
 
 
     const count =
         parseInt(
             document
-            .getElementById(
-                "questionCount"
-            )
-            .value
+                .getElementById(
+                    "questionCount"
+                )
+                .value
         );
 
 
     const minutes =
         parseInt(
             document
-            .getElementById(
-                "timeLimit"
-            )
-            .value
+                .getElementById(
+                    "timeLimit"
+                )
+                .value
         );
 
 
     const answerType =
         document
-        .getElementById(
-            "answerType"
-        )
-        .value;
+            .getElementById(
+                "answerType"
+            )
+            .value;
 
 
     questions = [];
@@ -118,51 +835,57 @@ function startTest(){
     currentQuestion = 0;
 
 
-    for(
+    for (
         let i = 0;
         i < count;
         i++
-    ){
+    ) {
 
         questions.push(
+
             generateQuestion(
+
                 grade,
+
                 selectedTopic,
+
                 answerType
+
             )
+
         );
 
     }
 
 
     document
-    .getElementById(
-        "setupScreen"
-    )
-    .classList.add(
-        "hidden"
-    );
+        .getElementById(
+            "setupScreen"
+        )
+        .classList.add(
+            "hidden"
+        );
 
 
     document
-    .getElementById(
-        "resultScreen"
-    )
-    .classList.add(
-        "hidden"
-    );
+        .getElementById(
+            "resultScreen"
+        )
+        .classList.add(
+            "hidden"
+        );
 
 
     document
-    .getElementById(
-        "testScreen"
-    )
-    .classList.remove(
-        "hidden"
-    );
+        .getElementById(
+            "testScreen"
+        )
+        .classList.remove(
+            "hidden"
+        );
 
 
-    if(minutes > 0){
+    if (minutes > 0) {
 
         remainingSeconds =
             minutes * 60;
@@ -170,16 +893,20 @@ function startTest(){
         startTimer();
 
     }
-    else{
 
-        clearInterval(testTimer);
+    else {
+
+        clearInterval(
+            testTimer
+        );
+
 
         document
-        .getElementById(
-            "timer"
-        )
-        .textContent =
-            "⏱ No Timer";
+            .getElementById(
+                "timer"
+            )
+            .textContent =
+                "⏱ No Timer";
 
     }
 
@@ -193,25 +920,28 @@ function startTest(){
    TIMER
 ===================================================== */
 
-function startTimer(){
+function startTimer() {
 
-    clearInterval(testTimer);
+    clearInterval(
+        testTimer
+    );
+
 
     updateTimerDisplay();
 
 
     testTimer =
         setInterval(
-            function(){
+            function () {
 
                 remainingSeconds--;
 
                 updateTimerDisplay();
 
 
-                if(
+                if (
                     remainingSeconds <= 0
-                ){
+                ) {
 
                     clearInterval(
                         testTimer
@@ -234,18 +964,21 @@ function startTimer(){
 }
 
 
-function updateTimerDisplay(){
+/* =====================================================
+   UPDATE TIMER
+===================================================== */
+
+function updateTimerDisplay() {
 
     const timer =
-        document
-        .getElementById(
+        document.getElementById(
             "timer"
         );
 
 
-    if(
+    if (
         remainingSeconds <= 0
-    ){
+    ) {
 
         timer.textContent =
             "⏰ 0:00";
@@ -270,22 +1003,23 @@ function updateTimerDisplay(){
         minutes +
         ":" +
         String(seconds)
-        .padStart(
-            2,
-            "0"
-        );
+            .padStart(
+                2,
+                "0"
+            );
 
 
-    if(
+    if (
         remainingSeconds <= 60
-    ){
+    ) {
 
         timer.classList.add(
             "warning"
         );
 
     }
-    else{
+
+    else {
 
         timer.classList.remove(
             "warning"
@@ -304,15 +1038,14 @@ function generateQuestion(
     grade,
     topic,
     answerType
-){
+) {
 
-    let actualTopic =
-        topic;
+    let actualTopic = topic;
 
 
-    if(
+    if (
         topic === "mixed"
-    ){
+    ) {
 
         const topics =
             getAvailableTopics(
@@ -334,7 +1067,7 @@ function generateQuestion(
     let question;
 
 
-    switch(actualTopic){
+    switch (actualTopic) {
 
         case "addition":
 
@@ -436,14 +1169,9 @@ function generateQuestion(
     }
 
 
-    /* ---------------------------------------------
-       ANSWER MODE
-    --------------------------------------------- */
-
-
-    if(
+    if (
         answerType === "choice"
-    ){
+    ) {
 
         question.answerMode =
             "choice";
@@ -451,9 +1179,9 @@ function generateQuestion(
     }
 
 
-    else if(
+    else if (
         answerType === "blank"
-    ){
+    ) {
 
         question.answerMode =
             "blank";
@@ -461,12 +1189,12 @@ function generateQuestion(
     }
 
 
-    else{
+    else {
 
         question.answerMode =
-            Math.random() < 0.5
-            ? "choice"
-            : "blank";
+            Math.random() < .5
+                ? "choice"
+                : "blank";
 
     }
 
@@ -480,7 +1208,7 @@ function generateQuestion(
    SHOW QUESTION
 ===================================================== */
 
-function showQuestion(){
+function showQuestion() {
 
     const q =
         questions[
@@ -489,35 +1217,32 @@ function showQuestion(){
 
 
     document
-    .getElementById(
-        "progressText"
-    )
-    .textContent =
-        "Question " +
-        (currentQuestion + 1) +
-        " of " +
-        questions.length;
+        .getElementById(
+            "progressText"
+        )
+        .textContent =
+            "Question " +
+            (currentQuestion + 1) +
+            " of " +
+            questions.length;
 
 
     document
-    .getElementById(
-        "progressBar"
-    )
-    .style.width =
-        (
+        .getElementById(
+            "progressBar"
+        )
+        .style.width =
             (
-                currentQuestion + 1
-            )
-            /
-            questions.length
-            *
-            100
-        ) + "%";
+                (
+                    currentQuestion + 1
+                ) /
+                questions.length *
+                100
+            ) + "%";
 
 
     const container =
-        document
-        .getElementById(
+        document.getElementById(
             "questionContainer"
         );
 
@@ -525,19 +1250,15 @@ function showQuestion(){
     let html = `
 
         <div class="question-number">
-
             ${q.type}
-
         </div>
 
     `;
 
 
-    /* CLOCK */
-
-    if(
+    if (
         q.type === "Time"
-    ){
+    ) {
 
         html +=
             createClockHTML(
@@ -547,8 +1268,6 @@ function showQuestion(){
 
     }
 
-
-    /* QUESTION TEXT */
 
     html += `
 
@@ -561,31 +1280,26 @@ function showQuestion(){
     `;
 
 
-    /* ANSWER MODE LABEL */
-
-    if(
+    if (
         q.answerMode === "choice"
-    ){
+    ) {
 
         html += `
 
             <div class="answer-mode-label">
-
                 Choose the correct answer
-
             </div>
 
         `;
 
     }
-    else{
+
+    else {
 
         html += `
 
             <div class="answer-mode-label">
-
                 Type your answer below
-
             </div>
 
         `;
@@ -593,20 +1307,17 @@ function showQuestion(){
     }
 
 
-    /* MULTIPLE CHOICE */
-
-    if(
-        q.answerMode === "choice"
-        &&
+    if (
+        q.answerMode === "choice" &&
         q.options
-    ){
+    ) {
 
         html +=
             `<div class="answer-grid">`;
 
 
         q.options.forEach(
-            option => {
+            function (option) {
 
                 const selected =
                     String(
@@ -615,20 +1326,16 @@ function showQuestion(){
                         ]
                     ) ===
                     String(option)
-                    ? "selected"
-                    : "";
+                        ? "selected"
+                        : "";
 
 
                 html += `
 
                     <button
                         class="answer-btn ${selected}"
-                        onclick="
-                            selectAnswer(
-                                this,
-                                '${escapeString(option)}'
-                            )
-                        ">
+                        onclick="selectAnswer(this, '${escapeString(option)}')"
+                    >
 
                         ${option}
 
@@ -645,10 +1352,7 @@ function showQuestion(){
 
     }
 
-
-    /* FILL IN THE BLANK */
-
-    else{
+    else {
 
         const existing =
             answers[
@@ -663,9 +1367,10 @@ function showQuestion(){
                 <input
                     type="text"
                     id="textAnswer"
-                    value="${existing}"
+                    value="${escapeHTML(existing)}"
                     placeholder="Type your answer"
-                    autocomplete="off">
+                    autocomplete="off"
+                >
 
             </div>
 
@@ -678,23 +1383,20 @@ function showQuestion(){
         html;
 
 
-    /* FOCUS INPUT */
-
     const input =
-        document
-        .getElementById(
+        document.getElementById(
             "textAnswer"
         );
 
 
-    if(input){
+    if (input) {
 
         input.focus();
 
 
         input.addEventListener(
             "input",
-            function(){
+            function () {
 
                 answers[
                     currentQuestion
@@ -707,11 +1409,11 @@ function showQuestion(){
 
         input.addEventListener(
             "keydown",
-            function(event){
+            function (event) {
 
-                if(
+                if (
                     event.key === "Enter"
-                ){
+                ) {
 
                     nextQuestion();
 
@@ -729,9 +1431,13 @@ function showQuestion(){
    ESCAPE STRING
 ===================================================== */
 
-function escapeString(value){
+function escapeString(value) {
 
     return String(value)
+        .replace(
+            /\\/g,
+            "\\\\"
+        )
         .replace(
             /'/g,
             "\\'"
@@ -741,24 +1447,58 @@ function escapeString(value){
 
 
 /* =====================================================
-   SELECT MULTIPLE CHOICE ANSWER
+   ESCAPE HTML
+===================================================== */
+
+function escapeHTML(value) {
+
+    return String(value)
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+
+/* =====================================================
+   SELECT MULTIPLE CHOICE
 ===================================================== */
 
 function selectAnswer(
     button,
     value
-){
+) {
 
     document
-    .querySelectorAll(
-        ".answer-btn"
-    )
-    .forEach(
-        btn =>
-            btn.classList.remove(
-                "selected"
-            )
-    );
+        .querySelectorAll(
+            ".answer-btn"
+        )
+        .forEach(
+            function (btn) {
+
+                btn.classList.remove(
+                    "selected"
+                );
+
+            }
+        );
 
 
     button.classList.add(
@@ -777,16 +1517,15 @@ function selectAnswer(
    SAVE TEXT ANSWER
 ===================================================== */
 
-function saveTextAnswer(){
+function saveTextAnswer() {
 
     const input =
-        document
-        .getElementById(
+        document.getElementById(
             "textAnswer"
         );
 
 
-    if(input){
+    if (input) {
 
         answers[
             currentQuestion
@@ -802,22 +1541,23 @@ function saveTextAnswer(){
    NEXT QUESTION
 ===================================================== */
 
-function nextQuestion(){
+function nextQuestion() {
 
     saveTextAnswer();
 
 
-    if(
+    if (
         currentQuestion <
         questions.length - 1
-    ){
+    ) {
 
         currentQuestion++;
 
         showQuestion();
 
     }
-    else{
+
+    else {
 
         finishTest();
 
@@ -830,14 +1570,14 @@ function nextQuestion(){
    PREVIOUS QUESTION
 ===================================================== */
 
-function previousQuestion(){
+function previousQuestion() {
 
     saveTextAnswer();
 
 
-    if(
+    if (
         currentQuestion > 0
-    ){
+    ) {
 
         currentQuestion--;
 
@@ -852,9 +1592,10 @@ function previousQuestion(){
    FINISH TEST
 ===================================================== */
 
-function finishTest(){
+function finishTest() {
 
     saveTextAnswer();
+
 
     clearInterval(
         testTimer
@@ -865,14 +1606,14 @@ function finishTest(){
 
 
     questions.forEach(
-        (q,index) => {
+        function (q, index) {
 
-            if(
+            if (
                 isCorrectAnswer(
                     answers[index],
                     q.answer
                 )
-            ){
+            ) {
 
                 correct++;
 
@@ -889,69 +1630,102 @@ function finishTest(){
             100
         );
 
-   saveTestProgress(
-       correct,
-       questions.length,
-       percentage
-   );
-   
-    document
-    .getElementById(
-        "testScreen"
-    )
-    .classList.add(
-        "hidden"
-    );
+
+    /* SAVE STUDENT STATISTICS */
+
+    if (studentProfile) {
+
+        studentProfile.testsCompleted =
+            (
+                studentProfile.testsCompleted ||
+                0
+            ) + 1;
+
+
+        studentProfile.questionsAnswered =
+            (
+                studentProfile.questionsAnswered ||
+                0
+            ) + questions.length;
+
+
+        studentProfile.bestScore =
+            Math.max(
+                studentProfile.bestScore || 0,
+                percentage
+            );
+
+
+        localStorage.setItem(
+
+            PROFILE_STORAGE_KEY,
+
+            JSON.stringify(
+                studentProfile
+            )
+
+        );
+
+    }
 
 
     document
-    .getElementById(
-        "resultScreen"
-    )
-    .classList.remove(
-        "hidden"
-    );
+        .getElementById(
+            "testScreen"
+        )
+        .classList.add(
+            "hidden"
+        );
 
 
     document
-    .getElementById(
-        "scorePercent"
-    )
-    .textContent =
-        percentage + "%";
+        .getElementById(
+            "resultScreen"
+        )
+        .classList.remove(
+            "hidden"
+        );
+
+
+    document
+        .getElementById(
+            "scorePercent"
+        )
+        .textContent =
+            percentage + "%";
 
 
     let message;
 
 
-    if(
+    if (
         percentage >= 90
-    ){
+    ) {
 
         message =
             "🏆 Amazing! You are a Math Superstar!";
 
     }
 
-    else if(
+    else if (
         percentage >= 75
-    ){
+    ) {
 
         message =
             "🌟 Great Job! Keep practicing!";
 
     }
 
-    else if(
+    else if (
         percentage >= 60
-    ){
+    ) {
 
         message =
             "👍 Good Work! You are improving!";
 
     }
 
-    else{
+    else {
 
         message =
             "💪 Keep practicing. You can do it!";
@@ -960,23 +1734,23 @@ function finishTest(){
 
 
     document
-    .getElementById(
-        "resultMessage"
-    )
-    .textContent =
-        message;
+        .getElementById(
+            "resultMessage"
+        )
+        .textContent =
+            message;
 
 
     document
-    .getElementById(
-        "resultDetails"
-    )
-    .textContent =
-        "You got " +
-        correct +
-        " out of " +
-        questions.length +
-        " questions correct.";
+        .getElementById(
+            "resultDetails"
+        )
+        .textContent =
+            "You got " +
+            correct +
+            " out of " +
+            questions.length +
+            " questions correct.";
 
 
     createReview();
@@ -991,13 +1765,13 @@ function finishTest(){
 function isCorrectAnswer(
     userAnswer,
     correctAnswer
-){
+) {
 
-    if(
+    if (
         userAnswer === undefined ||
         userAnswer === null ||
         String(userAnswer).trim() === ""
-    ){
+    ) {
 
         return false;
 
@@ -1006,17 +1780,15 @@ function isCorrectAnswer(
 
     const user =
         String(userAnswer)
-        .trim()
-        .toLowerCase();
+            .trim()
+            .toLowerCase();
 
 
     const correct =
         String(correctAnswer)
-        .trim()
-        .toLowerCase();
+            .trim()
+            .toLowerCase();
 
-
-    /* NUMERIC ANSWERS */
 
     const userNumber =
         Number(user);
@@ -1026,13 +1798,11 @@ function isCorrectAnswer(
         Number(correct);
 
 
-    if(
-        !Number.isNaN(userNumber)
-        &&
-        !Number.isNaN(correctNumber)
-        &&
+    if (
+        !Number.isNaN(userNumber) &&
+        !Number.isNaN(correctNumber) &&
         user !== ""
-    ){
+    ) {
 
         return (
             Math.abs(
@@ -1053,11 +1823,10 @@ function isCorrectAnswer(
    REVIEW
 ===================================================== */
 
-function createReview(){
+function createReview() {
 
     const container =
-        document
-        .getElementById(
+        document.getElementById(
             "reviewContainer"
         );
 
@@ -1066,7 +1835,7 @@ function createReview(){
 
 
     questions.forEach(
-        (q,index) => {
+        function (q, index) {
 
             const userAnswer =
                 answers[index] ||
@@ -1090,8 +1859,8 @@ function createReview(){
                 "review-item " +
                 (
                     correct
-                    ? "correct"
-                    : "incorrect"
+                        ? "correct"
+                        : "incorrect"
                 );
 
 
@@ -1100,9 +1869,10 @@ function createReview(){
                 <div class="review-question">
 
                     ${index + 1}.
-                    ${q.question}
+                    ${escapeHTML(q.question)}
 
                 </div>
+
 
                 <div>
 
@@ -1110,20 +1880,23 @@ function createReview(){
 
                     <span class="${
                         correct
-                        ? "correct-answer"
-                        : "wrong-answer"
+                            ? "correct-answer"
+                            : "wrong-answer"
                     }">
 
-                        ${userAnswer}
+                        ${escapeHTML(
+                            userAnswer
+                        )}
 
                     </span>
 
                 </div>
 
+
                 ${
                     correct
-                    ? ""
-                    : `
+                        ? ""
+                        : `
 
                     <div>
 
@@ -1131,7 +1904,9 @@ function createReview(){
 
                         <span class="correct-answer">
 
-                            ${q.answer}
+                            ${escapeHTML(
+                                q.answer
+                            )}
 
                         </span>
 
@@ -1157,7 +1932,7 @@ function createReview(){
    NEW TEST
 ===================================================== */
 
-function newTest(){
+function newTest() {
 
     clearInterval(
         testTimer
@@ -1165,30 +1940,33 @@ function newTest(){
 
 
     document
-    .getElementById(
-        "resultScreen"
-    )
-    .classList.add(
-        "hidden"
-    );
+        .getElementById(
+            "resultScreen"
+        )
+        .classList.add(
+            "hidden"
+        );
 
 
     document
-    .getElementById(
-        "testScreen"
-    )
-    .classList.add(
-        "hidden"
-    );
+        .getElementById(
+            "testScreen"
+        )
+        .classList.add(
+            "hidden"
+        );
 
 
     document
-    .getElementById(
-        "setupScreen"
-    )
-    .classList.remove(
-        "hidden"
-    );
+        .getElementById(
+            "setupScreen"
+        )
+        .classList.remove(
+            "hidden"
+        );
+
+
+    updateStudentUI();
 
 }
 
@@ -1200,7 +1978,7 @@ function newTest(){
 function randomInt(
     min,
     max
-){
+) {
 
     return Math.floor(
         Math.random() *
@@ -1216,28 +1994,31 @@ function randomInt(
 
 function getAvailableTopics(
     grade
-){
+) {
 
-    if(
+    if (
         grade === 1
-    ){
+    ) {
 
         return [
+
             "addition",
             "subtraction",
             "time",
             "comparison",
             "word"
+
         ];
 
     }
 
 
-    if(
+    if (
         grade === 2
-    ){
+    ) {
 
         return [
+
             "addition",
             "subtraction",
             "multiplication",
@@ -1245,16 +2026,18 @@ function getAvailableTopics(
             "time",
             "comparison",
             "word"
+
         ];
 
     }
 
 
-    if(
+    if (
         grade === 3
-    ){
+    ) {
 
         return [
+
             "addition",
             "subtraction",
             "multiplication",
@@ -1263,12 +2046,14 @@ function getAvailableTopics(
             "time",
             "word",
             "comparison"
+
         ];
 
     }
 
 
     return [
+
         "addition",
         "subtraction",
         "multiplication",
@@ -1278,6 +2063,7 @@ function getAvailableTopics(
         "time",
         "word",
         "comparison"
+
     ];
 
 }
@@ -1289,24 +2075,24 @@ function getAvailableTopics(
 
 function additionQuestion(
     grade
-){
+) {
 
     let max;
 
 
-    if(grade === 1)
+    if (grade === 1)
         max = 20;
 
-    else if(grade === 2)
+    else if (grade === 2)
         max = 100;
 
-    else if(grade === 3)
+    else if (grade === 3)
         max = 1000;
 
-    else if(grade === 4)
+    else if (grade === 4)
         max = 10000;
 
-    else if(grade === 5)
+    else if (grade === 5)
         max = 100000;
 
     else
@@ -1333,12 +2119,12 @@ function additionQuestion(
 
     return {
 
-        type:"Addition",
+        type: "Addition",
 
         question:
             `${a} + ${b} = ?`,
 
-        answer:answer,
+        answer: answer,
 
         options:
             makeNumberOptions(
@@ -1356,24 +2142,24 @@ function additionQuestion(
 
 function subtractionQuestion(
     grade
-){
+) {
 
     let max;
 
 
-    if(grade === 1)
+    if (grade === 1)
         max = 20;
 
-    else if(grade === 2)
+    else if (grade === 2)
         max = 100;
 
-    else if(grade === 3)
+    else if (grade === 3)
         max = 1000;
 
-    else if(grade === 4)
+    else if (grade === 4)
         max = 10000;
 
-    else if(grade === 5)
+    else if (grade === 5)
         max = 100000;
 
     else
@@ -1400,12 +2186,12 @@ function subtractionQuestion(
 
     return {
 
-        type:"Subtraction",
+        type: "Subtraction",
 
         question:
             `${a} − ${b} = ?`,
 
-        answer:answer,
+        answer: answer,
 
         options:
             makeNumberOptions(
@@ -1423,48 +2209,49 @@ function subtractionQuestion(
 
 function multiplicationQuestion(
     grade
-){
+) {
 
     let maxA;
+
     let maxB;
 
 
-    if(grade === 1){
+    if (grade === 1) {
 
         maxA = 5;
         maxB = 5;
 
     }
 
-    else if(grade === 2){
+    else if (grade === 2) {
 
         maxA = 10;
         maxB = 10;
 
     }
 
-    else if(grade === 3){
+    else if (grade === 3) {
 
         maxA = 12;
         maxB = 12;
 
     }
 
-    else if(grade === 4){
+    else if (grade === 4) {
 
         maxA = 20;
         maxB = 20;
 
     }
 
-    else if(grade === 5){
+    else if (grade === 5) {
 
         maxA = 50;
         maxB = 20;
 
     }
 
-    else{
+    else {
 
         maxA = 100;
         maxB = 50;
@@ -1492,12 +2279,12 @@ function multiplicationQuestion(
 
     return {
 
-        type:"Multiplication",
+        type: "Multiplication",
 
         question:
             `${a} × ${b} = ?`,
 
-        answer:answer,
+        answer: answer,
 
         options:
             makeNumberOptions(
@@ -1515,36 +2302,36 @@ function multiplicationQuestion(
 
 function divisionQuestion(
     grade
-){
+) {
 
     let divisorMax;
 
 
-    if(
+    if (
         grade <= 2
-    ){
+    ) {
 
         divisorMax = 5;
 
     }
 
-    else if(
+    else if (
         grade === 3
-    ){
+    ) {
 
         divisorMax = 10;
 
     }
 
-    else if(
+    else if (
         grade <= 5
-    ){
+    ) {
 
         divisorMax = 20;
 
     }
 
-    else{
+    else {
 
         divisorMax = 50;
 
@@ -1571,12 +2358,12 @@ function divisionQuestion(
 
     return {
 
-        type:"Division",
+        type: "Division",
 
         question:
             `${dividend} ÷ ${divisor} = ?`,
 
-        answer:answer,
+        answer: answer,
 
         options:
             makeNumberOptions(
@@ -1594,12 +2381,14 @@ function divisionQuestion(
 
 function fractionQuestion(
     grade
-){
+) {
 
     const denominator =
         randomInt(
             2,
-            grade >= 6 ? 12 : 8
+            grade >= 6
+                ? 12
+                : 8
         );
 
 
@@ -1610,13 +2399,13 @@ function fractionQuestion(
         );
 
 
-    if(
+    if (
         grade <= 4
-    ){
+    ) {
 
         return {
 
-            type:"Fractions",
+            type: "Fractions",
 
             question:
                 `Which fraction represents ` +
@@ -1625,11 +2414,16 @@ function fractionQuestion(
             answer:
                 `${numerator}/${denominator}`,
 
-            options:[
+            options: [
+
                 `${numerator}/${denominator}`,
+
                 `${numerator + 1}/${denominator}`,
+
                 `${numerator}/${denominator + 1}`,
+
                 `${denominator}/${numerator}`
+
             ]
 
         };
@@ -1667,13 +2461,13 @@ function fractionQuestion(
 
     return {
 
-        type:"Fractions",
+        type: "Fractions",
 
         question:
             `${numerator}/${denominator} + ` +
             `${n2}/${d2} ≈ ?`,
 
-        answer:answer,
+        answer: answer,
 
         options:
             makeNumberOptions(
@@ -1691,19 +2485,23 @@ function fractionQuestion(
 
 function decimalQuestion(
     grade
-){
+) {
 
     const a =
         randomInt(
             1,
-            grade <= 5 ? 99 : 999
+            grade <= 5
+                ? 99
+                : 999
         ) / 10;
 
 
     const b =
         randomInt(
             1,
-            grade <= 5 ? 99 : 999
+            grade <= 5
+                ? 99
+                : 999
         ) / 10;
 
 
@@ -1715,12 +2513,12 @@ function decimalQuestion(
 
     return {
 
-        type:"Decimals",
+        type: "Decimals",
 
         question:
             `${a} + ${b} = ?`,
 
-        answer:answer,
+        answer: answer,
 
         options:
             makeNumberOptions(
@@ -1738,7 +2536,7 @@ function decimalQuestion(
 
 function wordQuestion(
     grade
-){
+) {
 
     const names = [
 
@@ -1770,21 +2568,24 @@ function wordQuestion(
 
 
     let a;
+
     let b;
+
     let answer;
+
     let question;
 
 
-    if(
+    if (
         operation === 1
-    ){
+    ) {
 
         a =
             randomInt(
                 5,
                 grade <= 2
-                ? 50
-                : 500
+                    ? 50
+                    : 500
             );
 
 
@@ -1792,8 +2593,8 @@ function wordQuestion(
             randomInt(
                 1,
                 grade <= 2
-                ? 20
-                : 300
+                    ? 20
+                    : 300
             );
 
 
@@ -1804,22 +2605,21 @@ function wordQuestion(
         question =
             `${name} has ${a} apples. ` +
             `A friend gives ${b} more apples. ` +
-            `How many apples does ${name} ` +
-            `have now?`;
+            `How many apples does ${name} have now?`;
 
     }
 
 
-    else if(
+    else if (
         operation === 2
-    ){
+    ) {
 
         a =
             randomInt(
                 10,
                 grade <= 2
-                ? 50
-                : 500
+                    ? 50
+                    : 500
             );
 
 
@@ -1842,16 +2642,16 @@ function wordQuestion(
     }
 
 
-    else if(
+    else if (
         operation === 3
-    ){
+    ) {
 
         a =
             randomInt(
                 2,
                 grade <= 3
-                ? 10
-                : 20
+                    ? 10
+                    : 20
             );
 
 
@@ -1859,8 +2659,8 @@ function wordQuestion(
             randomInt(
                 2,
                 grade <= 3
-                ? 10
-                : 20
+                    ? 10
+                    : 20
             );
 
 
@@ -1870,20 +2670,19 @@ function wordQuestion(
 
         question =
             `There are ${a} boxes with ${b} toys ` +
-            `in each box. How many toys are there ` +
-            `altogether?`;
+            `in each box. How many toys are there altogether?`;
 
     }
 
 
-    else{
+    else {
 
         b =
             randomInt(
                 2,
                 grade <= 3
-                ? 8
-                : 20
+                    ? 8
+                    : 20
             );
 
 
@@ -1891,8 +2690,8 @@ function wordQuestion(
             randomInt(
                 2,
                 grade <= 3
-                ? 10
-                : 30
+                    ? 10
+                    : 30
             );
 
 
@@ -1910,11 +2709,11 @@ function wordQuestion(
 
     return {
 
-        type:"Word Problem",
+        type: "Word Problem",
 
-        question:question,
+        question: question,
 
-        answer:answer,
+        answer: answer,
 
         options:
             makeNumberOptions(
@@ -1932,7 +2731,7 @@ function wordQuestion(
 
 function timeQuestion(
     grade
-){
+) {
 
     const hour =
         randomInt(
@@ -1944,17 +2743,18 @@ function timeQuestion(
     let minute;
 
 
-    if(
+    if (
         grade <= 2
-    ){
+    ) {
 
-        const values =
-            [
-                0,
-                15,
-                30,
-                45
-            ];
+        const values = [
+
+            0,
+            15,
+            30,
+            45
+
+        ];
 
 
         minute =
@@ -1967,7 +2767,7 @@ function timeQuestion(
 
     }
 
-    else{
+    else {
 
         minute =
             randomInt(
@@ -1987,16 +2787,16 @@ function timeQuestion(
 
     return {
 
-        type:"Time",
+        type: "Time",
 
         question:
             "What time is shown on the clock?",
 
-        answer:answer,
+        answer: answer,
 
-        hour:hour,
+        hour: hour,
 
-        minute:minute,
+        minute: minute,
 
         options:
             makeTimeOptions(
@@ -2016,16 +2816,18 @@ function timeQuestion(
 function formatTime(
     hour,
     minute
-){
+) {
 
     return (
+
         hour +
         ":" +
         String(minute)
-        .padStart(
-            2,
-            "0"
-        )
+            .padStart(
+                2,
+                "0"
+            )
+
     );
 
 }
@@ -2038,7 +2840,7 @@ function formatTime(
 function createClockHTML(
     hour,
     minute
-){
+) {
 
     const minuteAngle =
         minute * 6;
@@ -2054,19 +2856,18 @@ function createClockHTML(
     let numbers = "";
 
 
-    for(
+    for (
         let i = 1;
         i <= 12;
         i++
-    ){
+    ) {
 
         numbers += `
 
             <div
-                class="clock-number clock-${i}">
-
+                class="clock-number clock-${i}"
+            >
                 ${i}
-
             </div>
 
         `;
@@ -2082,17 +2883,14 @@ function createClockHTML(
 
                 ${numbers}
 
-
                 <div
                     class="hand hour-hand"
                     style="
                         transform:
                         translateX(-50%)
                         rotate(${hourAngle}deg);
-                    ">
-
-                </div>
-
+                    "
+                ></div>
 
                 <div
                     class="hand minute-hand"
@@ -2100,14 +2898,10 @@ function createClockHTML(
                         transform:
                         translateX(-50%)
                         rotate(${minuteAngle}deg);
-                    ">
+                    "
+                ></div>
 
-                </div>
-
-
-                <div class="clock-center">
-
-                </div>
+                <div class="clock-center"></div>
 
             </div>
 
@@ -2125,7 +2919,7 @@ function createClockHTML(
 function makeTimeOptions(
     hour,
     minute
-){
+) {
 
     const correct =
         formatTime(
@@ -2138,9 +2932,9 @@ function makeTimeOptions(
         [correct];
 
 
-    while(
+    while (
         options.length < 4
-    ){
+    ) {
 
         const h =
             randomInt(
@@ -2163,11 +2957,11 @@ function makeTimeOptions(
             );
 
 
-        if(
+        if (
             !options.includes(
                 value
             )
-        ){
+        ) {
 
             options.push(
                 value
@@ -2191,7 +2985,7 @@ function makeTimeOptions(
 
 function makeNumberOptions(
     answer
-){
+) {
 
     const numeric =
         Number(answer);
@@ -2204,11 +2998,10 @@ function makeNumberOptions(
     let safety = 0;
 
 
-    while(
-        options.length < 4
-        &&
+    while (
+        options.length < 4 &&
         safety < 100
-    ){
+    ) {
 
         safety++;
 
@@ -2216,9 +3009,9 @@ function makeNumberOptions(
         let difference;
 
 
-        if(
+        if (
             Math.abs(numeric) < 10
-        ){
+        ) {
 
             difference =
                 randomInt(
@@ -2228,7 +3021,7 @@ function makeNumberOptions(
 
         }
 
-        else{
+        else {
 
             difference =
                 randomInt(
@@ -2250,18 +3043,17 @@ function makeNumberOptions(
             numeric +
             (
                 Math.random() < .5
-                ? -difference
-                : difference
+                    ? -difference
+                    : difference
             );
 
 
-        if(
-            value >= 0
-            &&
+        if (
+            value >= 0 &&
             !options.includes(
                 value
             )
-        ){
+        ) {
 
             options.push(
                 value
@@ -2287,28 +3079,28 @@ function makeNumberOptions(
 
 function comparisonQuestion(
     grade
-){
+) {
 
     let max;
 
 
-    if(
+    if (
         grade <= 2
-    ){
+    ) {
 
         max = 50;
 
     }
 
-    else if(
+    else if (
         grade <= 4
-    ){
+    ) {
 
         max = 1000;
 
     }
 
-    else{
+    else {
 
         max = 100000;
 
@@ -2332,19 +3124,23 @@ function comparisonQuestion(
     let answer;
 
 
-    if(a > b){
+    if (
+        a > b
+    ) {
 
         answer = ">";
 
     }
 
-    else if(a < b){
+    else if (
+        a < b
+    ) {
 
         answer = "<";
 
     }
 
-    else{
+    else {
 
         answer = "=";
 
@@ -2353,17 +3149,19 @@ function comparisonQuestion(
 
     return {
 
-        type:"Compare Numbers",
+        type: "Compare Numbers",
 
         question:
             `${a} &nbsp; ___ &nbsp; ${b}`,
 
-        answer:answer,
+        answer: answer,
 
-        options:[
+        options: [
+
             ">",
             "<",
             "="
+
         ]
 
     };
@@ -2377,440 +3175,16 @@ function comparisonQuestion(
 
 function shuffle(
     array
-){
-
-    return array.sort(
-        () =>
-            Math.random() - .5
-    );
-
-}
-
-
-/* =====================================================
-   INITIALIZE
-===================================================== */
-
-console.log(
-    "Math Adventure loaded successfully."
-);
-
-/* =====================================================
-   SAVE TEST PROGRESS
-===================================================== */
-
-function saveTestProgress(
-    correct,
-    total,
-    percentage
 ) {
 
-    progressData.testsCompleted++;
+    return array.sort(
+        function () {
 
-    progressData.questionsAnswered += total;
-
-    progressData.correctAnswers += correct;
-
-    const topic =
-        selectedTopic === "mixed"
-            ? "Mixed Practice"
-            : selectedTopic;
-
-    if (!progressData.topicStats[topic]) {
-
-        progressData.topicStats[topic] = {
-            correct: 0,
-            total: 0
-        };
-
-    }
-
-    progressData.topicStats[topic].correct += correct;
-
-    progressData.topicStats[topic].total += total;
-
-    progressData.recentTests.unshift({
-
-        date: new Date().toLocaleString(),
-
-        topic: topic,
-
-        correct: correct,
-
-        total: total,
-
-        percentage: percentage
-
-    });
-
-    progressData.recentTests =
-        progressData.recentTests.slice(0, 10);
-
-    updatePracticeStreak();
-
-    localStorage.setItem(
-        "mathAdventureProgress",
-        JSON.stringify(progressData)
-    );
-
-}
-
-
-/* =====================================================
-   PRACTICE STREAK
-===================================================== */
-
-function updatePracticeStreak() {
-
-    const today =
-        new Date().toISOString().split("T")[0];
-
-    const lastDate =
-        progressData.lastPracticeDate;
-
-    if (!lastDate) {
-
-        progressData.streak = 1;
-
-    }
-
-    else if (lastDate === today) {
-
-        return;
-
-    }
-
-    else {
-
-        const previous =
-            new Date(lastDate);
-
-        const current =
-            new Date(today);
-
-        const difference =
-            Math.floor(
-                (
-                    current - previous
-                ) /
-                (
-                    1000 * 60 * 60 * 24
-                )
+            return (
+                Math.random() - .5
             );
-
-        if (difference === 1) {
-
-            progressData.streak++;
-
-        }
-        else {
-
-            progressData.streak = 1;
-
-        }
-
-    }
-
-    progressData.lastPracticeDate = today;
-
-}
-
-
-/* =====================================================
-   SHOW PROGRESS
-===================================================== */
-
-function showProgress() {
-
-    document
-        .getElementById("setupScreen")
-        .classList.add("hidden");
-
-    document
-        .getElementById("testScreen")
-        .classList.add("hidden");
-
-    document
-        .getElementById("resultScreen")
-        .classList.add("hidden");
-
-    document
-        .getElementById("progressScreen")
-        .classList.remove("hidden");
-
-    updateProgressDashboard();
-
-}
-
-
-/* =====================================================
-   UPDATE DASHBOARD
-===================================================== */
-
-function updateProgressDashboard() {
-
-    document
-        .getElementById("testsCompleted")
-        .textContent =
-        progressData.testsCompleted;
-
-    document
-        .getElementById("questionsAnswered")
-        .textContent =
-        progressData.questionsAnswered;
-
-    document
-        .getElementById("correctAnswers")
-        .textContent =
-        progressData.correctAnswers;
-
-
-    let accuracy = 0;
-
-    if (
-        progressData.questionsAnswered > 0
-    ) {
-
-        accuracy = Math.round(
-            progressData.correctAnswers /
-            progressData.questionsAnswered *
-            100
-        );
-
-    }
-
-    document
-        .getElementById("overallAccuracy")
-        .textContent =
-        accuracy + "%";
-
-
-    document
-        .getElementById("practiceStreak")
-        .textContent =
-        progressData.streak;
-
-
-    updateTopicProgress();
-
-    updateRecentTests();
-
-}
-
-
-/* =====================================================
-   TOPIC PROGRESS
-===================================================== */
-
-function updateTopicProgress() {
-
-    const container =
-        document.getElementById(
-            "topicProgressContainer"
-        );
-
-    container.innerHTML = "";
-
-    const topics =
-        progressData.topicStats;
-
-    if (
-        Object.keys(topics).length === 0
-    ) {
-
-        container.innerHTML = `
-            <div class="empty-progress">
-                Complete your first test
-                to see topic progress! 🌟
-            </div>
-        `;
-
-        return;
-
-    }
-
-
-    Object.keys(topics).forEach(
-        topic => {
-
-            const data =
-                topics[topic];
-
-            const percentage =
-                Math.round(
-                    data.correct /
-                    data.total *
-                    100
-                );
-
-
-            container.innerHTML += `
-
-                <div class="topic-progress">
-
-                    <div class="topic-progress-header">
-
-                        <span>
-                            ${formatTopicName(topic)}
-                        </span>
-
-                        <span>
-                            ${percentage}%
-                        </span>
-
-                    </div>
-
-                    <div class="topic-progress-bar">
-
-                        <div
-                            class="topic-progress-fill"
-                            style="width:${percentage}%">
-                        </div>
-
-                    </div>
-
-                </div>
-
-            `;
 
         }
     );
 
 }
-
-
-/* =====================================================
-   RECENT TESTS
-===================================================== */
-
-function updateRecentTests() {
-
-    const container =
-        document.getElementById(
-            "recentTests"
-        );
-
-    container.innerHTML = "";
-
-
-    if (
-        progressData.recentTests.length === 0
-    ) {
-
-        container.innerHTML = `
-            <div class="empty-progress">
-                No tests completed yet. 🚀
-            </div>
-        `;
-
-        return;
-
-    }
-
-
-    progressData.recentTests.forEach(
-        test => {
-
-            container.innerHTML += `
-
-                <div class="recent-test">
-
-                    <div class="recent-test-title">
-
-                        ${formatTopicName(test.topic)}
-
-                        — ${test.percentage}%
-
-                    </div>
-
-                    <div class="recent-test-details">
-
-                        ${test.correct}
-                        / ${test.total}
-                        correct
-
-                        · ${test.date}
-
-                    </div>
-
-                </div>
-
-            `;
-
-        }
-    );
-
-}
-
-
-/* =====================================================
-   FORMAT TOPIC NAME
-===================================================== */
-
-function formatTopicName(topic) {
-
-    if (!topic) {
-        return "";
-    }
-
-    return topic
-        .charAt(0)
-        .toUpperCase()
-        + topic.slice(1);
-
-}
-
-document.addEventListener(
-    "DOMContentLoaded",
-    function() {
-
-        const progressButton =
-            document.getElementById(
-                "progressButton"
-            );
-
-        const backButton =
-            document.getElementById(
-                "backToPracticeButton"
-            );
-
-
-        if (progressButton) {
-
-            progressButton.addEventListener(
-                "click",
-                showProgress
-            );
-
-        }
-
-
-        if (backButton) {
-
-            backButton.addEventListener(
-                "click",
-                function() {
-
-                    document
-                        .getElementById(
-                            "progressScreen"
-                        )
-                        .classList.add(
-                            "hidden"
-                        );
-
-                    document
-                        .getElementById(
-                            "setupScreen"
-                        )
-                        .classList.remove(
-                            "hidden"
-                        );
-
-                }
-            );
-
-        }
-
-    }
-);
