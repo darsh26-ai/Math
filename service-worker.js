@@ -3,7 +3,7 @@
 // Service Worker
 // =====================================================
 
-const CACHE_NAME = "math-adventure-v1";
+const CACHE_NAME = "math-adventure-v2";
 
 const STATIC_FILES = [
     "./",
