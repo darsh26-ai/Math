@@ -22,8 +22,11 @@
 
         <header>
             <h1>🧮 Math Adventure</h1>
-
             <p>Fun Math Practice for Grades 1–7 ⭐</p>
+        
+            <button id="progressButton" class="header-progress-btn">
+                📊 My Progress
+            </button>
         </header>
 
         <div class="container">
@@ -131,6 +134,92 @@
                 </div>
 
                 <button class="main-btn" onclick="startTest()">🚀 Start Math Test</button>
+            </div>
+
+<!-- =====================================================
+     Progress Screen
+===================================================== -->
+
+            <div id="progressScreen" class="card hidden">
+
+                <div class="progress-dashboard">
+            
+                    <h2>📊 My Math Progress</h2>
+            
+                    <p class="progress-subtitle">
+                        Keep practicing and watch your math skills grow! 🌟
+                    </p>
+            
+                    <div class="stats-grid">
+            
+                        <div class="stat-card">
+                            <div class="stat-icon">📝</div>
+                            <div class="stat-value" id="testsCompleted">0</div>
+                            <div class="stat-label">Tests Completed</div>
+                        </div>
+            
+                        <div class="stat-card">
+                            <div class="stat-icon">❓</div>
+                            <div class="stat-value" id="questionsAnswered">0</div>
+                            <div class="stat-label">Questions Answered</div>
+                        </div>
+            
+                        <div class="stat-card">
+                            <div class="stat-icon">✅</div>
+                            <div class="stat-value" id="correctAnswers">0</div>
+                            <div class="stat-label">Correct Answers</div>
+                        </div>
+            
+                        <div class="stat-card">
+                            <div class="stat-icon">🎯</div>
+                            <div class="stat-value" id="overallAccuracy">0%</div>
+                            <div class="stat-label">Accuracy</div>
+                        </div>
+            
+                    </div>
+            
+                    <div class="streak-card">
+            
+                        <div class="streak-icon">🔥</div>
+            
+                        <div>
+                            <div class="streak-title">
+                                Practice Streak
+                            </div>
+            
+                            <div class="streak-value">
+                                <span id="practiceStreak">0</span> days
+                            </div>
+                        </div>
+            
+                    </div>
+            
+                    <div class="topic-progress-section">
+            
+                        <h3>📚 Topic Performance</h3>
+            
+                        <div id="topicProgressContainer"></div>
+            
+                    </div>
+            
+                    <div class="recent-section">
+            
+                        <h3>🕒 Recent Tests</h3>
+            
+                        <div id="recentTests"></div>
+            
+                    </div>
+            
+                    <button
+                        class="main-btn"
+                        id="backToPracticeButton">
+            
+                        🚀 Back to Practice
+            
+                    </button>
+            
+                </div>
+            
             </div>
 
 <!-- =====================================================
