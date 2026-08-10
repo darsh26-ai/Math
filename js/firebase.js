@@ -87,3 +87,14 @@ export {
     serverTimestamp
 
 };
+
+const FILES_TO_CACHE = [
+    "./",
+    "./index.html",
+    "./css/style.css",
+    "./js/app.js",
+    "./js/firebase.js",
+    "./manifest.json",
+    "./assets/icons/icon-192.png",
+    "./assets/icons/icon-512.png"
+];
