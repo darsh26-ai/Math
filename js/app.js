@@ -14,6 +14,21 @@ let testTimer = null;
 
 let remainingSeconds = 0;
 
+/* =====================================================
+   PROGRESS DATA
+===================================================== */
+
+let progressData = JSON.parse(
+    localStorage.getItem("mathAdventureProgress")
+) || {
+    testsCompleted: 0,
+    questionsAnswered: 0,
+    correctAnswers: 0,
+    topicStats: {},
+    recentTests: [],
+    lastPracticeDate: null,
+    streak: 0
+};
 
 /* =====================================================
    TOPIC BUTTONS
@@ -874,7 +889,12 @@ function finishTest(){
             100
         );
 
-
+   saveTestProgress(
+       correct,
+       questions.length,
+       percentage
+   );
+   
     document
     .getElementById(
         "testScreen"
@@ -2373,4 +2393,424 @@ function shuffle(
 
 console.log(
     "Math Adventure loaded successfully."
+);
+
+/* =====================================================
+   SAVE TEST PROGRESS
+===================================================== */
+
+function saveTestProgress(
+    correct,
+    total,
+    percentage
+) {
+
+    progressData.testsCompleted++;
+
+    progressData.questionsAnswered += total;
+
+    progressData.correctAnswers += correct;
+
+    const topic =
+        selectedTopic === "mixed"
+            ? "Mixed Practice"
+            : selectedTopic;
+
+    if (!progressData.topicStats[topic]) {
+
+        progressData.topicStats[topic] = {
+            correct: 0,
+            total: 0
+        };
+
+    }
+
+    progressData.topicStats[topic].correct += correct;
+
+    progressData.topicStats[topic].total += total;
+
+    progressData.recentTests.unshift({
+
+        date: new Date().toLocaleString(),
+
+        topic: topic,
+
+        correct: correct,
+
+        total: total,
+
+        percentage: percentage
+
+    });
+
+    progressData.recentTests =
+        progressData.recentTests.slice(0, 10);
+
+    updatePracticeStreak();
+
+    localStorage.setItem(
+        "mathAdventureProgress",
+        JSON.stringify(progressData)
+    );
+
+}
+
+
+/* =====================================================
+   PRACTICE STREAK
+===================================================== */
+
+function updatePracticeStreak() {
+
+    const today =
+        new Date().toISOString().split("T")[0];
+
+    const lastDate =
+        progressData.lastPracticeDate;
+
+    if (!lastDate) {
+
+        progressData.streak = 1;
+
+    }
+
+    else if (lastDate === today) {
+
+        return;
+
+    }
+
+    else {
+
+        const previous =
+            new Date(lastDate);
+
+        const current =
+            new Date(today);
+
+        const difference =
+            Math.floor(
+                (
+                    current - previous
+                ) /
+                (
+                    1000 * 60 * 60 * 24
+                )
+            );
+
+        if (difference === 1) {
+
+            progressData.streak++;
+
+        }
+        else {
+
+            progressData.streak = 1;
+
+        }
+
+    }
+
+    progressData.lastPracticeDate = today;
+
+}
+
+
+/* =====================================================
+   SHOW PROGRESS
+===================================================== */
+
+function showProgress() {
+
+    document
+        .getElementById("setupScreen")
+        .classList.add("hidden");
+
+    document
+        .getElementById("testScreen")
+        .classList.add("hidden");
+
+    document
+        .getElementById("resultScreen")
+        .classList.add("hidden");
+
+    document
+        .getElementById("progressScreen")
+        .classList.remove("hidden");
+
+    updateProgressDashboard();
+
+}
+
+
+/* =====================================================
+   UPDATE DASHBOARD
+===================================================== */
+
+function updateProgressDashboard() {
+
+    document
+        .getElementById("testsCompleted")
+        .textContent =
+        progressData.testsCompleted;
+
+    document
+        .getElementById("questionsAnswered")
+        .textContent =
+        progressData.questionsAnswered;
+
+    document
+        .getElementById("correctAnswers")
+        .textContent =
+        progressData.correctAnswers;
+
+
+    let accuracy = 0;
+
+    if (
+        progressData.questionsAnswered > 0
+    ) {
+
+        accuracy = Math.round(
+            progressData.correctAnswers /
+            progressData.questionsAnswered *
+            100
+        );
+
+    }
+
+    document
+        .getElementById("overallAccuracy")
+        .textContent =
+        accuracy + "%";
+
+
+    document
+        .getElementById("practiceStreak")
+        .textContent =
+        progressData.streak;
+
+
+    updateTopicProgress();
+
+    updateRecentTests();
+
+}
+
+
+/* =====================================================
+   TOPIC PROGRESS
+===================================================== */
+
+function updateTopicProgress() {
+
+    const container =
+        document.getElementById(
+            "topicProgressContainer"
+        );
+
+    container.innerHTML = "";
+
+    const topics =
+        progressData.topicStats;
+
+    if (
+        Object.keys(topics).length === 0
+    ) {
+
+        container.innerHTML = `
+            <div class="empty-progress">
+                Complete your first test
+                to see topic progress! 🌟
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    Object.keys(topics).forEach(
+        topic => {
+
+            const data =
+                topics[topic];
+
+            const percentage =
+                Math.round(
+                    data.correct /
+                    data.total *
+                    100
+                );
+
+
+            container.innerHTML += `
+
+                <div class="topic-progress">
+
+                    <div class="topic-progress-header">
+
+                        <span>
+                            ${formatTopicName(topic)}
+                        </span>
+
+                        <span>
+                            ${percentage}%
+                        </span>
+
+                    </div>
+
+                    <div class="topic-progress-bar">
+
+                        <div
+                            class="topic-progress-fill"
+                            style="width:${percentage}%">
+                        </div>
+
+                    </div>
+
+                </div>
+
+            `;
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   RECENT TESTS
+===================================================== */
+
+function updateRecentTests() {
+
+    const container =
+        document.getElementById(
+            "recentTests"
+        );
+
+    container.innerHTML = "";
+
+
+    if (
+        progressData.recentTests.length === 0
+    ) {
+
+        container.innerHTML = `
+            <div class="empty-progress">
+                No tests completed yet. 🚀
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    progressData.recentTests.forEach(
+        test => {
+
+            container.innerHTML += `
+
+                <div class="recent-test">
+
+                    <div class="recent-test-title">
+
+                        ${formatTopicName(test.topic)}
+
+                        — ${test.percentage}%
+
+                    </div>
+
+                    <div class="recent-test-details">
+
+                        ${test.correct}
+                        / ${test.total}
+                        correct
+
+                        · ${test.date}
+
+                    </div>
+
+                </div>
+
+            `;
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   FORMAT TOPIC NAME
+===================================================== */
+
+function formatTopicName(topic) {
+
+    if (!topic) {
+        return "";
+    }
+
+    return topic
+        .charAt(0)
+        .toUpperCase()
+        + topic.slice(1);
+
+}
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function() {
+
+        const progressButton =
+            document.getElementById(
+                "progressButton"
+            );
+
+        const backButton =
+            document.getElementById(
+                "backToPracticeButton"
+            );
+
+
+        if (progressButton) {
+
+            progressButton.addEventListener(
+                "click",
+                showProgress
+            );
+
+        }
+
+
+        if (backButton) {
+
+            backButton.addEventListener(
+                "click",
+                function() {
+
+                    document
+                        .getElementById(
+                            "progressScreen"
+                        )
+                        .classList.add(
+                            "hidden"
+                        );
+
+                    document
+                        .getElementById(
+                            "setupScreen"
+                        )
+                        .classList.remove(
+                            "hidden"
+                        );
+
+                }
+            );
+
+        }
+
+    }
 );
