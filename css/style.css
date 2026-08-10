@@ -2130,3 +2130,391 @@ header p {
     }
 
 }
+
+/* =====================================================
+   FIREBASE AUTHENTICATION
+===================================================== */
+
+.auth-card {
+    max-width: 520px;
+    margin: 30px auto;
+    text-align: center;
+}
+
+.auth-icon {
+    font-size: 60px;
+    margin-bottom: 10px;
+}
+
+.auth-title {
+    font-size: 30px;
+    margin-bottom: 8px;
+    color: #334155;
+}
+
+.auth-subtitle {
+    color: #64748b;
+    margin-bottom: 25px;
+}
+
+.auth-form {
+    text-align: left;
+}
+
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #334155;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 14px;
+    border: 2px solid #dbe3ec;
+    border-radius: 12px;
+    font-size: 16px;
+    background: white;
+    outline: none;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: #4f8cff;
+    box-shadow: 0 0 0 4px rgba(79, 140, 255, .12);
+}
+
+.auth-divider {
+    margin: 25px 0 18px;
+    border-top: 1px solid #e2e8f0;
+    position: relative;
+}
+
+.auth-divider span {
+    position: relative;
+    top: -11px;
+    background: #77dd77;
+    padding: 0 12px;
+    color: #64748b;
+}
+
+.secondary-btn {
+    width: 100%;
+    border: 2px solid #4f8cff;
+    padding: 14px;
+    margin-top: 10px;
+    border-radius: 12px;
+    background: white;
+    color: #4f8cff;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.secondary-btn:hover {
+    background: #eef5ff;
+}
+
+.auth-error {
+    background: #fff1f2;
+    color: #be123c;
+    border: 1px solid #fecdd3;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+
+/* =====================================================
+   AVATARS
+===================================================== */
+
+.avatar-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+}
+
+.avatar-btn {
+    border: 2px solid #e2e8f0;
+    background: white;
+    border-radius: 14px;
+    padding: 10px;
+    font-size: 30px;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.avatar-btn:hover {
+    transform: translateY(-2px);
+    border-color: #4f8cff;
+}
+
+.avatar-btn.selected {
+    background: #eef5ff;
+    border-color: #4f8cff;
+    box-shadow: 0 0 0 3px rgba(79, 140, 255, .15);
+}
+
+
+/* =====================================================
+   DASHBOARD
+===================================================== */
+
+.dashboard-welcome {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.dashboard-welcome h2 {
+    margin-bottom: 5px;
+    color: #334155;
+}
+
+.dashboard-welcome p {
+    color: #64748b;
+}
+
+.dashboard-title {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #334155;
+}
+
+.profile-summary {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: #fff5fa;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 45px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.08);
+}
+
+.profile-info h3 {
+    font-size: 24px;
+    margin-bottom: 6px;
+}
+
+.profile-info p {
+    color: #64748b;
+    font-weight: bold;
+}
+
+.progress-section {
+    margin-top: 15px;
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.progress-header span {
+    font-weight: bold;
+    color: #4f8cff;
+}
+
+.dashboard-progress {
+    height: 18px;
+    background: #e5e7eb;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.dashboard-progress-bar {
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        #4f8cff,
+        #7657e8
+    );
+    border-radius: 20px;
+    transition: width .5s ease;
+}
+
+
+/* =====================================================
+   STATISTICS
+===================================================== */
+
+.section-title {
+    margin-bottom: 20px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+.stat-card {
+    background: #fff;
+    border: 2px solid #e2e8f0;
+    border-radius: 15px;
+    padding: 20px 10px;
+    text-align: center;
+}
+
+.stat-icon {
+    font-size: 30px;
+    margin-bottom: 8px;
+}
+
+.stat-number {
+    font-size: 28px;
+    font-weight: bold;
+    color: #4f8cff;
+}
+
+.stat-label {
+    color: #64748b;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+
+/* =====================================================
+   TOPIC PROGRESS
+===================================================== */
+
+.topic-progress-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.topic-progress-item {
+    display: grid;
+    grid-template-columns: 170px 1fr 55px;
+    align-items: center;
+    gap: 12px;
+    font-weight: bold;
+}
+
+.topic-progress {
+    height: 13px;
+    background: #e5e7eb;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.topic-progress-bar {
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        #4f8cff,
+        #7657e8
+    );
+    border-radius: 20px;
+    transition: width .5s ease;
+}
+
+.topic-progress-item strong {
+    text-align: right;
+    color: #4f8cff;
+}
+
+
+/* =====================================================
+   LOGOUT
+===================================================== */
+
+.logout-btn {
+    border: none;
+    border-radius: 10px;
+    padding: 12px 18px;
+    background: #fff1f2;
+    color: #dc2626;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.logout-btn:hover {
+    background: #ffe4e6;
+}
+
+.profile-action-btn {
+    width: 100%;
+    border: 2px solid #dbe3ec;
+    padding: 14px;
+    border-radius: 12px;
+    background: white;
+    color: #334155;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.profile-action-btn:hover {
+    border-color: #4f8cff;
+    background: #eef5ff;
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media(max-width:600px) {
+
+    .auth-card {
+        margin-top: 15px;
+    }
+
+    .avatar-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .dashboard-welcome {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .logout-btn {
+        width: 100%;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .topic-progress-item {
+        grid-template-columns: 1fr;
+        gap: 5px;
+    }
+
+    .topic-progress-item strong {
+        text-align: left;
+    }
+
+    .profile-summary {
+        padding: 15px;
+    }
+
+}
+
+
